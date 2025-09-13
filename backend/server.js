@@ -87,13 +87,13 @@ app.get('/api/sessions/:userId', async (req, res) => {
 // Admin: list users with last session
 app.get('/api/admin/users', async (req, res) => {
   try {
-    const [rows] = await pool.query(\`
-      SELECT u.id, u.name, u.role, u.nfc_tag,
+    const [rows] = await pool.query(
+      `SELECT u.id, u.name, u.role, u.nfc_tag,
         (SELECT start_time FROM work_sessions ws WHERE ws.user_id = u.id ORDER BY ws.start_time DESC LIMIT 1) AS last_start,
         (SELECT end_time FROM work_sessions ws WHERE ws.user_id = u.id ORDER BY ws.start_time DESC LIMIT 1) AS last_end
       FROM users u
-      ORDER BY u.name ASC
-    \`);
+      ORDER BY u.name ASC`
+    );
     res.json(rows);
   } catch (err) {
     console.error(err);
