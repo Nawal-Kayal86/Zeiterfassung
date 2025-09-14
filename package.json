@@ -1,0 +1,24 @@
+{
+  "name": "zeiterfassung",
+  "version": "1.0.0",
+  "description": "# Zeiterfassung (Vue + Node/Express + MySQL)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nawal-Kayal86/Zeiterfassung.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Nawal-Kayal86/Zeiterfassung/issues"
+  },
+  "homepage": "https://github.com/Nawal-Kayal86/Zeiterfassung#readme"
+}
