@@ -1,5 +1,5 @@
 <template >
-  <div class="d-flex justify-content-center align-items-center vh-100 bg-light" id="login-page">
+  <div class="d-flex justify-content-center align-items-center vh-100 bg-light" >
     <div class="card shadow-sm p-4" style="max-width: 400px; width: 100%;">
       <div class="text-center mb-4">
         <h2 class="card-title">Login</h2>
@@ -59,9 +59,5 @@ export default {
 body {
   margin: 0;
   padding: 0;
-}
-#login-page {
-  padding: 0;
-  margin: 0;
 }
 </style>
