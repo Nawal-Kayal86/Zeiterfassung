@@ -1,33 +1,35 @@
-<template>
-  <div class="login">
-    <h2>Login</h2>
-    <form @submit.prevent="login">
-      <input v-model="name" placeholder="Name" required />
-      <input v-model="password" type="password" placeholder="Passwort" required />
-      <button type="submit">Login</button>
-    </form>
-    <p v-if="error" style="color:red">{{ error }}</p>
-  </div>
-
-<template>
-  <div class="container mt-5">
-    <h2 class="mb-4">Login</h2>
-    <form @submit.prevent="login">
-      <div class="mb-3">
-        <label class="form-label">Name</label>
-        <input v-model="name" class="form-control" placeholder="Name" required />
+<template >
+  <div class="d-flex justify-content-center align-items-center vh-100 bg-light" id="login-page">
+    <div class="card shadow-sm p-4" style="max-width: 400px; width: 100%;">
+      <div class="text-center mb-4">
+        <h2 class="card-title">Login</h2>
       </div>
-      <div class="mb-3">
-        <label class="form-label">Passwort</label>
-        <input v-model="password" type="password" class="form-control" placeholder="Passwort" />
-      </div>
-      <button type="submit" class="btn btn-primary">Login</button>
-      <p v-if="error" class="text-danger mt-2">{{ error }}</p>
-    </form>
+      <form @submit.prevent="login">
+        <div class="mb-3">
+          <label class="form-label">Name</label>
+          <input
+            v-model="name"
+            type="text"
+            class="form-control"
+            placeholder="Dein Name"
+            required
+          />
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Passwort</label>
+          <input
+            v-model="password"
+            type="password"
+            class="form-control"
+            placeholder="Passwort"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+        <p v-if="error" class="text-danger mt-3 text-center">{{ error }}</p>
+      </form>
+    </div>
   </div>
-</template>
-
-
 </template>
 
 <script>
@@ -52,3 +54,14 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+body {
+  margin: 0;
+  padding: 0;
+}
+#login-page {
+  padding: 0;
+  margin: 0;
+}
+</style>
