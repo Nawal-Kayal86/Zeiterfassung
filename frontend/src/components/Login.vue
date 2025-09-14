@@ -3,7 +3,7 @@
     <h2>Login</h2>
     <form @submit.prevent="login">
       <input v-model="name" placeholder="Name" required />
-      <input v-model="password" type="password" placeholder="Passwort"  />
+      <input v-model="password" type="password" placeholder="Passwort" required />
       <button type="submit">Login</button>
     </form>
     <p v-if="error" style="color:red">{{ error }}</p>

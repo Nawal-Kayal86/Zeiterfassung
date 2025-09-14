@@ -4,17 +4,33 @@ dotenv.config();
 
 let pool;
 
+// export async function initDB() {
+//   if (!pool) {
+//     pool = await mysql.createPool({
+//       host: process.env.DB_HOST || 'localhost',
+//       user: process.env.DB_USER || 'root',
+//       password: process.env.DB_PASS || '',
+//       database: process.env.DB_NAME || 'zeiterfassung',
+//       waitForConnections: true,
+//       connectionLimit: 10,
+//       queueLimit: 0
+//     });
+//   }
+//   return pool;
+// }
+
 export async function initDB() {
   if (!pool) {
     pool = await mysql.createPool({
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASS || '',
-      database: process.env.DB_NAME || 'zeiterfassung',
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT || 3306, // Railway Port benutzen
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0
     });
   }
-  return pool;
+    return pool;
 }
