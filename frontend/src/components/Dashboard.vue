@@ -35,6 +35,28 @@
       </form>
     </div>
 
+    <!-- Arbeitszeiten anzeigen -->
+    <div class="card p-3 mb-4">
+      <h5 class="card-title mb-3">Meine Arbeitszeiten</h5>
+      <input v-model="filter" type="text" class="form-control mb-3" placeholder="Filtern nach Datum oder Zeit" />
+      <table class="table table-striped table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>Datum</th>
+            <th>Startzeit</th>
+            <th>Endzeit</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="w in filteredWork" :key="w.start_time">
+            <td>{{ formatDate(w.start_time) }}</td>
+            <td>{{ formatTime(w.start_time) }}</td>
+            <td>{{ formatTime(w.end_time) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- Admin-Link -->
     <div v-if="user?.role === 'admin'">
       <router-link class="btn btn-outline-primary" to="/admin">Zur Admin-Seite</router-link>
@@ -51,18 +73,35 @@ export default {
     return {
       user: null,
       manual: { date: '', start: '', end: '' },
-      message: { text: '', type: 'success' } // für Meldungen
+      message: { text: '', type: 'success' },
+      workSessions: [],
+      filter: ''
     }
   },
-  created() {
+  async created() {
     this.user = JSON.parse(localStorage.getItem('user'))
     if (!this.user) router.push('/login')
+
+    // Arbeitszeiten laden (nur eigene für Mitarbeiter)
+    const res = await api.get('/work-sessions')
+    this.workSessions = res.data
+  },
+  computed: {
+    filteredWork() {
+      const f = this.filter.toLowerCase()
+      return this.workSessions.filter(w =>
+        (w.start_time && this.formatDate(w.start_time).includes(f)) ||
+        (w.start_time && this.formatTime(w.start_time).includes(f)) ||
+        (w.end_time && this.formatTime(w.end_time).includes(f))
+      )
+    }
   },
   methods: {
     async start() {
       try {
         await api.post('/start')
         this.showMessage('Arbeitsbeginn erfasst', 'success')
+        await this.loadWorkSessions()
       } catch {
         this.showMessage('Fehler beim Erfassen des Arbeitsbeginns', 'danger')
       }
@@ -71,6 +110,7 @@ export default {
       try {
         await api.post('/stop')
         this.showMessage('Arbeitsende erfasst', 'success')
+        await this.loadWorkSessions()
       } catch {
         this.showMessage('Fehler beim Erfassen des Arbeitsendes', 'danger')
       }
@@ -80,9 +120,14 @@ export default {
         await api.post('/manual-time', this.manual)
         this.showMessage('Arbeitszeit manuell eingetragen', 'success')
         this.manual = { date: '', start: '', end: '' }
+        await this.loadWorkSessions()
       } catch {
         this.showMessage('Fehler beim Eintragen der Zeit', 'danger')
       }
+    },
+    async loadWorkSessions() {
+      const res = await api.get('/work-sessions')
+      this.workSessions = res.data
     },
     logout() {
       localStorage.removeItem('token')
@@ -91,33 +136,23 @@ export default {
     },
     showMessage(text, type = 'success') {
       this.message = { text, type }
-      setTimeout(() => {
-        this.message.text = ''
-      }, 4000) // nach 4 Sekunden verschwindet die Meldung
+      setTimeout(() => { this.message.text = '' }, 4000)
+    },
+    formatDate(iso) {
+      if (!iso) return '-'
+      return new Date(iso).toLocaleDateString()
+    },
+    formatTime(iso) {
+      if (!iso) return '-'
+      return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   }
 }
 </script>
 
 <style scoped>
-body {
-  margin: 0;
-}
-
-h2 {
-  color: #333;
-}
-
 .card {
-  background-color: #f8f9fa;
   border-radius: 10px;
-}
-
-.btn {
-  min-width: 120px;
-}
-
-.alert {
-  max-width: 400px;
+  background-color: #f8f9fa;
 }
 </style>

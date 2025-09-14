@@ -111,22 +111,76 @@ app.post("/api/stop", auth(), async (req, res) => {
   }
 });
 
-// Admin-Route: Liste aller User + letzte Zeiten
+// Admin: alle Arbeitszeiten aller User
 app.get("/api/admin/users", auth("admin"), async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT u.id, u.name, u.role,
-        (SELECT start_time FROM work_sessions ws WHERE ws.user_id = u.id ORDER BY ws.start_time DESC LIMIT 1) AS last_start,
-        (SELECT end_time FROM work_sessions ws WHERE ws.user_id = u.id ORDER BY ws.start_time DESC LIMIT 1) AS last_end
+      SELECT u.id AS user_id, u.name, u.role,
+             ws.start_time, ws.end_time
       FROM users u
-      ORDER BY u.name ASC
-    `);
+      LEFT JOIN work_sessions ws ON ws.user_id = u.id
+      ORDER BY u.name ASC, ws.start_time DESC
+    `)
+    res.json(rows)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: "DB error" })
+  }
+})
+
+
+// Manuelle Arbeitszeit (geschützt, nur eingeloggte User)
+app.post("/api/manual-time", auth(), async (req, res) => {
+  const { date, start, end } = req.body;
+
+  if (!date || !start || !end) {
+    return res.status(400).json({ error: "Alle Felder sind erforderlich" });
+  }
+
+  try {
+    // Kombiniere Datum + Zeit zu MySQL DATETIME
+    const startDateTime = `${date} ${start}:00`;
+    const endDateTime = `${date} ${end}:00`;
+
+    await pool.query(
+      "INSERT INTO work_sessions (user_id, start_time, end_time) VALUES (?, ?, ?)",
+      [req.user.id, startDateTime, endDateTime]
+    );
+
+    res.json({ message: "Arbeitszeit manuell eingetragen" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+// Alle Arbeitszeiten für aktuellen User (Admin kann alle sehen)
+app.get("/api/work-sessions", auth(), async (req, res) => {
+  try {
+    let query = `
+      SELECT u.id AS user_id, u.name, u.role,
+             ws.start_time, ws.end_time
+      FROM users u
+      LEFT JOIN work_sessions ws ON ws.user_id = u.id
+    `;
+    const params = [];
+
+    // Wenn kein Admin → nur eigene Einträge
+    if (req.user.role !== 'admin') {
+      query += ` WHERE u.id = ?`;
+      params.push(req.user.id);
+    }
+
+    query += ` ORDER BY u.name ASC, ws.start_time DESC`;
+
+    const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "DB error" });
   }
 });
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Backend läuft auf http://localhost:" + PORT));

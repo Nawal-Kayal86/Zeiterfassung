@@ -1,9 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
+
   { path: '/login', component: () => import('./components/Login.vue') },
   { path: '/', component: () => import('./components/Dashboard.vue'), meta: { requiresAuth: true } },
   { path: '/admin', component: () => import('./components/Admin.vue'), meta: { requiresAuth: true } },
+  // { path: '/my-work-sessions',component: () => import('./MyWorkSessions.vue') }
 ]
 
 const router = createRouter({
