@@ -8,6 +8,26 @@
     </form>
     <p v-if="error" style="color:red">{{ error }}</p>
   </div>
+
+<template>
+  <div class="container mt-5">
+    <h2 class="mb-4">Login</h2>
+    <form @submit.prevent="login">
+      <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input v-model="name" class="form-control" placeholder="Name" required />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Passwort</label>
+        <input v-model="password" type="password" class="form-control" placeholder="Passwort" />
+      </div>
+      <button type="submit" class="btn btn-primary">Login</button>
+      <p v-if="error" class="text-danger mt-2">{{ error }}</p>
+    </form>
+  </div>
+</template>
+
+
 </template>
 
 <script>
