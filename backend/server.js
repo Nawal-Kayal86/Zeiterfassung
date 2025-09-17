@@ -154,24 +154,53 @@ app.post("/api/manual-time", auth(), async (req, res) => {
   }
 });
 
-// Alle Arbeitszeiten für aktuellen User (Admin kann alle sehen)
+
+// Alle Arbeitszeiten mit optionalen Filtern
 app.get("/api/work-sessions", auth(), async (req, res) => {
   try {
+    // Query-Parameter auslesen
+    const { startDate, endDate, employeeName, department } = req.query;
+
     let query = `
-      SELECT u.id AS user_id, u.name, u.role,
-             ws.start_time, ws.end_time
-      FROM users u
-      LEFT JOIN work_sessions ws ON ws.user_id = u.id
+      SELECT ws.id, u.id AS user_id, u.name, u.department,
+             ws.start_time, ws.end_time, ws.date_today
+      FROM work_sessions ws
+      INNER JOIN users u ON u.id = ws.user_id
+      WHERE 1=1
     `;
     const params = [];
 
-    // Wenn kein Admin → nur eigene Einträge
+    // Filter: nur eigene Daten, wenn kein Admin
     if (req.user.role !== 'admin') {
-      query += ` WHERE u.id = ?`;
+      query += ` AND u.id = ?`;
       params.push(req.user.id);
     }
 
-    query += ` ORDER BY u.name ASC, ws.start_time DESC`;
+    // Filter: Datum
+    if (startDate) {
+      query += ` AND ws.date_today >= ?`;
+      params.push(startDate);
+      console.log(startDate);
+    }
+    if (endDate) {
+      query += ` AND ws.date_today <= ?`;
+      params.push(endDate);
+      console.log(endDate);
+    }
+
+    // Filter: Mitarbeiter
+    if (employeeName) {
+      query += ` AND u.name LIKE ?`;
+      params.push(`%${employeeName}%`);
+    }
+
+    // Filter: Abteilung
+    if (department) {
+      query += ` AND u.department = ?`;
+      params.push(department);
+    }
+
+    query += ` ORDER BY ws.date_today DESC`;
 
     const [rows] = await pool.query(query, params);
     res.json(rows);
@@ -181,6 +210,15 @@ app.get("/api/work-sessions", auth(), async (req, res) => {
   }
 });
 
+app.get("/api/users/names", async (req, res) => {
+  try {
+    const [usernames] = await pool.query("SELECT name FROM users");
+    res.json(usernames.map(u => u.name));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "DB error" });
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Backend läuft auf http://localhost:" + PORT));

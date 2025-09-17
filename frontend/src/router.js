@@ -3,7 +3,7 @@ import Layout from './components/Layout.vue'
 import Dashboard from './views/Dashboard.vue'
 import Login from './views/Login.vue'
 import Admin from './views/Admin.vue'
-import MyWorkSessions from './views/MyWorkSessions.vue'
+import Billing from './views/billing.vue'
 
 const routes = [
   {
@@ -17,7 +17,7 @@ const routes = [
     children: [
       { path: '', component: Dashboard }, // /  → Dashboard
       { path: 'admin', component: Admin }, // /admin
-      { path: 'myworksessions', component: MyWorkSessions } // /myworksessions
+      {path: 'billing', component: Billing} // /billing
     ]
   }
 ]

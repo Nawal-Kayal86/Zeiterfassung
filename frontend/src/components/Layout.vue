@@ -22,12 +22,21 @@
         </li>
 
         <!-- Nur Admin -->
-        <li v-if="user?.role === 'admin'" class="mb-1">
+        <!-- <li v-if="user?.role === 'admin'" class="mb-1">
           <RouterLink class="btn btn-outline-primary w-100 mb-1" to="/admin">
             Zur Admin-Seite
           </RouterLink>
+        </li> -->
+        <li class="mb-1">
+          <RouterLink class="btn btn-outline-primary w-100 mb-1" to="/">
+            Dashboard
+          </RouterLink>
         </li>
-
+        <li class="mb-1">
+          <RouterLink class="btn btn-outline-primary w-100 mb-1" to="/billing">
+            Abrechnungsliste
+          </RouterLink>
+        </li>
         <!-- Allgemeine Links -->
         <li class="mb-1">
           <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/myworksessions">
@@ -37,11 +46,6 @@
         <li class="mb-1">
           <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/calendar">
             Kalender
-          </RouterLink>
-        </li>
-        <li class="mb-1">
-          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/billing">
-            Abrechnungsliste
           </RouterLink>
         </li>
         <li class="mb-1">
@@ -77,7 +81,7 @@
 
         <!-- Logout -->
         <li>
-          <button class="btn btn-secondary w-100" @click="logout">
+          <button class="btn btn-danger w-100" @click="logout">
             Logout
           </button>
         </li>
