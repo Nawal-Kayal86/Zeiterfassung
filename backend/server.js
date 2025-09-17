@@ -58,7 +58,7 @@ app.post("/api/login", async (req, res) => {
 
   // 1. User aus DB holen
   const [rows] = await pool.query("SELECT * FROM users WHERE name = ?", [name]);
-  if (!rows.length) return res.status(401).json({ error: "User not found" });
+  if (!rows.length) return res.status(401).json({ error: "Login fehlgeschlagen" });
 
   const user = rows[0];  // <-- unbedingt VOR jwt.sign
 

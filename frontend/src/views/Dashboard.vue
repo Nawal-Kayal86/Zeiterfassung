@@ -1,18 +1,13 @@
 <template>
-  
+
   <div class="container mt-5">
     <h2 class="mb-4">Dashboard</h2>
-    <p>Willkommen, <strong>{{ user?.name }}</strong> ({{ user?.role }})</p>
+
 
     <!-- Arbeitszeit Buttons -->
     <div class="mb-4 d-flex gap-2 flex-wrap">
       <button class="btn btn-success" @click="start">Arbeitsbeginn</button>
       <button class="btn btn-danger" @click="stop">Arbeitsende</button>
-      <div v-if="user?.role === 'admin'">
-        <router-link class="btn btn-outline-primary" to="/admin">Zur Admin-Seite</router-link>
-      </div>
-      <router-link class="btn btn-outline-secondary" to="/MyWorkSessions">Meine Arbeitszeiten</router-link>
-      <button class="btn btn-secondary" @click="logout">Logout</button>
     </div>
 
     <!-- Meldungen -->

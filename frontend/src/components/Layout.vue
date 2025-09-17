@@ -1,9 +1,9 @@
 <template>
   <div>
     <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-dark fixed-top d-flex justify-content-between">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">Zeiterfassung</a>
+    <nav class="navbar navbar-dark bg-dark fixed-top d-flex">
+      <div class="container-fluid  ">
+        <a class="navbar-brand pe-3" href="/">Zeiterfassung</a>
         <!-- Burger Button rechts -->
         <button class="btn btn-outline-light me-3" @click="toggleSidebar">
           ☰
@@ -14,19 +14,68 @@
     <!-- Sidebar -->
     <div class="sidebar" :class="{ collapsed: isCollapsed }">
       <ul class="nav flex-column p-3">
+        <li class="mb-1">
+          Willkommen, <strong>{{ user?.name }}</strong>
+        </li>
+        <li class="mb-1">
+          Rolle, <strong>{{ user?.role }}</strong>
+        </li>
+
         <!-- Nur Admin -->
-        <li v-if="user?.role === 'admin'" class="mb-2">
-          <RouterLink class="btn btn-outline-primary w-100" to="/admin">
+        <li v-if="user?.role === 'admin'" class="mb-1">
+          <RouterLink class="btn btn-outline-primary w-100 mb-1" to="/admin">
             Zur Admin-Seite
           </RouterLink>
         </li>
 
-        <li class="mb-2">
-          <RouterLink class="btn btn-outline-secondary w-100" to="/myworksessions">
+        <!-- Allgemeine Links -->
+        <li class="mb-1">
+          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/myworksessions">
             Meine Arbeitszeiten
           </RouterLink>
         </li>
+        <li class="mb-1">
+          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/calendar">
+            Kalender
+          </RouterLink>
+        </li>
+        <li class="mb-1">
+          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/billing">
+            Abrechnungsliste
+          </RouterLink>
+        </li>
+        <li class="mb-1">
+          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/errors">
+            Fehlerprotokoll
+          </RouterLink>
+        </li>
+        <li class="mb-1">
+          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/attendance">
+            Anwesenheitsübersicht
+          </RouterLink>
+        </li>
+        <li class="mb-1">
+          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/terminal">
+            Terminal
+          </RouterLink>
+        </li>
+        <li class="mb-1">
+          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/workflow">
+            Workflow
+          </RouterLink>
+        </li>
+        <li class="mb-1">
+          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/schedule">
+            Dienstplan
+          </RouterLink>
+        </li>
+        <li class="mb-1">
+          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/reports">
+            Berichte
+          </RouterLink>
+        </li>
 
+        <!-- Logout -->
         <li>
           <button class="btn btn-secondary w-100" @click="logout">
             Logout
@@ -34,6 +83,7 @@
         </li>
       </ul>
     </div>
+
 
     <!-- Content -->
     <div class="content" :class="{ expanded: isCollapsed }">
