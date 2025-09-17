@@ -35,32 +35,17 @@
       </form>
     </div>
 
-    <!-- Arbeitszeiten anzeigen -->
-    <div class="card p-3 mb-4">
-      <h5 class="card-title mb-3">Meine Arbeitszeiten</h5>
-      <input v-model="filter" type="text" class="form-control mb-3" placeholder="Filtern nach Datum oder Zeit" />
-      <table class="table table-striped table-hover">
-        <thead class="table-dark">
-          <tr>
-            <th>Datum</th>
-            <th>Startzeit</th>
-            <th>Endzeit</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="w in filteredWork" :key="w.start_time">
-            <td>{{ formatDate(w.start_time) }}</td>
-            <td>{{ formatTime(w.start_time) }}</td>
-            <td>{{ formatTime(w.end_time) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+
 
     <!-- Admin-Link -->
     <div v-if="user?.role === 'admin'">
       <router-link class="btn btn-outline-primary" to="/admin">Zur Admin-Seite</router-link>
     </div>
+
+    <!-- Meine Arbeitszeiten Link -->
+    <div class="mt-3">
+      <router-link class="btn btn-outline-secondary" to="/MyWorkSessions">Meine Arbeitszeiten</router-link>
+    </div>  
   </div>
 </template>
 

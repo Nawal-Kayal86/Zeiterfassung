@@ -5,7 +5,7 @@ const routes = [
   { path: '/login', component: () => import('./components/Login.vue') },
   { path: '/', component: () => import('./components/Dashboard.vue'), meta: { requiresAuth: true } },
   { path: '/admin', component: () => import('./components/Admin.vue'), meta: { requiresAuth: true } },
-  // { path: '/my-work-sessions',component: () => import('./MyWorkSessions.vue') }
+  { path: '/MyWorkSessions', component: () => import('./components/MyWorkSessions.vue'), meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

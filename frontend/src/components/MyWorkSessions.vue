@@ -1,9 +1,9 @@
-<router-link class="btn btn-outline-primary mt-3" to="/my-work-sessions">
-  Meine Arbeitszeiten
-</router-link>
 <template>
   <div class="container mt-5">
     <h2 class="mb-4">Meine Arbeitszeiten</h2>
+    
+    <!-- Zurück zum Dashboard -->
+    <router-link class="btn btn-outline-secondary" to="/">Zurück zum Dashboard</router-link>
 
     <!-- Filter -->
     <div class="mb-3">
@@ -35,8 +35,7 @@
       </table>
     </div>
 
-    <!-- Zurück zum Dashboard -->
-    <router-link class="btn btn-outline-secondary" to="/">Zurück zum Dashboard</router-link>
+
   </div>
 </template>
 
@@ -58,7 +57,7 @@ export default {
     if (!this.user) router.push('/login')
 
     // Arbeitszeiten nur für aktuellen User laden
-    const res = await api.get('/api/work-sessions')
+    const res = await api.get('/work-sessions')
     this.workSessions = res.data
   },
   computed: {

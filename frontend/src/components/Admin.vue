@@ -2,6 +2,10 @@
   <div class="container mt-5">
     <h2 class="mb-4">Admin-Bereich</h2>
 
+    <!-- Zurück zum Dashboard -->
+    <router-link class="btn btn-outline-secondary" to="/">Zurück zum Dashboard</router-link>
+    
+    <!-- Filter -->
     <div class="mb-3">
       <input v-model="filter" type="text" class="form-control" placeholder="Filtern nach Name oder Datum">
     </div>
