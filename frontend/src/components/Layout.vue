@@ -38,9 +38,9 @@
           </RouterLink>
         </li>
         <!-- Allgemeine Links -->
-        <li class="mb-1">
-          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/myworksessions">
-            Meine Arbeitszeiten
+        <li class="mb-1" v-if="user?.role === 'admin'">
+          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/newuser">
+            neu user anlagen
           </RouterLink>
         </li>
         <li class="mb-1">

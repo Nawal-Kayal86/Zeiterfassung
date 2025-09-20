@@ -220,5 +220,55 @@ app.get("/api/users/names", async (req, res) => {
   }
 });
 
+app.post("/api/users", async (req, res) => {
+ try {
+    const { name, email, role, nfc_tag, password } = req.body
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "Name, Email und Passwort sind erforderlich" })
+    }
+
+    // Rolle prüfen
+    const allowedRoles = ["employee", "admin"]
+    const safeRole = allowedRoles.includes(role) ? role : "employee"
+
+    // Passwort hashen
+    const password_hash = await bcrypt.hash(password, 10)
+
+    const [result] = await pool.execute(
+      `INSERT INTO users (name, email, role, nfc_tag, password_hash) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [name, email, safeRole, nfc_tag || null, password_hash]
+    )
+
+    res.status(201).json({
+      id: result.insertId,
+      name,
+      email,
+      role: safeRole,
+      nfc_tag
+    })
+  } catch (err) {
+    console.error(err)
+    if (err.code === "ER_DUP_ENTRY") {
+      res.status(409).json({ error: "E-Mail oder NFC-Tag bereits vergeben" })
+    } else {
+      res.status(500).json({ error: "Fehler beim Anlegen" })
+    }
+  }
+})
+
+app.get("/api/users", async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      "SELECT id, name, email, role, nfc_tag, created_at FROM users ORDER BY created_at DESC"
+    )
+    res.json(rows)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: "Fehler beim Laden der User" })
+  }
+})
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Backend läuft auf http://localhost:" + PORT));

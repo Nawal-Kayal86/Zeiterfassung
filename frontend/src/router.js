@@ -4,6 +4,7 @@ import Dashboard from './views/Dashboard.vue'
 import Login from './views/Login.vue'
 import Admin from './views/Admin.vue'
 import Billing from './views/billing.vue'
+import NewUser from './views/NewUser.vue'
 
 const routes = [
   {
@@ -17,7 +18,9 @@ const routes = [
     children: [
       { path: '', component: Dashboard }, // /  → Dashboard
       { path: 'admin', component: Admin }, // /admin
-      {path: 'billing', component: Billing} // /billing
+      { path: 'billing', component: Billing}, // /billing
+     { path: 'newuser', component: NewUser, meta: { requiresAuth: true, requiresAdmin: true } }
+
     ]
   }
 ]
@@ -31,6 +34,8 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth) {
     const token = localStorage.getItem('token')
+    const user = JSON.parse(localStorage.getItem('user') || "null")
+
     if (!token) return next('/login')
 
     try {
@@ -40,6 +45,11 @@ router.beforeEach((to, from, next) => {
         localStorage.removeItem('user')
         return next('/login')
       }
+
+      // Admin-Check
+      if (to.meta.requiresAdmin && user?.role !== 'admin') {
+        return next('/') // kein Zugriff → zurück zum Dashboard
+      }
     } catch (e) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
@@ -48,5 +58,6 @@ router.beforeEach((to, from, next) => {
   }
   next()
 })
+
 
 export default router
