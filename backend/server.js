@@ -87,7 +87,7 @@ app.get("/api/me", auth(), async (req, res) => {
 app.post("/api/start", auth(), async (req, res) => {
   try {
     await pool.query(
-      "INSERT INTO work_sessions (user_id, start_time) VALUES (?, NOW())",
+      "INSERT INTO work_sessions (user_id, start_time, date_today) VALUES (?, NOW(), CURDATE())",
       [req.user.id]
     );
     res.json({ message: "Arbeitsbeginn erfasst" });
