@@ -2,36 +2,30 @@
   <div class="container py-5">
     <h2 class="mb-4 fw-bold text-primary">📅 Kalender</h2>
 
-    <!-- FullCalendar -->
-    <div class="card shadow-sm p-3 mb-4">
-      <FullCalendar
-        class="calendar"
-        :plugins="[dayGridPlugin]"
-        initial-view="dayGridMonth"
-        :events="calendarEvents"
-        height="auto"
-      />
-    </div>
-
-    <!-- Tabelle mit allen Sessions -->
     <div class="card shadow-sm p-4">
-      <h5 class="mb-3">📋 Arbeitszeiten im Detail</h5>
-      <div v-if="!events.length" class="alert alert-info">
+      <h5 class="mb-3">📝 Arbeitszeiten im Detail</h5>
+
+      <div v-if="events.length === 0" class="alert alert-info">
         Keine Arbeitszeiten gefunden.
       </div>
-      <table v-else class="table table-hover">
+
+      <table v-else class="table table-striped">
         <thead>
           <tr>
-            <th>Datum</th>
+            <th>Name</th>
+            <th>Abteilung</th>
             <th>Start</th>
             <th>Ende</th>
+            <th>Dauer (h)</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(e, index) in events" :key="index">
-            <td>{{ formatDate(e.start_time) }}</td>
-            <td>{{ formatTime(e.start_time) }}</td>
-            <td>{{ formatTime(e.end_time) }}</td>
+          <tr v-for="e in events" :key="e.id">
+            <td>{{ e.name }}</td>
+            <td>{{ e.department || '-' }}</td>
+            <td>{{ formatDateTime(e.date_today, e.start_time) }}</td>
+            <td>{{ formatDateTime(e.date_today, e.end_time) }}</td>
+            <td>{{ calcDuration(e.date_today, e.start_time, e.end_time) }}</td>
           </tr>
         </tbody>
       </table>
@@ -40,61 +34,48 @@
 </template>
 
 <script>
-import FullCalendar from '@fullcalendar/vue3'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import api from '../api'
+import api from "../api";
 
 export default {
   name: "Kalender",
-  components: { FullCalendar },
   data() {
     return {
       events: [],
-      calendarEvents: []
-    }
+    };
+  },
+  methods: {
+    // Baut ein gültiges Datum aus date_today + Uhrzeit
+    combineDateTime(date, time) {
+      if (!date || !time) return null;
+      const day = new Date(date);
+      // Nur yyyy-mm-dd extrahieren
+      const datePart = day.toISOString().split("T")[0];
+      return new Date(`${datePart}T${time}`);
+    },
+
+    formatDateTime(date, time) {
+      const dt = this.combineDateTime(date, time);
+      if (!dt) return "-";
+      return dt.toLocaleString("de-DE");
+    },
+
+    calcDuration(date, start, end) {
+      const s = this.combineDateTime(date, start);
+      const e = this.combineDateTime(date, end);
+      if (!s || !e) return "-";
+      const diffMs = e - s;
+      const diffHrs = diffMs / 1000 / 60 / 60;
+      return diffHrs.toFixed(2);
+    },
   },
   async created() {
     try {
-      // ✅ Korrekt, weil baseURL = http://localhost:3000/api
-      const res = await api.get('/work-sessions')
-      this.events = res.data
-
-      // Events für FullCalendar vorbereiten
-      this.calendarEvents = this.events.map(e => ({
-        title: `🕒 ${this.formatTime(e.start_time)} - ${this.formatTime(e.end_time)}`,
-        start: e.start_time,
-        end: e.end_time
-      }))
+      const res = await api.get("/work-sessions");
+      console.log("✅ Daten vom Backend:", res.data);
+      this.events = res.data;
     } catch (err) {
-      console.error('❌ Fehler beim Laden der Work-Sessions:', err)
+      console.error("❌ Fehler beim Laden:", err);
     }
   },
-  methods: {
-    formatDate(iso) {
-      if (!iso) return '-'
-      return new Date(iso).toLocaleDateString()
-    },
-    formatTime(iso) {
-      if (!iso) return '-'
-      return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-  }
-}
+};
 </script>
-
-<style scoped>
-.calendar {
-  font-family: Arial, sans-serif;
-}
-.fc .fc-daygrid-event {
-  background-color: #0d6efd;
-  border: none;
-  color: white;
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-size: 0.85rem;
-}
-.card {
-  border-radius: 12px;
-}
-</style>

@@ -32,9 +32,7 @@ function auth(requiredRole = null) {
   };
 }
 
-
-
-// Registrierung (nur Demo, in echt nur Admin sollte neue User anlegen)
+// Registrierung (nur Demo)
 app.post("/api/register", async (req, res) => {
   const { name, password, role } = req.body;
   if (!name || !password) return res.status(400).json({ error: "Missing data" });
@@ -56,38 +54,32 @@ app.post("/api/register", async (req, res) => {
 app.post("/api/login", async (req, res) => {
   const { name, password } = req.body;
 
-  // 1. User aus DB holen
   const [rows] = await pool.query("SELECT * FROM users WHERE name = ?", [name]);
   if (!rows.length) return res.status(401).json({ error: "Login fehlgeschlagen" });
 
-  const user = rows[0];  // <-- unbedingt VOR jwt.sign
-
-  // 2. Passwort prüfen
+  const user = rows[0];
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) return res.status(401).json({ error: "Wrong password" });
 
-  // 3. JWT erzeugen
   const token = jwt.sign(
     { id: user.id, role: user.role },
     process.env.JWT_SECRET || "secret",
-    { expiresIn: "15m" } // Session = 15 Minuten
+    { expiresIn: "15m" }
   );
 
-  // 4. Antwort zurück
   res.json({ token, user: { id: user.id, name: user.name, role: user.role } });
 });
 
-
-// Geschützte Route: nur eingeloggte User
+// Geschützte Route
 app.get("/api/me", auth(), async (req, res) => {
   res.json({ user: req.user });
 });
 
-// Arbeitsbeginn (geschützt)
+// Arbeitsbeginn
 app.post("/api/start", auth(), async (req, res) => {
   try {
     await pool.query(
-      "INSERT INTO work_sessions (user_id, start_time, date_today) VALUES (?, NOW(), CURDATE())",
+      "INSERT INTO work_sessions (user_id, start_time) VALUES (?, NOW())",
       [req.user.id]
     );
     res.json({ message: "Arbeitsbeginn erfasst" });
@@ -97,7 +89,7 @@ app.post("/api/start", auth(), async (req, res) => {
   }
 });
 
-// Arbeitsende (geschützt)
+// Arbeitsende
 app.post("/api/stop", auth(), async (req, res) => {
   try {
     const [result] = await pool.query(
@@ -111,7 +103,7 @@ app.post("/api/stop", auth(), async (req, res) => {
   }
 });
 
-// Admin: alle Arbeitszeiten aller User
+// Admin: alle User + deren Arbeitszeiten
 app.get("/api/admin/users", auth("admin"), async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -120,25 +112,22 @@ app.get("/api/admin/users", auth("admin"), async (req, res) => {
       FROM users u
       LEFT JOIN work_sessions ws ON ws.user_id = u.id
       ORDER BY u.name ASC, ws.start_time DESC
-    `)
-    res.json(rows)
+    `);
+    res.json(rows);
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: "DB error" })
+    console.error(err);
+    res.status(500).json({ error: "DB error" });
   }
-})
+});
 
-
-// Manuelle Arbeitszeit (geschützt, nur eingeloggte User)
+// Manuelle Arbeitszeit
 app.post("/api/manual-time", auth(), async (req, res) => {
   const { date, start, end } = req.body;
-
   if (!date || !start || !end) {
     return res.status(400).json({ error: "Alle Felder sind erforderlich" });
   }
 
   try {
-    // Kombiniere Datum + Zeit zu MySQL DATETIME
     const startDateTime = `${date} ${start}:00`;
     const endDateTime = `${date} ${end}:00`;
 
@@ -154,23 +143,21 @@ app.post("/api/manual-time", auth(), async (req, res) => {
   }
 });
 
-
-// Alle Arbeitszeiten mit optionalen Filtern
+// Alle Arbeitszeiten mit Filtern
 app.get("/api/work-sessions", auth(), async (req, res) => {
   try {
-    // Query-Parameter auslesen
-    const { startDate, endDate, employeeName, department } = req.query;
+    const { startDate, endDate, employeeName } = req.query;
 
     let query = `
-      SELECT ws.id, u.id AS user_id, u.name, u.department,
-             ws.start_time, ws.end_time, ws.date_today
+      SELECT ws.id, u.id AS user_id, u.name,
+             ws.start_time, ws.end_time
       FROM work_sessions ws
       INNER JOIN users u ON u.id = ws.user_id
       WHERE 1=1
     `;
     const params = [];
 
-    // Filter: nur eigene Daten, wenn kein Admin
+    // Mitarbeiter (nicht Admin) → nur eigene Zeiten
     if (req.user.role !== 'admin') {
       query += ` AND u.id = ?`;
       params.push(req.user.id);
@@ -178,29 +165,21 @@ app.get("/api/work-sessions", auth(), async (req, res) => {
 
     // Filter: Datum
     if (startDate) {
-      query += ` AND ws.date_today >= ?`;
+      query += ` AND DATE(ws.start_time) >= ?`;
       params.push(startDate);
-      console.log(startDate);
     }
     if (endDate) {
-      query += ` AND ws.date_today <= ?`;
+      query += ` AND DATE(ws.end_time) <= ?`;
       params.push(endDate);
-      console.log(endDate);
     }
 
-    // Filter: Mitarbeiter
+    // Filter: Name
     if (employeeName) {
       query += ` AND u.name LIKE ?`;
       params.push(`%${employeeName}%`);
     }
 
-    // Filter: Abteilung
-    if (department) {
-      query += ` AND u.department = ?`;
-      params.push(department);
-    }
-
-    query += ` ORDER BY ws.date_today DESC`;
+    query += ` ORDER BY ws.start_time DESC`;
 
     const [rows] = await pool.query(query, params);
     res.json(rows);
@@ -210,6 +189,7 @@ app.get("/api/work-sessions", auth(), async (req, res) => {
   }
 });
 
+// Usernamen-Liste
 app.get("/api/users/names", async (req, res) => {
   try {
     const [usernames] = await pool.query("SELECT name FROM users");
@@ -220,26 +200,23 @@ app.get("/api/users/names", async (req, res) => {
   }
 });
 
+// Neuen User anlegen
 app.post("/api/users", async (req, res) => {
- try {
-    const { name, email, role, nfc_tag, password } = req.body
-
+  try {
+    const { name, email, role, nfc_tag, password } = req.body;
     if (!name || !email || !password) {
-      return res.status(400).json({ error: "Name, Email und Passwort sind erforderlich" })
+      return res.status(400).json({ error: "Name, Email und Passwort sind erforderlich" });
     }
 
-    // Rolle prüfen
-    const allowedRoles = ["employee", "admin"]
-    const safeRole = allowedRoles.includes(role) ? role : "employee"
-
-    // Passwort hashen
-    const password_hash = await bcrypt.hash(password, 10)
+    const allowedRoles = ["employee", "admin"];
+    const safeRole = allowedRoles.includes(role) ? role : "employee";
+    const password_hash = await bcrypt.hash(password, 10);
 
     const [result] = await pool.execute(
       `INSERT INTO users (name, email, role, nfc_tag, password_hash) 
        VALUES (?, ?, ?, ?, ?)`,
       [name, email, safeRole, nfc_tag || null, password_hash]
-    )
+    );
 
     res.status(201).json({
       id: result.insertId,
@@ -247,28 +224,29 @@ app.post("/api/users", async (req, res) => {
       email,
       role: safeRole,
       nfc_tag
-    })
+    });
   } catch (err) {
-    console.error(err)
+    console.error(err);
     if (err.code === "ER_DUP_ENTRY") {
-      res.status(409).json({ error: "E-Mail oder NFC-Tag bereits vergeben" })
+      res.status(409).json({ error: "E-Mail oder NFC-Tag bereits vergeben" });
     } else {
-      res.status(500).json({ error: "Fehler beim Anlegen" })
+      res.status(500).json({ error: "Fehler beim Anlegen" });
     }
   }
-})
+});
 
+// Userliste
 app.get("/api/users", async (req, res) => {
   try {
     const [rows] = await pool.execute(
       "SELECT id, name, email, role, nfc_tag, created_at FROM users ORDER BY created_at DESC"
-    )
-    res.json(rows)
+    );
+    res.json(rows);
   } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: "Fehler beim Laden der User" })
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Laden der User" });
   }
-})
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Backend läuft auf http://localhost:" + PORT));
