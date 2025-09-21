@@ -3,8 +3,9 @@ import Layout from './components/Layout.vue'
 import Dashboard from './views/Dashboard.vue'
 import Login from './views/Login.vue'
 import Admin from './views/Admin.vue'
-import Billing from './views/billing.vue'
+import Billing from './views/Billing.vue'
 import NewUser from './views/NewUser.vue'
+import Kalender from './views/Kalender.vue'   // 👈 NEU
 
 const routes = [
   {
@@ -16,11 +17,11 @@ const routes = [
     component: Layout,
     meta: { requiresAuth: true },
     children: [
-      { path: '', component: Dashboard }, // /  → Dashboard
+      { path: '', component: Dashboard }, // /
       { path: 'admin', component: Admin }, // /admin
-      { path: 'billing', component: Billing}, // /billing
-     { path: 'newuser', component: NewUser, meta: { requiresAuth: true, requiresAdmin: true } }
-
+      { path: 'billing', component: Billing }, // /billing
+      { path: 'newuser', component: NewUser, meta: { requiresAuth: true, requiresAdmin: true } },
+      { path: 'kalender', component: Kalender } // 👈 NEU /kalender
     ]
   }
 ]
@@ -58,6 +59,5 @@ router.beforeEach((to, from, next) => {
   }
   next()
 })
-
 
 export default router

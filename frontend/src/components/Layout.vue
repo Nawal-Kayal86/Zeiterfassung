@@ -44,7 +44,7 @@
           </RouterLink>
         </li>
         <li class="mb-1">
-          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/calendar">
+          <RouterLink class="btn btn-outline-secondary w-100 mb-1" to="/kalender">
             Kalender
           </RouterLink>
         </li>
