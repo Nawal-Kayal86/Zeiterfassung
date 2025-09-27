@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 
 const pool = await initDB();
 
-// Middleware: Auth prüfen
+// 🔑 Middleware: Authentifizierung prüfen
 function auth(requiredRole = null) {
   return (req, res, next) => {
     const header = req.headers.authorization;
@@ -32,7 +32,7 @@ function auth(requiredRole = null) {
   };
 }
 
-// Registrierung (nur Demo)
+// 🟢 Registrierung (nur Demo)
 app.post("/api/register", async (req, res) => {
   const { name, password, role } = req.body;
   if (!name || !password) return res.status(400).json({ error: "Missing data" });
@@ -50,7 +50,7 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-// Login
+// 🟢 Login
 app.post("/api/login", async (req, res) => {
   const { name, password } = req.body;
 
@@ -70,12 +70,12 @@ app.post("/api/login", async (req, res) => {
   res.json({ token, user: { id: user.id, name: user.name, role: user.role } });
 });
 
-// Geschützte Route
+// 🟢 Geschützte Route → aktuelle Userdaten
 app.get("/api/me", auth(), async (req, res) => {
   res.json({ user: req.user });
 });
 
-// Arbeitsbeginn
+// 🟢 Arbeitsbeginn
 app.post("/api/start", auth(), async (req, res) => {
   try {
     await pool.query(
@@ -89,7 +89,7 @@ app.post("/api/start", auth(), async (req, res) => {
   }
 });
 
-// Arbeitsende
+// 🟢 Arbeitsende
 app.post("/api/stop", auth(), async (req, res) => {
   try {
     const [result] = await pool.query(
@@ -103,7 +103,7 @@ app.post("/api/stop", auth(), async (req, res) => {
   }
 });
 
-// Admin: alle User + deren Arbeitszeiten
+// 🟢 Admin: alle User + deren Arbeitszeiten
 app.get("/api/admin/users", auth("admin"), async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -120,7 +120,7 @@ app.get("/api/admin/users", auth("admin"), async (req, res) => {
   }
 });
 
-// Manuelle Arbeitszeit
+// 🟢 Manuelle Arbeitszeit erfassen
 app.post("/api/manual-time", auth(), async (req, res) => {
   const { date, start, end } = req.body;
   if (!date || !start || !end) {
@@ -143,34 +143,36 @@ app.post("/api/manual-time", auth(), async (req, res) => {
   }
 });
 
-// Alle Arbeitszeiten mit Filtern
+// 🟢 Alle Arbeitszeiten mit Filtern (Dashboard-Tabelle)
 app.get("/api/work-sessions", auth(), async (req, res) => {
   try {
     const { startDate, endDate, employeeName, department } = req.query;
 
-    let query = `
-      SELECT
-        ws.id,
-        u.id AS user_id,
-        u.name,
-        u.department,
-        ws.start_time,
-        ws.end_time,
-        ws.date_today
-      FROM work_sessions ws
-      INNER JOIN users u ON u.id = ws.user_id
-      WHERE 1=1
-    `;
+  let query = `
+  SELECT
+    ws.id,
+    u.id AS user_id,
+    u.name AS name,          -- 🟢 Alias hinzufügen!
+    u.department,
+    ws.start_time,
+    ws.end_time,
+    ws.date_today
+  FROM work_sessions ws
+  INNER JOIN users u ON u.id = ws.user_id
+  WHERE 1=1
+`;
+
+
 
     const params = [];
 
-    // Mitarbeiter (nicht Admin) → nur eigene Zeiten
+    // 👤 Filter: Nur eigene Zeiten, wenn kein Admin
     if (req.user.role !== "admin") {
       query += " AND u.id = ?";
       params.push(req.user.id);
     }
 
-    // Filter: Datum
+    // 📅 Filter: Datum
     if (startDate) {
       query += " AND ws.date_today >= ?";
       params.push(startDate);
@@ -180,13 +182,13 @@ app.get("/api/work-sessions", auth(), async (req, res) => {
       params.push(endDate);
     }
 
-    // Filter: Name
+    // 🏷 Filter: Name
     if (employeeName) {
       query += " AND LOWER(u.name) LIKE ?";
       params.push(`%${employeeName.toLowerCase()}%`);
     }
 
-    // Filter: Abteilung
+    // 🏢 Filter: Abteilung
     if (department) {
       query += " AND LOWER(u.department) = ?";
       params.push(department.toLowerCase());
@@ -195,17 +197,15 @@ app.get("/api/work-sessions", auth(), async (req, res) => {
     query += " ORDER BY ws.date_today DESC, ws.start_time DESC";
 
     const [rows] = await pool.query(query, params);
-     // 🟢 HIER: Daten formatieren
-    const formattedRows = rows.map(r => {
-      return {
-        ...r,
-        date_today: r.date_today
-          ? r.date_today.toISOString().split("T")[0] // gültiges ISO-Datum
-          : null, // oder optional: neues Date() → aktuelles Datum
-        start_time: r.start_time ? r.start_time.toString().slice(0, 8) : null,
-        end_time: r.end_time ? r.end_time.toString().slice(0, 8) : null,
-      };
-    });
+
+    const formattedRows = rows.map(r => ({
+      ...r,
+      date_today: r.date_today
+        ? r.date_today.toISOString().split("T")[0]
+        : null,
+      start_time: r.start_time ? r.start_time.toString().slice(0, 8) : null,
+      end_time: r.end_time ? r.end_time.toString().slice(0, 8) : null,
+    }));
 
     res.json(formattedRows);
   } catch (err) {
@@ -214,8 +214,7 @@ app.get("/api/work-sessions", auth(), async (req, res) => {
   }
 });
 
-
-// Usernamen-Liste
+// 🟢 Usernamen-Liste (für Dropdowns o.Ä.)
 app.get("/api/users/names", async (req, res) => {
   try {
     const [usernames] = await pool.query("SELECT name FROM users");
@@ -226,7 +225,7 @@ app.get("/api/users/names", async (req, res) => {
   }
 });
 
-// Neuen User anlegen
+// 🟢 Neuen User anlegen
 app.post("/api/users", async (req, res) => {
   try {
     const { name, email, role, nfc_tag, password } = req.body;
@@ -261,9 +260,7 @@ app.post("/api/users", async (req, res) => {
   }
 });
 
-
-
-// Userliste
+// 🟢 Userliste (Admin-Übersicht)
 app.get("/api/users", async (req, res) => {
   try {
     const [rows] = await pool.execute(
@@ -275,55 +272,58 @@ app.get("/api/users", async (req, res) => {
     res.status(500).json({ error: "Fehler beim Laden der User" });
   }
 });
+
 // 🟢 Dashboard: letzte Start- und Endzeit + Anzahl der Einträge
 app.get("/api/work-sessions/summary", auth(), async (req, res) => {
   try {
-    const userFilter = req.user.role === "admin" ? "" : `WHERE ws.user_id = ${req.user.id}`;
+    let userFilter = "";
+    const params = [];
+
+    if (req.user.role !== "admin") {
+      userFilter = " AND ws.user_id = ?";
+      params.push(req.user.id);
+    }
 
     const [lastStart] = await pool.query(
       `SELECT start_time, date_today 
        FROM work_sessions ws
+       WHERE 1=1
        ${userFilter}
        ORDER BY date_today DESC, start_time DESC
-       LIMIT 1`
+       LIMIT 1`,
+      params
     );
 
-   const [lastEnd] = await pool.query(
-  `SELECT end_time, date_today
-   FROM work_sessions ws
-   WHERE 1=1
-   ${userFilter}
-   AND end_time IS NOT NULL
-   ORDER BY date_today DESC, end_time DESC
-   LIMIT 1`
-);
-
+    const [lastEnd] = await pool.query(
+      `SELECT end_time, date_today
+       FROM work_sessions ws
+       WHERE 1=1
+       ${userFilter}
+       AND end_time IS NOT NULL
+       ORDER BY date_today DESC, end_time DESC
+       LIMIT 1`,
+      params
+    );
 
     const [count] = await pool.query(
-      `SELECT COUNT(*) AS total 
+      `SELECT COUNT(*) AS total
        FROM work_sessions ws
-       ${userFilter}`
+       WHERE 1=1
+       ${userFilter}`,
+      params
     );
 
     res.json({
       lastStart: lastStart.length
         ? {
-            start_time: lastStart[0].start_time
-              ? String(lastStart[0].start_time).slice(0, 8)
-              : null,
-            date_today: lastStart[0].date_today
-              ? String(lastStart[0].date_today)
-              : null,
+            start_time: lastStart[0].start_time?.toString().slice(0, 8) || null,
+            date_today: lastStart[0].date_today?.toISOString().split("T")[0] || null,
           }
         : null,
       lastEnd: lastEnd.length
         ? {
-            end_time: lastEnd[0].end_time
-              ? String(lastEnd[0].end_time).slice(0, 8)
-              : null,
-            date_today: lastEnd[0].date_today
-              ? String(lastEnd[0].date_today)
-              : null,
+            end_time: lastEnd[0].end_time?.toString().slice(0, 8) || null,
+            date_today: lastEnd[0].date_today?.toISOString().split("T")[0] || null,
           }
         : null,
       totalEntries: count[0].total,
@@ -333,67 +333,6 @@ app.get("/api/work-sessions/summary", auth(), async (req, res) => {
     res.status(500).json({ error: "DB error" });
   }
 });
-// 🔥 Zusammenfassung für Dashboard
-// 📊 Zusammenfassung für Dashboard
-// 🟢 Neue Route: Zusammenfassung der Arbeitszeiten
-// 🟢 Zusammenfassung der Arbeitszeiten (für Dashboard)
-// 🟢 Zusammenfassung der Arbeitszeiten (für Dashboard)
-app.get("/api/work-sessions/summary", auth(), async (req, res) => {
-  try {
-    let lastStartQuery = `
-      SELECT start_time, date_today
-      FROM work_sessions
-      WHERE start_time IS NOT NULL
-      ORDER BY date_today DESC, start_time DESC
-      LIMIT 1
-    `;
-
-    let lastEndQuery = `
-      SELECT end_time, date_today
-      FROM work_sessions
-      WHERE end_time IS NOT NULL
-      ORDER BY date_today DESC, end_time DESC
-      LIMIT 1
-    `;
-
-    let countQuery = `
-      SELECT COUNT(*) AS total
-      FROM work_sessions
-    `;
-
-    const [lastStart] = await pool.query(lastStartQuery);
-    const [lastEnd] = await pool.query(lastEndQuery);
-    const [count] = await pool.query(countQuery);
-
-    // 🟢 Antwort an Frontend schicken
-    res.json({
-      lastStart: lastStart.length
-        ? {
-            start_time: lastStart[0].start_time.toString().slice(0, 8),
-            date_today: lastStart[0].date_today
-              ? lastStart[0].date_today.toISOString().split("T")[0]
-              : null,
-          }
-        : null,
-      lastEnd: lastEnd.length
-        ? {
-            end_time: lastEnd[0].end_time.toString().slice(0, 8),
-            date_today: lastEnd[0].date_today
-              ? lastEnd[0].date_today.toISOString().split("T")[0]
-              : null,
-          }
-        : null,
-      totalEntries: count[0].total,
-    });
-
-  } catch (err) {
-    console.error("Fehler in /work-sessions/summary:", err);
-    res.status(500).json({ error: "DB error" });
-  }
-});
-
-
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Backend läuft auf http://localhost:" + PORT));

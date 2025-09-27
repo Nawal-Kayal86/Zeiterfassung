@@ -21,7 +21,8 @@
         </thead>
         <tbody>
           <tr v-for="e in events" :key="e.id">
-            <td>{{ e.name }}</td>
+           <td>{{ e.user_name || e.name || "-" }}</td>
+
             <td>{{ e.department || '-' }}</td>
             <td>{{ formatDateTime(e.date_today, e.start_time) }}</td>
             <td>{{ formatDateTime(e.date_today, e.end_time) }}</td>

@@ -19,7 +19,6 @@
 
     <!-- Statuskarten -->
     <div class="row mb-4">
-      <!-- Letzter Beginn -->
       <div class="col-md-4 mb-3">
         <div class="card shadow-sm h-100 text-center p-3">
           <h6 class="text-muted">Letzter Beginn</h6>
@@ -30,7 +29,6 @@
         </div>
       </div>
 
-      <!-- Letztes Ende -->
       <div class="col-md-4 mb-3">
         <div class="card shadow-sm h-100 text-center p-3">
           <h6 class="text-muted">Letztes Ende</h6>
@@ -41,7 +39,6 @@
         </div>
       </div>
 
-      <!-- Gesamteinträge -->
       <div class="col-md-4 mb-3">
         <div class="card shadow-sm h-100 text-center p-3">
           <h6 class="text-muted">Gesamteinträge</h6>
@@ -71,6 +68,42 @@
         </button>
       </form>
     </div>
+
+    <!-- Übersicht aller Einträge -->
+    <div class="card shadow-sm mt-4">
+      <div class="card-header bg-light fw-bold">
+        📜 Alle Einträge
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th v-if="user && user.role === 'admin'">Mitarbeiter</th>
+              <th>Abteilung</th>
+              <th>Datum</th>
+              <th>Start</th>
+              <th>Ende</th>
+              <th>Dauer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="workSessions.length === 0">
+              <td colspan="6" class="text-center py-3 text-muted">
+                Keine Einträge gefunden
+              </td>
+            </tr>
+            <tr v-for="s in workSessions" :key="s.id">
+              <td v-if="user && user.role === 'admin'">{{ s.name }}</td>
+              <td>{{ s.department || '-' }}</td>
+              <td>{{ formatDate(s.date_today) }}</td>
+              <td>{{ formatTime(s.start_time) }}</td>
+              <td>{{ formatTime(s.end_time) }}</td>
+              <td>{{ s.end_time ? calcDuration(s.start_time, s.end_time) : "-" }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -84,7 +117,8 @@ export default {
       user: null,
       manual: { date: '', start: '', end: '' },
       message: { text: '', type: 'success' },
-      summary: { lastStart: null, lastEnd: null, totalEntries: 0 }
+      summary: { lastStart: null, lastEnd: null, totalEntries: 0 },
+      workSessions: [] // 🟢 Wichtig für Tabelle
     }
   },
 
@@ -93,7 +127,7 @@ export default {
     if (!this.user) router.push('/login')
 
     await this.loadWorkSessions()
-    await this.loadSummary() // 🟢 Summary beim Laden holen
+    await this.loadSummary()
   },
 
   methods: {
@@ -105,6 +139,16 @@ export default {
       } catch (err) {
         console.error("Fehler beim Laden der Summary:", err)
         this.summary = { lastStart: null, lastEnd: null, totalEntries: 0 }
+      }
+    },
+
+    async loadWorkSessions() {
+      try {
+        const res = await api.get('/work-sessions')
+        this.workSessions = res.data
+      } catch (err) {
+        console.error("Fehler beim Laden der Work-Sessions:", err)
+        this.workSessions = []
       }
     },
 
@@ -142,24 +186,36 @@ export default {
       }
     },
 
-    async loadWorkSessions() {
-      const res = await api.get('/work-sessions')
-      this.workSessions = res.data
-    },
-
     showMessage(text, type = 'success') {
       this.message = { text, type }
       setTimeout(() => { this.message.text = '' }, 4000)
     },
 
-    formatDate(iso) {
-      if (!iso) return '-'
-      return new Date(iso).toLocaleDateString()
+    formatDate(val) {
+      if (!val) return '-'
+      if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+        const [y, m, d] = val.split('-')
+        return `${d}.${m}.${y}`
+      }
+      return new Date(val).toLocaleDateString()
     },
 
-    formatTime(iso) {
-      if (!iso) return '-'
-      return iso.slice(0, 5) // HH:MM
+    formatTime(val) {
+      if (!val) return '-'
+      return String(val).slice(0, 5)
+    },
+
+    calcDuration(start, end) {
+      if (!start || !end) return "-"
+      const [sh, sm, ss] = String(start).split(":").map(Number)
+      const [eh, em, es] = String(end).split(":").map(Number)
+      let startSec = sh * 3600 + sm * 60 + (ss || 0)
+      let endSec = eh * 3600 + em * 60 + (es || 0)
+      if (endSec < startSec) endSec += 24 * 3600
+      const diff = endSec - startSec
+      const h = String(Math.floor(diff / 3600)).padStart(2, "0")
+      const m = String(Math.floor((diff % 3600) / 60)).padStart(2, "0")
+      return `${h}:${m}`
     }
   }
 }
