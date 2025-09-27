@@ -19,28 +19,33 @@
 
     <!-- Statuskarten -->
     <div class="row mb-4">
-      <div class="col-md-4 mb-3" v-if="workSessions.length">
+      <!-- Letzter Beginn -->
+      <div class="col-md-4 mb-3">
         <div class="card shadow-sm h-100 text-center p-3">
           <h6 class="text-muted">Letzter Beginn</h6>
           <p class="fw-bold fs-5">
-            {{ formatDate(workSessions[0].start_time) }}<br>
-            {{ formatTime(workSessions[0].start_time) }}
+            {{ summary.lastStart?.date_today ? formatDate(summary.lastStart.date_today) : '-' }}<br>
+            {{ summary.lastStart?.start_time ? formatTime(summary.lastStart.start_time) : '-' }}
           </p>
         </div>
       </div>
-      <div class="col-md-4 mb-3" v-if="workSessions.length">
+
+      <!-- Letztes Ende -->
+      <div class="col-md-4 mb-3">
         <div class="card shadow-sm h-100 text-center p-3">
           <h6 class="text-muted">Letztes Ende</h6>
           <p class="fw-bold fs-5">
-            {{ formatDate(workSessions[0].end_time) }}<br>
-            {{ formatTime(workSessions[0].end_time) }}
+            {{ summary.lastEnd?.date_today ? formatDate(summary.lastEnd.date_today) : '-' }}<br>
+            {{ summary.lastEnd?.end_time ? formatTime(summary.lastEnd.end_time) : '-' }}
           </p>
         </div>
       </div>
+
+      <!-- Gesamteinträge -->
       <div class="col-md-4 mb-3">
         <div class="card shadow-sm h-100 text-center p-3">
           <h6 class="text-muted">Gesamteinträge</h6>
-          <p class="fw-bold fs-4 text-primary">{{ workSessions.length }}</p>
+          <p class="fw-bold fs-4 text-primary">{{ summary.totalEntries }}</p>
         </div>
       </div>
     </div>
@@ -66,31 +71,6 @@
         </button>
       </form>
     </div>
-
-    <!-- Übersicht der Einträge -->
-    <div class="card shadow-sm">
-      <div class="card-header bg-light fw-bold">
-        📜 Meine Einträge
-      </div>
-      <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Datum</th>
-              <th>Start</th>
-              <th>Ende</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="w in filteredWork" :key="w.id">
-              <td>{{ formatDate(w.start_time) }}</td>
-              <td>{{ formatTime(w.start_time) }}</td>
-              <td>{{ formatTime(w.end_time) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -104,70 +84,82 @@ export default {
       user: null,
       manual: { date: '', start: '', end: '' },
       message: { text: '', type: 'success' },
-      workSessions: [],
-      filter: ''
+      summary: { lastStart: null, lastEnd: null, totalEntries: 0 }
     }
   },
+
   async created() {
     this.user = JSON.parse(localStorage.getItem('user'))
     if (!this.user) router.push('/login')
 
     await this.loadWorkSessions()
+    await this.loadSummary() // 🟢 Summary beim Laden holen
   },
-  computed: {
-    filteredWork() {
-      const f = this.filter.toLowerCase()
-      return this.workSessions.filter(w =>
-        (w.start_time && this.formatDate(w.start_time).includes(f)) ||
-        (w.start_time && this.formatTime(w.start_time).includes(f)) ||
-        (w.end_time && this.formatTime(w.end_time).includes(f))
-      )
-    }
-  },
+
   methods: {
+    async loadSummary() {
+      try {
+        const res = await api.get('/work-sessions/summary')
+        console.log("Summary vom Backend:", res.data)
+        this.summary = res.data
+      } catch (err) {
+        console.error("Fehler beim Laden der Summary:", err)
+        this.summary = { lastStart: null, lastEnd: null, totalEntries: 0 }
+      }
+    },
+
     async start() {
       try {
         await api.post('/start')
         this.showMessage('Arbeitsbeginn erfasst ✅', 'success')
         await this.loadWorkSessions()
+        await this.loadSummary()
       } catch {
         this.showMessage('Fehler beim Arbeitsbeginn ❌', 'danger')
       }
     },
+
     async stop() {
       try {
         await api.post('/stop')
         this.showMessage('Arbeitsende erfasst ✅', 'success')
         await this.loadWorkSessions()
+        await this.loadSummary()
       } catch {
         this.showMessage('Fehler beim Arbeitsende ❌', 'danger')
       }
     },
+
     async addManualTime() {
       try {
         await api.post('/manual-time', this.manual)
         this.showMessage('Manuell eingetragen ✅', 'success')
         this.manual = { date: '', start: '', end: '' }
         await this.loadWorkSessions()
+        await this.loadSummary()
       } catch {
         this.showMessage('Fehler beim Eintragen ❌', 'danger')
       }
     },
+
     async loadWorkSessions() {
       const res = await api.get('/work-sessions')
       this.workSessions = res.data
     },
+
     showMessage(text, type = 'success') {
       this.message = { text, type }
       setTimeout(() => { this.message.text = '' }, 4000)
     },
+
     formatDate(iso) {
       if (!iso) return '-'
       return new Date(iso).toLocaleDateString()
     },
+
     formatTime(iso) {
       if (!iso) return '-'
-      return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      return iso.slice(0, 5) // HH:MM
     }
   }
 }
