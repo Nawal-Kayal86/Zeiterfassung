@@ -233,8 +233,8 @@ app.post("/api/users", async (req, res) => {
       return res.status(400).json({ error: "Name, Email und Passwort sind erforderlich" });
     }
 
-    const allowedRoles = ["employee", "admin"];
-    const safeRole = allowedRoles.includes(role) ? role : "employee";
+    const allowedRoles = ["user", "admin"];
+    const safeRole = allowedRoles.includes(role) ? role : "user";
     const password_hash = await bcrypt.hash(password, 10);
 
     const [result] = await pool.execute(
