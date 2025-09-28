@@ -5,7 +5,13 @@ import Login from './views/Login.vue'
 import Admin from './views/Admin.vue'
 import Billing from './views/Billing.vue'
 import NewUser from './views/NewUser.vue'
-import Kalender from './views/Kalender.vue'   // 👈 NEU
+import Kalender from './views/Kalender.vue'   
+import Attendance from './views/Attendance.vue'   
+import Errors from './views/Errors.vue'
+import Terminal from './views/Terminal.vue'
+import Workflow from './views/Workflow.vue'
+import Schedule from './views/Dienstplan.vue'
+import Reports from './views/Berichte.vue'
 
 const routes = [
   {
@@ -17,11 +23,18 @@ const routes = [
     component: Layout,
     meta: { requiresAuth: true },
     children: [
-      { path: '', component: Dashboard }, // /
-      { path: 'admin', component: Admin }, // /admin
-      { path: 'billing', component: Billing }, // /billing
-      { path: 'newuser', component: NewUser, meta: { requiresAuth: true, requiresAdmin: true } },
-      { path: 'kalender', component: Kalender } // 👈 NEU /kalender
+      { path: '', component: Dashboard }, // dashboard
+      { path: 'admin', component: Admin }, // admin
+      { path: 'billing', component: Billing }, // billing
+      { path: 'newuser', component: NewUser, meta: { requiresAuth: true, requiresAdmin: true } }, // newuser
+      { path: 'kalender', component: Kalender }, //kalender
+      { path: 'attendance', component: Attendance }, //attendance
+      { path: 'errors', component: Errors },//errors
+      { path: 'terminal', component: Terminal },//terminal
+      { path: 'terminal', component: Terminal },//terminal
+      { path: 'workflow', component: Workflow },//workflow
+      { path: 'schedule', component: Schedule },//dienstplan
+      { path: 'reports', component: Reports },//berichte
     ]
   }
 ]

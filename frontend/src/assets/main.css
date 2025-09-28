@@ -1,0 +1,60 @@
+/* Sidebar */
+.sidebar {
+  height: 100vh;
+  width: 250px;
+  position: fixed;
+  top: 56px;
+  left: 0;
+  background-color: #f8f9fa;
+  border-right: 1px solid #ddd;
+  transition: transform 0.3s ease;
+  padding: 15px;              /* mehr Abstand innen */
+}
+
+/* Sidebar Buttons */
+.sidebar-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;          /* mehr Innenabstand */
+  margin-bottom: 12px;         /* mehr Abstand zwischen Buttons */
+  border: 2px solid #007bff;
+  color: #007bff;
+  background-color: white;
+  border-radius: 6px;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.sidebar-btn:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Logout Button */
+.btn-logout {
+  display: block;
+  width: 100%;
+  padding: 12px 14px;
+  margin-top: 20px;           /* extra Abstand nach oben */
+  background-color: #dc3545;
+  border: 2px solid #dc3545;
+  border-radius: 6px;
+  color: white;
+  font-weight: bold;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-logout:hover {
+  background-color: #b52a37;
+  border-color: #b52a37;
+}
+
+/* Content Bereich */
+.content {
+  margin-left: 270px;         /* etwas mehr Abstand zur Sidebar */
+  margin-top: 70px;
+  padding: 20px;
+  transition: margin-left 0.3s ease;
+}

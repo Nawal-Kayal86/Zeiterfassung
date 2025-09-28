@@ -15,7 +15,7 @@
       <div class="mb-3">
         <label class="form-label">Rolle</label>
         <select v-model="user.role" class="form-select" required>
-          <option value="employee">Employee</option>
+          <option value="user">User</option>
           <option value="admin">Admin</option>
         </select>
       </div>
@@ -84,7 +84,7 @@ const createUser = async () => {
   try {
     await axios.post("http://localhost:3000/api/users", user.value)
     message.value = "User erfolgreich angelegt!"
-    user.value = { name: "", email: "", role: "employee", nfc_tag: "", password: "" }
+    user.value = { name: "", email: "", role: "user", nfc_tag: "", password: "" }
     await loadUsers() // nach Erstellung neu laden
   } catch (err) {
     message.value = "Fehler beim Anlegen: " + (err.response?.data?.error || err.message)
@@ -104,3 +104,4 @@ const loadUsers = async () => {
 // beim Laden der Seite User holen
 onMounted(loadUsers)
 </script>
+

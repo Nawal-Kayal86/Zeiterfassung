@@ -334,5 +334,106 @@ app.get("/api/work-sessions/summary", auth(), async (req, res) => {
   }
 });
 
+// Anwesenheitsübersicht (nur eigene Daten für User)
+app.get("/api/attendance", async (req, res) => {
+  try {
+    // JWT Token prüfen
+    const authHeader = req.headers.authorization
+    if (!authHeader) return res.status(401).json({ error: "Nicht eingeloggt" })
+
+    const token = authHeader.split(" ")[1]
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+    let sql = `
+      SELECT ws.id, u.name, u.role, u.department,
+             DATE_FORMAT(ws.start_time, '%Y-%m-%dT%H:%i:%s') as start_time,
+             DATE_FORMAT(ws.end_time, '%Y-%m-%dT%H:%i:%s') as end_time
+      FROM work_sessions ws
+      JOIN users u ON ws.user_id = u.id
+    `
+    let params = []
+
+    // Wenn kein Admin → nur eigene Daten
+    if (decoded.role !== "admin") {
+      sql += " WHERE u.id = ?"
+      params.push(decoded.id)
+    }
+
+    sql += " ORDER BY ws.start_time DESC"
+
+    const [rows] = await pool.execute(sql, params)
+    res.json(rows)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: "Fehler beim Laden der Anwesenheitsdaten" })
+  }
+})
+
+// Fehlerprotokoll (Beispiel-Daten)
+app.get("/api/errors", async (req, res) => {
+  try {
+    // Beispiel falls du eine DB-Tabelle "error_logs" hast:
+    // const [rows] = await pool.execute("SELECT * FROM error_logs ORDER BY created_at DESC")
+
+    // Testdaten solange keine Tabelle existiert
+    const rows = [
+      { id: 1, message: "Login fehlgeschlagen", level: "WARN", created_at: "2025-09-25 14:20:00" },
+      { id: 2, message: "DB Verbindung verloren", level: "ERROR", created_at: "2025-09-26 08:45:00" },
+      { id: 3, message: "Ungültige Eingabe im Formular", level: "INFO", created_at: "2025-09-26 10:10:00" }
+    ];
+
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Laden der Logs" });
+  }
+});
+
+// --- Terminal Logs ---
+// Terminal-Logs abrufen
+app.get("/api/logs", async (req, res) => {
+  try {
+    const [rows] = await pool.execute(`
+      SELECT id, message, level, created_at
+      FROM logs
+      ORDER BY created_at DESC
+      LIMIT 50
+    `)
+    res.json(rows)
+  } catch (err) {
+    console.error("Fehler beim Abrufen der Logs:", err)
+    res.status(500).json({ error: "Fehler beim Laden der Logs" })
+  }
+})
+
+
+
+
+// --- Dummy-APIs (optional, später mit echten Daten ersetzen) ---
+app.get("/api/workflow", (req, res) => {
+  res.json([
+    { id: 1, task: "Check-In um 08:00", status: "done" },
+    { id: 2, task: "Meeting mit IT", status: "open" }
+  ])
+})
+
+app.get("/api/schedule", (req, res) => {
+  res.json([
+    { id: 1, name: "Ali", department: "IT", date: "2025-09-28", shift: "Frühschicht" },
+    { id: 2, name: "Eva", department: "Einkauf", date: "2025-09-28", shift: "Spätschicht" }
+  ])
+})
+
+app.get("/api/reports", (req, res) => {
+  res.json({
+    users: 20,
+    total_hours: 340,
+    departments: { IT: 10, HR: 5, Einkauf: 5 }
+  })
+})
+
+
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Backend läuft auf http://localhost:" + PORT));
