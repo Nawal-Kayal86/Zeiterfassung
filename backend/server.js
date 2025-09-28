@@ -131,10 +131,10 @@ app.post("/api/manual-time", auth(), async (req, res) => {
     const startDateTime = `${date} ${start}:00`;
     const endDateTime = `${date} ${end}:00`;
 
-    await pool.query(
-      "INSERT INTO work_sessions (user_id, start_time, end_time) VALUES (?, ?, ?)",
-      [req.user.id, startDateTime, endDateTime]
-    );
+   await pool.query(
+  "INSERT INTO work_sessions (user_id, start_time, end_time, date_today) VALUES (?, ?, ?, ?)",
+  [req.user.id, startDateTime, endDateTime, date]
+);
 
     res.json({ message: "Arbeitszeit manuell eingetragen" });
   } catch (err) {
@@ -200,9 +200,10 @@ app.get("/api/work-sessions", auth(), async (req, res) => {
 
     const formattedRows = rows.map(r => ({
       ...r,
-      date_today: r.date_today
-        ? r.date_today.toISOString().split("T")[0]
-        : null,
+     date_today: r.date_today
+  ? `${r.date_today.getFullYear()}-${String(r.date_today.getMonth()+1).padStart(2,'0')}-${String(r.date_today.getDate()).padStart(2,'0')}`
+  : null
+      ,
       start_time: r.start_time ? r.start_time.toString().slice(0, 8) : null,
       end_time: r.end_time ? r.end_time.toString().slice(0, 8) : null,
     }));
