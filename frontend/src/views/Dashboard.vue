@@ -23,9 +23,9 @@
         <div class="card shadow-sm h-100 text-center p-3">
           <h6 class="text-muted">Letzter Beginn</h6>
           <p class="fw-bold fs-5">
-            {{ summary.lastStart?.date_today ? formatDate(summary.lastStart.date_today) : '-' }}<br>
-            {{ summary.lastStart?.start_time ? formatTime(summary.lastStart.start_time) : '-' }}
-          </p>
+            {{ summary.lastStart ? formatDate(summary.lastStart) : '-' }}<br>
+            {{ summary.lastStart ? formatTime(summary.lastStart) : '-' }}
+            </p>
         </div>
       </div>
 
@@ -33,8 +33,8 @@
         <div class="card shadow-sm h-100 text-center p-3">
           <h6 class="text-muted">Letztes Ende</h6>
           <p class="fw-bold fs-5">
-            {{ summary.lastEnd?.date_today ? formatDate(summary.lastEnd.date_today) : '-' }}<br>
-            {{ summary.lastEnd?.end_time ? formatTime(summary.lastEnd.end_time) : '-' }}
+            {{ summary.lastEnd ? formatDate(summary.lastEnd) : '-' }}<br>
+            {{ summary.lastEnd ? formatTime(summary.lastEnd) : '-' }}
           </p>
         </div>
       </div>
@@ -96,9 +96,10 @@
               <td v-if="user && user.role === 'admin'">{{ s.name }}</td>
               <td>{{ s.department || '-' }}</td>
               <td>{{ formatDate(s.date_today) }}</td>
-              <td>{{ formatTime(s.start_time) }}</td>
-              <td>{{ formatTime(s.end_time) }}</td>
-              <td>{{ s.end_time ? calcDuration(s.start_time, s.end_time) : "-" }}</td>
+              <td>{{ formatTime(s.start_time, s.date_today) }}</td>
+              <td>{{ formatTime(s.end_time, s.date_today) }}</td>
+              <td>{{ s.end_time ? calcDuration(s.start_time, s.end_time, s.date_today) : "-" }}</td>
+
             </tr>
           </tbody>
         </table>
@@ -192,31 +193,57 @@ export default {
     },
 
     formatDate(val) {
-      if (!val) return '-'
-      if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
-        const [y, m, d] = val.split('-')
-        return `${d}.${m}.${y}`
-      }
-      return new Date(val).toLocaleDateString()
-    },
+  if (!val) return "-"
+  try {
+    // Kompatibel mit "YYYY-MM-DD" und "YYYY-MM-DD HH:mm:ss"
+    const d = new Date(val.replace(" ", "T"))
+    return d.toLocaleDateString("de-DE", {
+      weekday: "short",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    })
+  } catch {
+    return "-"
+  }
+},
 
-    formatTime(val) {
-      if (!val) return '-'
-      return String(val).slice(0, 5)
-    },
-
-    calcDuration(start, end) {
-      if (!start || !end) return "-"
-      const [sh, sm, ss] = String(start).split(":").map(Number)
-      const [eh, em, es] = String(end).split(":").map(Number)
-      let startSec = sh * 3600 + sm * 60 + (ss || 0)
-      let endSec = eh * 3600 + em * 60 + (es || 0)
-      if (endSec < startSec) endSec += 24 * 3600
-      const diff = endSec - startSec
-      const h = String(Math.floor(diff / 3600)).padStart(2, "0")
-      const m = String(Math.floor((diff % 3600) / 60)).padStart(2, "0")
-      return `${h}:${m}`
+formatTime(val, date = null) {
+  if (!val) return "-"
+  try {
+    // Wenn nur Uhrzeit ohne Datum -> künstlich Datum ergänzen
+    let full = val
+    if (/^\d{2}:\d{2}:\d{2}$/.test(val) && date) {
+      full = `${date}T${val}`
+    } else if (/^\d{2}:\d{2}:\d{2}$/.test(val)) {
+      full = `1970-01-01T${val}`
     }
+    const d = new Date(full)
+    return d.toLocaleTimeString("de-DE", {
+      hour: "2-digit",
+      minute: "2-digit"
+    })
+  } catch {
+    return "-"
+  }
+},
+
+calcDuration(start, end, date = null) {
+  if (!start || !end) return "-"
+  try {
+    // auch hier Datum hinzufügen, wenn nur Uhrzeit
+    const s = new Date(`${date || "1970-01-01"}T${start}`)
+    const e = new Date(`${date || "1970-01-01"}T${end}`)
+    const diffMs = e - s
+    if (diffMs < 0) return "-"
+    const h = Math.floor(diffMs / 1000 / 60 / 60)
+    const m = Math.floor((diffMs / 1000 / 60) % 60)
+    return `${h}:${m.toString().padStart(2, "0")}`
+  } catch {
+    return "-"
+  }
+}
+
   }
 }
 </script>

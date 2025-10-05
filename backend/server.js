@@ -198,15 +198,30 @@ app.get("/api/work-sessions", auth(), async (req, res) => {
 
     const [rows] = await pool.query(query, params);
 
-    const formattedRows = rows.map(r => ({
-      ...r,
-     date_today: r.date_today
-  ? `${r.date_today.getFullYear()}-${String(r.date_today.getMonth()+1).padStart(2,'0')}-${String(r.date_today.getDate()).padStart(2,'0')}`
-  : null
-      ,
-      start_time: r.start_time ? r.start_time.toString().slice(0, 8) : null,
-      end_time: r.end_time ? r.end_time.toString().slice(0, 8) : null,
-    }));
+// 🕒 Zeitzone & Format direkt im Backend korrigieren
+const formattedRows = rows.map(r => ({
+  ...r,
+  date_today: r.date_today
+    ? `${r.date_today.getFullYear()}-${String(r.date_today.getMonth() + 1).padStart(2, '0')}-${String(r.date_today.getDate()).padStart(2, '0')}`
+    : null,
+  start_time: r.start_time
+    ? new Date(r.start_time).toLocaleString("de-DE", {
+        timeZone: "Europe/Vienna",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      })
+    : null,
+  end_time: r.end_time
+    ? new Date(r.end_time).toLocaleString("de-DE", {
+        timeZone: "Europe/Vienna",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      })
+    : null
+}));
+
 
     res.json(formattedRows);
   } catch (err) {
@@ -285,55 +300,54 @@ app.get("/api/work-sessions/summary", auth(), async (req, res) => {
       params.push(req.user.id);
     }
 
+    // 🕓 Letzter Beginn
     const [lastStart] = await pool.query(
-      `SELECT start_time, date_today 
+      `SELECT 
+         DATE_FORMAT(CONVERT_TZ(ws.start_time, '+00:00', 'Europe/Vienna'),
+                     '%Y-%m-%d %H:%i:%s') AS start_time
        FROM work_sessions ws
-       WHERE 1=1
+       WHERE ws.start_time IS NOT NULL
        ${userFilter}
-       ORDER BY date_today DESC, start_time DESC
+       ORDER BY ws.start_time DESC
        LIMIT 1`,
       params
     );
 
+    // 🕓 Letztes Ende
     const [lastEnd] = await pool.query(
-      `SELECT end_time, date_today
+      `SELECT 
+         DATE_FORMAT(CONVERT_TZ(ws.end_time, '+00:00', 'Europe/Vienna'),
+                     '%Y-%m-%d %H:%i:%s') AS end_time
        FROM work_sessions ws
-       WHERE 1=1
+       WHERE ws.end_time IS NOT NULL
        ${userFilter}
-       AND end_time IS NOT NULL
-       ORDER BY date_today DESC, end_time DESC
+       ORDER BY ws.end_time DESC
        LIMIT 1`,
       params
     );
 
+    // 🧮 Gesamtanzahl
     const [count] = await pool.query(
       `SELECT COUNT(*) AS total
        FROM work_sessions ws
-       WHERE 1=1
+       WHERE ws.start_time IS NOT NULL
        ${userFilter}`,
       params
     );
 
     res.json({
-      lastStart: lastStart.length
-        ? {
-            start_time: lastStart[0].start_time?.toString().slice(0, 8) || null,
-            date_today: lastStart[0].date_today?.toISOString().split("T")[0] || null,
-          }
-        : null,
-      lastEnd: lastEnd.length
-        ? {
-            end_time: lastEnd[0].end_time?.toString().slice(0, 8) || null,
-            date_today: lastEnd[0].date_today?.toISOString().split("T")[0] || null,
-          }
-        : null,
-      totalEntries: count[0].total,
+      lastStart: lastStart[0]?.start_time || null,
+      lastEnd: lastEnd[0]?.end_time || null,
+      totalEntries: count[0]?.total ?? 0,
     });
   } catch (err) {
     console.error("Fehler bei /api/work-sessions/summary:", err);
     res.status(500).json({ error: "DB error" });
   }
 });
+
+
+
 
 // Anwesenheitsübersicht (nur eigene Daten für User)
 app.get("/api/attendance", async (req, res) => {
@@ -425,13 +439,25 @@ app.get("/api/schedule", (req, res) => {
   ])
 })
 
-app.get("/api/reports", (req, res) => {
-  res.json({
-    users: 20,
-    total_hours: 340,
-    departments: { IT: 10, HR: 5, Einkauf: 5 }
-  })
+app.get('/api/reports', async (req, res) => {
+  try {
+    const [[{ userCount }]] = await pool.execute('SELECT COUNT(*) AS userCount FROM users')
+    const [[{ totalHours }]] = await pool.execute('SELECT SUM(TIMESTAMPDIFF(HOUR, start_time, end_time)) AS totalHours FROM work_sessions')
+    const [byDepartment] = await pool.execute(`
+      SELECT u.department, COUNT(DISTINCT u.id) AS count,
+             SUM(TIMESTAMPDIFF(HOUR, ws.start_time, ws.end_time)) AS hours
+      FROM users u
+      LEFT JOIN work_sessions ws ON ws.user_id = u.id
+      GROUP BY u.department
+    `)
+    res.json({ userCount, totalHours, departments: byDepartment.length, byDepartment })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Fehler beim Laden der Reports' })
+  }
 })
+
+
 
 
 
