@@ -1,3 +1,37 @@
+<style scoped>
+.sidebar {
+  height: 100vh;
+  width: 250px;
+  position: fixed;
+  top: 56px;
+  left: 0;
+  background-color: #f8f9fa;
+  border-right: 1px solid #ddd;
+  transition: transform 0.3s ease;
+}
+
+.sidebar.collapsed {
+  transform: translateX(-100%);
+}
+
+.content {
+  margin-left: 250px;
+  margin-top: 56px;
+  padding: 1rem;
+  transition: margin-left 0.3s ease;
+}
+
+.content.expanded {
+  margin-left: 0;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 200px;
+  }
+}
+</style>
+
 <template>
   <div>
     <!-- Navbar -->
