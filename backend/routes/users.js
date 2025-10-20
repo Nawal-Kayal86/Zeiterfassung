@@ -15,7 +15,7 @@ const pool = await initDB();
 router.get("/", auth("admin"), async (req, res) => {
   try {
     const [rows] = await pool.execute(
-      "SELECT id, name, email, role, nfc_tag, created_at FROM users ORDER BY created_at DESC"
+      "SELECT id, name, email, role, department , nfc_tag, created_at FROM users ORDER BY created_at DESC"
     );
     res.json(rows);
   } catch (err) {
@@ -29,7 +29,7 @@ router.get("/:id", auth("admin"), async (req, res) => {
   try {
     const { id } = req.params;
     const [rows] = await pool.execute(
-      "SELECT id, name, email, role, nfc_tag, created_at FROM users WHERE id = ?",
+      "SELECT id, name, email, role, department, nfc_tag, created_at FROM users WHERE id = ?",
       [id]
     );
     if (!rows.length) return res.status(404).json({ error: "User nicht gefunden" });
@@ -43,18 +43,18 @@ router.get("/:id", auth("admin"), async (req, res) => {
 // ✏️ POST: User anlegen
 router.post("/", auth("admin"), async (req, res) => {
   try {
-    const { name, email, role, nfc_tag, password } = req.body;
+    const { name, email, role, department, nfc_tag, password } = req.body; // ✅ department hinzufügen
     if (!name || !email || !password) return res.status(400).json({ error: "Name, Email und Passwort erforderlich" });
 
     const safeRole = ["user", "admin"].includes(role) ? role : "user";
     const password_hash = await bcrypt.hash(password, 10);
 
     const [result] = await pool.execute(
-      "INSERT INTO users (name, email, role, nfc_tag, password_hash) VALUES (?, ?, ?, ?, ?)",
-      [name, email, safeRole, nfc_tag || null, password_hash]
+      "INSERT INTO users (name, email, role, department, nfc_tag, password_hash) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, email, safeRole, department || null, nfc_tag || null, password_hash] // ✅ department hier
     );
 
-    res.status(201).json({ id: result.insertId, name, email, role: safeRole, nfc_tag });
+    res.status(201).json({ id: result.insertId, name, email, role: safeRole, department, nfc_tag });
   } catch (err) {
     console.error(err);
     if (err.code === "ER_DUP_ENTRY") return res.status(409).json({ error: "E-Mail oder NFC-Tag bereits vergeben" });
@@ -62,15 +62,16 @@ router.post("/", auth("admin"), async (req, res) => {
   }
 });
 
+
 // ✏️ PUT: User aktualisieren
 router.put("/:id", auth("admin"), async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, role, nfc_tag, password } = req.body;
+    const { name, email, role, department, nfc_tag, password } = req.body; // ✅ department hinzufügen
     const safeRole = ["user", "admin"].includes(role) ? role : "user";
 
-    let query = "UPDATE users SET name = ?, email = ?, role = ?, nfc_tag = ?";
-    const params = [name, email, safeRole, nfc_tag];
+    let query = "UPDATE users SET name = ?, email = ?, role = ?, department = ?, nfc_tag = ?";
+    const params = [name, email, safeRole, department || null, nfc_tag || null]; // ✅ department hier
 
     if (password) {
       const password_hash = await bcrypt.hash(password, 10);
@@ -90,6 +91,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
     res.status(500).json({ error: "Fehler beim Update" });
   }
 });
+
 
 // ❌ DELETE: User löschen
 router.delete("/:id", auth("admin"), async (req, res) => {
