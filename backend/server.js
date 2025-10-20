@@ -5,50 +5,17 @@ import dotenv from 'dotenv';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { initDB } from './db.js';
+import { auth } from "./middleware/auth.js";
+import usersRouter from './routes/users.js';
 
 dotenv.config();
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use("/api/users", usersRouter);
 
 const pool = await initDB();
 
-// 🔑 Middleware: Authentifizierung prüfen
-function auth(requiredRole = null) {
-  return (req, res, next) => {
-    const header = req.headers.authorization;
-    if (!header) return res.status(401).json({ error: "No token" });
-    const token = header.split(" ")[1];
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret");
-      if (requiredRole && decoded.role !== requiredRole) {
-        return res.status(403).json({ error: "Forbidden" });
-      }
-      req.user = decoded;
-      next();
-    } catch (e) {
-      return res.status(401).json({ error: "Invalid token" });
-    }
-  };
-}
-
-// 🟢 Registrierung (nur Demo)
-app.post("/api/register", async (req, res) => {
-  const { name, password, role } = req.body;
-  if (!name || !password) return res.status(400).json({ error: "Missing data" });
-
-  const hash = await bcrypt.hash(password, 10);
-  try {
-    const [result] = await pool.query(
-      "INSERT INTO users (name, role, password_hash) VALUES (?, ?, ?)",
-      [name, role || "employee", hash]
-    );
-    res.json({ id: result.insertId });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "DB error" });
-  }
-});
 
 // 🟢 Login
 app.post("/api/login", async (req, res) => {
@@ -241,131 +208,6 @@ app.get("/api/users/names", async (req, res) => {
   }
 });
 
-// 🟢 Neuen User anlegen
-app.post("/api/users", async (req, res) => {
-  try {
-    const { name, email, role, nfc_tag, password } = req.body;
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: "Name, Email und Passwort sind erforderlich" });
-    }
-
-    const allowedRoles = ["user", "admin"];
-    const safeRole = allowedRoles.includes(role) ? role : "user";
-    const password_hash = await bcrypt.hash(password, 10);
-
-    const [result] = await pool.execute(
-      `INSERT INTO users (name, email, role, nfc_tag, password_hash) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [name, email, safeRole, nfc_tag || null, password_hash]
-    );
-
-    res.status(201).json({
-      id: result.insertId,
-      name,
-      email,
-      role: safeRole,
-      nfc_tag
-    });
-  } catch (err) {
-    console.error(err);
-    if (err.code === "ER_DUP_ENTRY") {
-      res.status(409).json({ error: "E-Mail oder NFC-Tag bereits vergeben" });
-    } else {
-      res.status(500).json({ error: "Fehler beim Anlegen" });
-    }
-  }
-});
-
-// 🟢 Userliste (Admin-Übersicht)
-app.get("/api/users", async (req, res) => {
-  try {
-    const [rows] = await pool.execute(
-      "SELECT id, name, email, role, nfc_tag, created_at FROM users ORDER BY created_at DESC"
-    );
-    res.json(rows);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Fehler beim Laden der User" });
-  }
-});
-
-// // 🟢 Dashboard: letzte Start- und Endzeit + Anzahl der Einträge
-// app.get("/api/work-sessions/summary", auth(), async (req, res) => {
-//   try {
-//     let userFilter = "";
-//     const params = [];
-
-//     if (req.user.role !== "admin") {
-//       userFilter = " AND ws.user_id = ?";
-//       params.push(req.user.id);
-//     }
-// const formattedRows = rows.map(r => ({
-//   ...r,
-//   start_time: r.start_time
-//     ? new Date(r.start_time + 'Z').toLocaleTimeString("de-DE", {
-//         timeZone: "Europe/Vienna",
-//         hour: "2-digit",
-//         minute: "2-digit",
-//         second: "2-digit"
-//       })
-//     : null,
-//   end_time: r.end_time
-//     ? new Date(r.end_time + 'Z').toLocaleTimeString("de-DE", {
-//         timeZone: "Europe/Vienna",
-//         hour: "2-digit",
-//         minute: "2-digit",
-//         second: "2-digit"
-//       })
-//     : null,
-// }));
-
-//     // 🕓 Letzter Beginn
-//     const [lastStart] = await pool.query(
-//       `SELECT 
-//          DATE_FORMAT(CONVERT_TZ(ws.start_time, '+00:00', 'Europe/Vienna'),
-//                      '%Y-%m-%d %H:%i:%s') AS start_time
-//        FROM work_sessions ws
-//        WHERE ws.start_time IS NOT NULL
-//        ${userFilter}
-//        ORDER BY ws.start_time DESC
-//        LIMIT 1`,
-//       params
-//     );
-
-//     // 🕓 Letztes Ende
-//     const [lastEnd] = await pool.query(
-//       `SELECT 
-//          DATE_FORMAT(CONVERT_TZ(ws.end_time, '+00:00', 'Europe/Vienna'),
-//                      '%Y-%m-%d %H:%i:%s') AS end_time
-//        FROM work_sessions ws
-//        WHERE ws.end_time IS NOT NULL
-//        ${userFilter}
-//        ORDER BY ws.end_time DESC
-//        LIMIT 1`,
-//       params
-//     );
-
-//     // 🧮 Gesamtanzahl
-//     const [count] = await pool.query(
-//       `SELECT COUNT(*) AS total
-//        FROM work_sessions ws
-//        WHERE ws.start_time IS NOT NULL
-//        ${userFilter}`,
-//       params
-//     );
-
-//     res.json({
-//       lastStart: lastStart[0]?.start_time || null,
-//       lastEnd: lastEnd[0]?.end_time || null,
-//       totalEntries: count[0]?.total ?? 0,
-//     });
-//   } catch (err) {
-//     console.error("Fehler bei /api/work-sessions/summary:", err);
-//     res.status(500).json({ error: "DB error" });
-//   }
-// });
-
-
 
 app.get("/api/work-sessions/summary", auth(), async (req, res) => {
   try {
@@ -415,10 +257,6 @@ app.get("/api/work-sessions/summary", auth(), async (req, res) => {
     res.status(500).json({ error: "DB error" });
   }
 });
-
-
-
-
 
 
 // Anwesenheitsübersicht (nur eigene Daten für User)
@@ -492,8 +330,6 @@ app.get("/api/logs", async (req, res) => {
     res.status(500).json({ error: "Fehler beim Laden der Logs" })
   }
 })
-
-
 
 
 // --- Dummy-APIs (optional, später mit echten Daten ersetzen) ---
@@ -586,14 +422,6 @@ app.delete("/api/workflow/:id", async (req, res) => {
     res.status(500).json({ error: "Fehler beim Löschen des Tasks" });
   }
 });
-
-
-
-
-
-
-
-
 
 
 const PORT = process.env.PORT || 3000;
