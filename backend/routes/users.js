@@ -104,4 +104,11 @@ router.delete("/:id", auth("admin"), async (req, res) => {
   }
 });
 
+
+// 📄 GET: Nur Namen und Abteilungen aller User
+router.get("/names", auth("admin"), async (req, res) => {
+  const [rows] = await pool.query("SELECT id, name, department FROM users");
+  res.json(rows);
+});
+
 export default router;

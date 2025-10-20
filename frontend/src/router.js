@@ -12,6 +12,8 @@ import Terminal from './views/Terminal.vue'
 import Workflow from './views/Workflow.vue'
 import Schedule from './views/Dienstplan.vue'
 import Reports from './views/Berichte.vue'
+import Departments from './views/DepartmentsAdmin.vue'
+
 
 const routes = [
   {
@@ -34,7 +36,9 @@ const routes = [
       { path: 'terminal', component: Terminal }, // terminal
       { path: 'workflow', component: Workflow }, // workflow
       { path: 'schedule', component: Schedule }, // dienstplan
-      { path: 'reports', component: Reports } // berichte
+      { path: 'reports', component: Reports }, // berichte
+       { path: 'departments', component: Departments , meta: { requiresAuth: true, requiresAdmin: true } }, // departments admin
+      
     ]
   }
 ]

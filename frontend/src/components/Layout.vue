@@ -200,6 +200,11 @@
         <i class="bi bi-person-plus"></i> Neuen User anlegen
       </RouterLink>
     </li>
+    <li v-if="user?.role === 'admin'">
+      <RouterLink to="/departments" class="nav-item">
+        <i class="bi bi-building"></i> Abteilungen
+      </RouterLink>
+    </li>
     <li>
       <RouterLink to="/kalender" class="nav-item">
         <i class="bi bi-calendar-event"></i> Kalender

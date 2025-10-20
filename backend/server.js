@@ -7,14 +7,14 @@ import jwt from 'jsonwebtoken';
 import { initDB } from './db.js';
 import { auth } from "./middleware/auth.js";
 import usersRouter from './routes/users.js';
-
+import departmentsRouter from "./routes/departments.js";
 dotenv.config();
+const pool = await initDB();
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use("/api/users", usersRouter);
-
-const pool = await initDB();
+app.use("/api/departments", departmentsRouter);
 
 
 // 🟢 Login
@@ -115,21 +115,19 @@ app.get("/api/work-sessions", auth(), async (req, res) => {
   try {
     const { startDate, endDate, employeeName, department } = req.query;
 
-  let query = `
-  SELECT
-    ws.id,
-    u.id AS user_id,
-    u.name AS name,          -- 🟢 Alias hinzufügen!
-    u.department,
-    ws.start_time,
-    ws.end_time,
-    ws.date_today
-  FROM work_sessions ws
-  INNER JOIN users u ON u.id = ws.user_id
-  WHERE 1=1
-`;
-
-
+    let query = `
+      SELECT
+        ws.id,
+        u.id AS user_id,
+        u.name,
+        u.department,
+        ws.start_time,
+        ws.end_time,
+        ws.date_today
+      FROM work_sessions ws
+      INNER JOIN users u ON u.id = ws.user_id
+      WHERE 1=1
+    `;
 
     const params = [];
 
@@ -149,46 +147,39 @@ app.get("/api/work-sessions", auth(), async (req, res) => {
       params.push(endDate);
     }
 
-    // 🏷 Filter: Name
+    // 🏷 Filter: Name (case-insensitive)
     if (employeeName) {
-      query += " AND LOWER(u.name) LIKE ?";
-      params.push(`%${employeeName.toLowerCase()}%`);
+      query += " AND u.name LIKE ?";
+      params.push(`%${employeeName}%`);
     }
 
-    // 🏢 Filter: Abteilung
+    // 🏢 Filter: Abteilung (case-insensitive)
     if (department) {
-      query += " AND LOWER(u.department) = ?";
-      params.push(department.toLowerCase());
+      query += " AND u.department LIKE ?";
+      params.push(`%${department}%`);
     }
 
     query += " ORDER BY ws.date_today DESC, ws.start_time DESC";
 
     const [rows] = await pool.query(query, params);
 
-// 🕒 Zeitzone & Format direkt im Backend korrigieren
-const formattedRows = rows.map(r => ({
-  ...r,
-  date_today: r.date_today
-    ? `${r.date_today.getFullYear()}-${String(r.date_today.getMonth() + 1).padStart(2, '0')}-${String(r.date_today.getDate()).padStart(2, '0')}`
-    : null,
-  start_time: r.start_time
-    ? new Date(r.start_time).toLocaleString("de-DE", {
-        timeZone: "Europe/Vienna",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-      })
-    : null,
-  end_time: r.end_time
-    ? new Date(r.end_time).toLocaleString("de-DE", {
-        timeZone: "Europe/Vienna",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-      })
-    : null
-}));
+    // 🕒 Zeitzone & Format direkt im Backend korrigieren
+    const formattedRows = rows.map(r => {
+      const formatTime = (dt) => dt
+        ? new Date(dt).toLocaleTimeString("de-DE", { timeZone: "Europe/Vienna" })
+        : null;
 
+      const formatDate = (dt) => dt
+        ? dt.toISOString().split("T")[0]
+        : null;
+
+      return {
+        ...r,
+        start_time: formatTime(r.start_time),
+        end_time: formatTime(r.end_time),
+        date_today: formatDate(r.date_today),
+      };
+    });
 
     res.json(formattedRows);
   } catch (err) {
@@ -196,6 +187,7 @@ const formattedRows = rows.map(r => ({
     res.status(500).json({ error: "DB error" });
   }
 });
+
 
 // 🟢 Usernamen-Liste (für Dropdowns o.Ä.)
 app.get("/api/users/names", async (req, res) => {
@@ -257,7 +249,6 @@ app.get("/api/work-sessions/summary", auth(), async (req, res) => {
     res.status(500).json({ error: "DB error" });
   }
 });
-
 
 // Anwesenheitsübersicht (nur eigene Daten für User)
 app.get("/api/attendance", async (req, res) => {
@@ -330,7 +321,6 @@ app.get("/api/logs", async (req, res) => {
     res.status(500).json({ error: "Fehler beim Laden der Logs" })
   }
 })
-
 
 // --- Dummy-APIs (optional, später mit echten Daten ersetzen) ---
 app.get("/api/workflow", (req, res) => {
@@ -422,6 +412,31 @@ app.delete("/api/workflow/:id", async (req, res) => {
     res.status(500).json({ error: "Fehler beim Löschen des Tasks" });
   }
 });
+
+// Alle Abteilungen
+app.get("/api/departments", auth("admin"), async (req, res) => {
+  try {
+    const [rows] = await pool.execute("SELECT name FROM departments ORDER BY name ASC");
+    res.json(rows.map(r => r.name));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
+// User Abteilung zuweisen/aktualisieren
+app.put("/api/users/:id/department", auth("admin"), async (req, res) => {
+  const { id } = req.params;
+  const { department } = req.body;
+  try {
+    await pool.execute("UPDATE users SET department=? WHERE id=?", [department, id]);
+    res.json({ message: "Abteilung aktualisiert" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "DB error" });
+  }
+});
+
 
 
 const PORT = process.env.PORT || 3000;
