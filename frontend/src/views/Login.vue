@@ -68,7 +68,7 @@ export default {
         })
         localStorage.setItem("token", res.data.token)
         localStorage.setItem("user", JSON.stringify(res.data.user))
-        router.push("/")
+        router.push("/dashboard")
       } catch (err) {
         this.message = {
           text: err.response?.data?.error || "Login fehlgeschlagen",

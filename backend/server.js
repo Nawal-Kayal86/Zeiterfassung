@@ -289,62 +289,134 @@ app.get("/api/users", async (req, res) => {
   }
 });
 
-// 🟢 Dashboard: letzte Start- und Endzeit + Anzahl der Einträge
+// // 🟢 Dashboard: letzte Start- und Endzeit + Anzahl der Einträge
+// app.get("/api/work-sessions/summary", auth(), async (req, res) => {
+//   try {
+//     let userFilter = "";
+//     const params = [];
+
+//     if (req.user.role !== "admin") {
+//       userFilter = " AND ws.user_id = ?";
+//       params.push(req.user.id);
+//     }
+// const formattedRows = rows.map(r => ({
+//   ...r,
+//   start_time: r.start_time
+//     ? new Date(r.start_time + 'Z').toLocaleTimeString("de-DE", {
+//         timeZone: "Europe/Vienna",
+//         hour: "2-digit",
+//         minute: "2-digit",
+//         second: "2-digit"
+//       })
+//     : null,
+//   end_time: r.end_time
+//     ? new Date(r.end_time + 'Z').toLocaleTimeString("de-DE", {
+//         timeZone: "Europe/Vienna",
+//         hour: "2-digit",
+//         minute: "2-digit",
+//         second: "2-digit"
+//       })
+//     : null,
+// }));
+
+//     // 🕓 Letzter Beginn
+//     const [lastStart] = await pool.query(
+//       `SELECT 
+//          DATE_FORMAT(CONVERT_TZ(ws.start_time, '+00:00', 'Europe/Vienna'),
+//                      '%Y-%m-%d %H:%i:%s') AS start_time
+//        FROM work_sessions ws
+//        WHERE ws.start_time IS NOT NULL
+//        ${userFilter}
+//        ORDER BY ws.start_time DESC
+//        LIMIT 1`,
+//       params
+//     );
+
+//     // 🕓 Letztes Ende
+//     const [lastEnd] = await pool.query(
+//       `SELECT 
+//          DATE_FORMAT(CONVERT_TZ(ws.end_time, '+00:00', 'Europe/Vienna'),
+//                      '%Y-%m-%d %H:%i:%s') AS end_time
+//        FROM work_sessions ws
+//        WHERE ws.end_time IS NOT NULL
+//        ${userFilter}
+//        ORDER BY ws.end_time DESC
+//        LIMIT 1`,
+//       params
+//     );
+
+//     // 🧮 Gesamtanzahl
+//     const [count] = await pool.query(
+//       `SELECT COUNT(*) AS total
+//        FROM work_sessions ws
+//        WHERE ws.start_time IS NOT NULL
+//        ${userFilter}`,
+//       params
+//     );
+
+//     res.json({
+//       lastStart: lastStart[0]?.start_time || null,
+//       lastEnd: lastEnd[0]?.end_time || null,
+//       totalEntries: count[0]?.total ?? 0,
+//     });
+//   } catch (err) {
+//     console.error("Fehler bei /api/work-sessions/summary:", err);
+//     res.status(500).json({ error: "DB error" });
+//   }
+// });
+
+
+
 app.get("/api/work-sessions/summary", auth(), async (req, res) => {
   try {
-    let userFilter = "";
     const params = [];
+    let userFilter = "";
 
     if (req.user.role !== "admin") {
       userFilter = " AND ws.user_id = ?";
       params.push(req.user.id);
     }
 
-    // 🕓 Letzter Beginn
-    const [lastStart] = await pool.query(
-      `SELECT 
-         DATE_FORMAT(CONVERT_TZ(ws.start_time, '+00:00', 'Europe/Vienna'),
-                     '%Y-%m-%d %H:%i:%s') AS start_time
-       FROM work_sessions ws
-       WHERE ws.start_time IS NOT NULL
-       ${userFilter}
-       ORDER BY ws.start_time DESC
-       LIMIT 1`,
+    // Letzter Start
+    const [lastStartRows] = await pool.query(
+      `SELECT start_time FROM work_sessions ws 
+       WHERE ws.start_time IS NOT NULL ${userFilter}
+       ORDER BY ws.start_time DESC LIMIT 1`,
       params
     );
 
-    // 🕓 Letztes Ende
-    const [lastEnd] = await pool.query(
-      `SELECT 
-         DATE_FORMAT(CONVERT_TZ(ws.end_time, '+00:00', 'Europe/Vienna'),
-                     '%Y-%m-%d %H:%i:%s') AS end_time
-       FROM work_sessions ws
-       WHERE ws.end_time IS NOT NULL
-       ${userFilter}
-       ORDER BY ws.end_time DESC
-       LIMIT 1`,
+    // Letztes Ende
+    const [lastEndRows] = await pool.query(
+      `SELECT end_time FROM work_sessions ws 
+       WHERE ws.end_time IS NOT NULL ${userFilter}
+       ORDER BY ws.end_time DESC LIMIT 1`,
       params
     );
 
-    // 🧮 Gesamtanzahl
-    const [count] = await pool.query(
-      `SELECT COUNT(*) AS total
-       FROM work_sessions ws
-       WHERE ws.start_time IS NOT NULL
-       ${userFilter}`,
+    // Gesamtanzahl
+    const [countRows] = await pool.query(
+      `SELECT COUNT(*) AS total FROM work_sessions ws 
+       WHERE ws.start_time IS NOT NULL ${userFilter}`,
       params
     );
+
+    // UTC → Wien
+    const toVienna = (utcStr) => utcStr 
+      ? new Date(utcStr + 'Z').toLocaleString("de-DE", { timeZone: "Europe/Vienna", hour: "2-digit", minute: "2-digit", second: "2-digit" }) 
+      : null;
 
     res.json({
-      lastStart: lastStart[0]?.start_time || null,
-      lastEnd: lastEnd[0]?.end_time || null,
-      totalEntries: count[0]?.total ?? 0,
+      lastStart: toVienna(lastStartRows[0]?.start_time),
+      lastEnd: toVienna(lastEndRows[0]?.end_time),
+      totalEntries: countRows[0]?.total ?? 0,
     });
   } catch (err) {
     console.error("Fehler bei /api/work-sessions/summary:", err);
     res.status(500).json({ error: "DB error" });
   }
 });
+
+
 
 
 

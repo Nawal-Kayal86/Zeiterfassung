@@ -23,18 +23,18 @@ const routes = [
     component: Layout,
     meta: { requiresAuth: true },
     children: [
-      { path: '', component: Dashboard }, // dashboard
+      { path: '', component: Dashboard }, // default: '/' zeigt Dashboard
+      { path: 'dashboard', component: Dashboard }, // auch erreichbar unter '/dashboard'
       { path: 'admin', component: Admin }, // admin
       { path: 'billing', component: Billing }, // billing
       { path: 'newuser', component: NewUser, meta: { requiresAuth: true, requiresAdmin: true } }, // newuser
-      { path: 'kalender', component: Kalender }, //kalender
-      { path: 'attendance', component: Attendance }, //attendance
-      { path: 'errors', component: Errors },//errors
-      { path: 'terminal', component: Terminal },//terminal
-      { path: 'terminal', component: Terminal },//terminal
-      { path: 'workflow', component: Workflow },//workflow
-      { path: 'schedule', component: Schedule },//dienstplan
-      { path: 'reports', component: Reports },//berichte
+      { path: 'kalender', component: Kalender }, // kalender
+      { path: 'attendance', component: Attendance }, // attendance
+      { path: 'errors', component: Errors }, // errors
+      { path: 'terminal', component: Terminal }, // terminal
+      { path: 'workflow', component: Workflow }, // workflow
+      { path: 'schedule', component: Schedule }, // dienstplan
+      { path: 'reports', component: Reports } // berichte
     ]
   }
 ]
