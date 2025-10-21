@@ -177,8 +177,8 @@
     <div class="sidebar" :class="{ collapsed: isCollapsed }">
   <ul class="nav-list">
     <li class="user-info">
-      <p>Willkommen, <strong>{{ user?.name }}</strong></p>
-      <p>Rolle: <strong>{{ user?.role }}</strong></p>
+      <p>Willkommen, <strong>{{ currentuser?.name }}</strong></p>
+      <p>Rolle: <strong>{{ currentuser?.role }}</strong></p>
     </li>
 
     <li>
@@ -195,12 +195,12 @@
         <i class="bi bi-receipt"></i> Abrechnungsliste
       </RouterLink>
     </li>
-    <li v-if="user?.role === 'admin'">
+    <li v-if="currentuser?.role === 'admin'">
       <RouterLink to="/newuser" class="nav-item">
         <i class="bi bi-person-plus"></i> Neuen User anlegen
       </RouterLink>
     </li>
-    <li v-if="user?.role === 'admin'">
+    <li v-if="currentuser?.role === 'admin'">
       <RouterLink to="/departments" class="nav-item">
         <i class="bi bi-building"></i> Abteilungen
       </RouterLink>
@@ -260,7 +260,7 @@
 import { ref } from "vue"
 
 const isCollapsed = ref(false)
-const user = JSON.parse(localStorage.getItem("user")) || null
+const currentuser = JSON.parse(localStorage.getItem("user")) || null
 
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value

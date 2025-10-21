@@ -71,7 +71,7 @@ export default {
   },
   async created() {
     try {
-      const res = await api.get("/work-sessions");
+      const res = await api.get("/");
       console.log("✅ Daten vom Backend:", res.data);
       this.events = res.data;
     } catch (err) {

@@ -33,9 +33,10 @@
                     <label class="form-label">Abteilung:</label>
                     <select class="form-select" v-model="department">
                         <option value="">Alle</option>
-                        <option v-for="dep in departments" :key="dep" :value="dep">
-                            {{ dep.name }}
+                        <option v-for="dep in departments" :key="dep.id" :value="dep.name">
+                        {{ dep.name }}
                         </option>
+
                     </select>
                 </div>
 
@@ -136,7 +137,7 @@ export default {
                     axios.get("http://localhost:3000/api/users", {
                         headers: { Authorization: `Bearer ${this.token}` },
                     }),
-                    axios.get("http://localhost:3000/api/work-sessions", {
+                    axios.get("http://localhost:3000/api", {
                         params: {
                             startDate: this.startDate,
                             endDate: this.endDate,

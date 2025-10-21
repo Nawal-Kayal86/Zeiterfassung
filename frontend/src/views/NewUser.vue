@@ -2,7 +2,7 @@
   <div class="container mt-4">
     <h2>User Verwaltung</h2>
 
-    <!-- Formular zum Anlegen / Bearbeiten -->
+    <!-- Formular -->
     <form @submit.prevent="saveUser">
       <div class="card p-3 mb-4">
         <div class="mb-3">
@@ -12,18 +12,18 @@
 
         <div class="mb-3">
           <label class="form-label">E-Mail</label>
-          <input v-model="user.email" type="email" class="form-control"/>
+          <input v-model="user.email" type="email" class="form-control" />
         </div>
 
         <div class="mb-3">
           <label class="form-label">Rolle</label>
           <select v-model="user.role" class="form-select" required>
+            <option value="" disabled>Rolle wählen</option>
             <option value="user">User</option>
             <option value="admin">Admin</option>
           </select>
         </div>
 
-        <!-- Dynamische Abteilung -->
         <div class="mb-3">
           <label class="form-label">Abteilung</label>
           <select v-model="user.department" class="form-select">
@@ -41,22 +41,32 @@
 
         <div class="mb-3">
           <label class="form-label">Passwort</label>
-          <input v-model="user.password" type="password" class="form-control" :required="!user.id" />
+          <input
+            v-model="user.password"
+            type="password"
+            class="form-control"
+            :required="!user.id"
+          />
         </div>
 
         <button class="btn btn-primary w-100" type="submit">
           {{ user.id ? "Änderungen speichern" : "User erstellen" }}
         </button>
+
+        <!-- 💬 Dynamische Meldung -->
+        <div
+          v-if="message.text"
+          :class="['alert', message.type, 'mt-3', 'fade', 'show']"
+          role="alert"
+        >
+          {{ message.text }}
+        </div>
       </div>
     </form>
 
-    <div v-if="message" class="alert alert-info mt-3">
-      {{ message }}
-    </div>
-
     <!-- Tabelle -->
     <h3 class="mt-5">Alle User</h3>
-    <table class="table table-striped">
+    <table class="table table-striped align-middle">
       <thead>
         <tr>
           <th>ID</th>
@@ -75,12 +85,16 @@
           <td>{{ u.name }}</td>
           <td>{{ u.email }}</td>
           <td>{{ u.role }}</td>
-          <td>{{ u.department}}</td>
+          <td>{{ u.department }}</td>
           <td>{{ u.nfc_tag }}</td>
           <td>{{ new Date(u.created_at).toLocaleString() }}</td>
           <td>
-            <button class="btn btn-sm btn-warning me-2" @click="editUser(u)">Bearbeiten</button>
-            <button class="btn btn-sm btn-danger" @click="deleteUser(u.id)">Löschen</button>
+            <button class="btn btn-sm btn-warning me-2" @click="editUser(u)">
+              Bearbeiten
+            </button>
+            <button class="btn btn-sm btn-danger" @click="deleteUser(u.id)">
+              Löschen
+            </button>
           </td>
         </tr>
       </tbody>
@@ -92,13 +106,21 @@
 import { ref, onMounted } from "vue"
 import axios from "axios"
 
-const user = ref({ id: null, name: "", email: "", role: "user", department: "", nfc_tag: "", password: "" })
+const user = ref({ id: null, name: "", email: "", role: "", department: "", nfc_tag: "", password: "" })
 const users = ref([])
 const departments = ref([])
-const message = ref("")
+
+// 💬 Nachricht-Objekt (Text + Bootstrap-Klasse)
+const message = ref({ text: "", type: "" })
 
 const token = localStorage.getItem("token")
 const axiosConfig = { headers: { Authorization: `Bearer ${token}` } }
+
+// 🔔 Meldung anzeigen mit Farbe + Auto-Close
+const showMessage = (text, type = "alert-info", duration = 3000) => {
+  message.value = { text, type }
+  setTimeout(() => (message.value.text = ""), duration)
+}
 
 // Abteilungen laden
 const loadDepartments = async () => {
@@ -106,8 +128,7 @@ const loadDepartments = async () => {
     const res = await axios.get("http://localhost:3000/api/departments", axiosConfig)
     departments.value = res.data
   } catch (err) {
-    console.error("Fehler beim Laden der Abteilungen:", err)
-    departments.value = []
+    showMessage("Fehler beim Laden der Abteilungen!", "alert-danger")
   }
 }
 
@@ -117,7 +138,7 @@ const loadUsers = async () => {
     const res = await axios.get("http://localhost:3000/api/users", axiosConfig)
     users.value = res.data
   } catch {
-    message.value = "Fehler beim Laden der User"
+    showMessage("Fehler beim Laden der User!", "alert-danger")
   }
 }
 
@@ -126,40 +147,54 @@ const saveUser = async () => {
   try {
     if (user.value.id) {
       await axios.put(`http://localhost:3000/api/users/${user.value.id}`, user.value, axiosConfig)
-      message.value = "User erfolgreich aktualisiert!"
+      showMessage("User erfolgreich aktualisiert!", "alert-success")
     } else {
       await axios.post("http://localhost:3000/api/users", user.value, axiosConfig)
-      message.value = "User erfolgreich angelegt!"
+      showMessage("User erfolgreich angelegt!", "alert-success")
     }
     await loadUsers()
     resetForm()
   } catch (err) {
-    message.value = "Fehler: " + (err.response?.data?.error || err.message)
+    showMessage("Fehler: " + (err.response?.data?.error || err.message), "alert-danger")
   }
 }
 
 const editUser = (u) => {
-  user.value = { ...u, password: "" }
-  window.scrollTo({ top: 0, behavior: "smooth" })
+  // Nur wenn u ein Objekt ist
+  if (!u || typeof u !== "object") return;
+
+  user.value = {
+    id: u.id,
+    name: u.name || "",
+    email: u.email || "",
+    role: u.role || "",
+    department: u.department || "",
+    nfc_tag: u.nfc_tag || "",
+    password: ""
+  };
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+
+// Löschen mit Bootstrap confirm-Modal (einfacher Fallback mit confirm)
 const deleteUser = async (id) => {
   if (!confirm("Wirklich löschen?")) return
   try {
     await axios.delete(`http://localhost:3000/api/users/${id}`, axiosConfig)
-    message.value = "User gelöscht!"
     await loadUsers()
+    showMessage("User gelöscht!", "alert-secondary")
   } catch (err) {
-    message.value = "Fehler beim Löschen: " + (err.response?.data?.error || err.message)
+    showMessage("Fehler beim Löschen: " + (err.response?.data?.error || err.message), "alert-danger")
   }
 }
 
 const resetForm = () => {
-  user.value = { id: null, name: "", email: "", role: "user", department: "", nfc_tag: "", password: "" }
+  user.value = { id: null, name: "", email: "", role: "", department: "", nfc_tag: "", password: "" }
 }
 
 onMounted(() => {
   loadUsers()
   loadDepartments()
+  resetForm()
 })
 </script>

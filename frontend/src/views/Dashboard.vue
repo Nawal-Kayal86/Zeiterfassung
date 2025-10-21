@@ -134,7 +134,7 @@ export default {
   methods: {
     async loadSummary() {
       try {
-        const res = await api.get('/work-sessions/summary')
+        const res = await api.get('/summary')
         console.log("Summary vom Backend:", res.data)
         this.summary = res.data
       } catch (err) {
@@ -145,7 +145,7 @@ export default {
 
     async loadWorkSessions() {
       try {
-        const res = await api.get('/work-sessions')
+        const res = await api.get('/')
         this.workSessions = res.data
       } catch (err) {
         console.error("Fehler beim Laden der Work-Sessions:", err)

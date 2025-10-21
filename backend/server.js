@@ -8,6 +8,8 @@ import { initDB } from './db.js';
 import { auth } from "./middleware/auth.js";
 import usersRouter from './routes/users.js';
 import departmentsRouter from "./routes/departments.js";
+import workSessionsRouter from './routes/workSessions.js';
+
 dotenv.config();
 const pool = await initDB();
 const app = express();
@@ -15,6 +17,7 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use("/api/users", usersRouter);
 app.use("/api/departments", departmentsRouter);
+app.use("/api", workSessionsRouter);
 
 
 // 🟢 Login
@@ -42,33 +45,7 @@ app.get("/api/me", auth(), async (req, res) => {
   res.json({ user: req.user });
 });
 
-// 🟢 Arbeitsbeginn
-app.post("/api/start", auth(), async (req, res) => {
-  try {
-    await pool.query(
-      "INSERT INTO work_sessions (user_id, start_time) VALUES (?, NOW())",
-      [req.user.id]
-    );
-    res.json({ message: "Arbeitsbeginn erfasst" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "DB error" });
-  }
-});
 
-// 🟢 Arbeitsende
-app.post("/api/stop", auth(), async (req, res) => {
-  try {
-    const [result] = await pool.query(
-      "UPDATE work_sessions SET end_time = NOW() WHERE user_id = ? AND end_time IS NULL ORDER BY start_time DESC LIMIT 1",
-      [req.user.id]
-    );
-    res.json({ message: "Arbeitsende erfasst", affectedRows: result.affectedRows });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "DB error" });
-  }
-});
 
 // 🟢 Admin: alle User + deren Arbeitszeiten
 app.get("/api/admin/users", auth("admin"), async (req, res) => {
@@ -87,106 +64,10 @@ app.get("/api/admin/users", auth("admin"), async (req, res) => {
   }
 });
 
-// 🟢 Manuelle Arbeitszeit erfassen
-app.post("/api/manual-time", auth(), async (req, res) => {
-  const { date, start, end } = req.body;
-  if (!date || !start || !end) {
-    return res.status(400).json({ error: "Alle Felder sind erforderlich" });
-  }
 
-  try {
-    const startDateTime = `${date} ${start}:00`;
-    const endDateTime = `${date} ${end}:00`;
 
-   await pool.query(
-  "INSERT INTO work_sessions (user_id, start_time, end_time, date_today) VALUES (?, ?, ?, ?)",
-  [req.user.id, startDateTime, endDateTime, date]
-);
 
-    res.json({ message: "Arbeitszeit manuell eingetragen" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "DB error" });
-  }
-});
 
-// 🟢 Alle Arbeitszeiten mit Filtern (Dashboard-Tabelle)
-app.get("/api/work-sessions", auth(), async (req, res) => {
-  try {
-    const { startDate, endDate, employeeName, department } = req.query;
-
-    let query = `
-      SELECT
-        ws.id,
-        u.id AS user_id,
-        u.name,
-        u.department,
-        ws.start_time,
-        ws.end_time,
-        ws.date_today
-      FROM work_sessions ws
-      INNER JOIN users u ON u.id = ws.user_id
-      WHERE 1=1
-    `;
-
-    const params = [];
-
-    // 👤 Filter: Nur eigene Zeiten, wenn kein Admin
-    if (req.user.role !== "admin") {
-      query += " AND u.id = ?";
-      params.push(req.user.id);
-    }
-
-    // 📅 Filter: Datum
-    if (startDate) {
-      query += " AND ws.date_today >= ?";
-      params.push(startDate);
-    }
-    if (endDate) {
-      query += " AND ws.date_today <= ?";
-      params.push(endDate);
-    }
-
-    // 🏷 Filter: Name (case-insensitive)
-    if (employeeName) {
-      query += " AND u.name LIKE ?";
-      params.push(`%${employeeName}%`);
-    }
-
-    // 🏢 Filter: Abteilung (case-insensitive)
-    if (department) {
-      query += " AND u.department LIKE ?";
-      params.push(`%${department}%`);
-    }
-
-    query += " ORDER BY ws.date_today DESC, ws.start_time DESC";
-
-    const [rows] = await pool.query(query, params);
-
-    // 🕒 Zeitzone & Format direkt im Backend korrigieren
-    const formattedRows = rows.map(r => {
-      const formatTime = (dt) => dt
-        ? new Date(dt).toLocaleTimeString("de-DE", { timeZone: "Europe/Vienna" })
-        : null;
-
-      const formatDate = (dt) => dt
-        ? dt.toISOString().split("T")[0]
-        : null;
-
-      return {
-        ...r,
-        start_time: formatTime(r.start_time),
-        end_time: formatTime(r.end_time),
-        date_today: formatDate(r.date_today),
-      };
-    });
-
-    res.json(formattedRows);
-  } catch (err) {
-    console.error("Fehler bei /api/work-sessions:", err);
-    res.status(500).json({ error: "DB error" });
-  }
-});
 
 
 // 🟢 Usernamen-Liste (für Dropdowns o.Ä.)
@@ -201,54 +82,6 @@ app.get("/api/users/names", async (req, res) => {
 });
 
 
-app.get("/api/work-sessions/summary", auth(), async (req, res) => {
-  try {
-    const params = [];
-    let userFilter = "";
-
-    if (req.user.role !== "admin") {
-      userFilter = " AND ws.user_id = ?";
-      params.push(req.user.id);
-    }
-
-    // Letzter Start
-    const [lastStartRows] = await pool.query(
-      `SELECT start_time FROM work_sessions ws 
-       WHERE ws.start_time IS NOT NULL ${userFilter}
-       ORDER BY ws.start_time DESC LIMIT 1`,
-      params
-    );
-
-    // Letztes Ende
-    const [lastEndRows] = await pool.query(
-      `SELECT end_time FROM work_sessions ws 
-       WHERE ws.end_time IS NOT NULL ${userFilter}
-       ORDER BY ws.end_time DESC LIMIT 1`,
-      params
-    );
-
-    // Gesamtanzahl
-    const [countRows] = await pool.query(
-      `SELECT COUNT(*) AS total FROM work_sessions ws 
-       WHERE ws.start_time IS NOT NULL ${userFilter}`,
-      params
-    );
-
-    // UTC → Wien
-    const toVienna = (utcStr) => utcStr 
-      ? new Date(utcStr + 'Z').toLocaleString("de-DE", { timeZone: "Europe/Vienna", hour: "2-digit", minute: "2-digit", second: "2-digit" }) 
-      : null;
-
-    res.json({
-      lastStart: toVienna(lastStartRows[0]?.start_time),
-      lastEnd: toVienna(lastEndRows[0]?.end_time),
-      totalEntries: countRows[0]?.total ?? 0,
-    });
-  } catch (err) {
-    console.error("Fehler bei /api/work-sessions/summary:", err);
-    res.status(500).json({ error: "DB error" });
-  }
-});
 
 // Anwesenheitsübersicht (nur eigene Daten für User)
 app.get("/api/attendance", async (req, res) => {
