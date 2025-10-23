@@ -192,20 +192,23 @@ export default {
       setTimeout(() => { this.message.text = '' }, 4000)
     },
 
-    formatDate(val) {
-  if (!val) return "-"
+  formatDate(val) {
+  if (!val) return "-";
   try {
-    // Kompatibel mit "YYYY-MM-DD" und "YYYY-MM-DD HH:mm:ss"
-    const d = new Date(val.replace(" ", "T"))
-    return d.toLocaleDateString("de-DE", {
+    // Nur das Datum extrahieren, Zeitzonenprobleme vermeiden
+    const parts = val.split(" ")[0].split("T")[0];
+    const [year, month, day] = parts.split("-");
+    return new Date(year, month - 1, day).toLocaleDateString("de-DE", {
       weekday: "short",
       day: "2-digit",
       month: "2-digit",
       year: "numeric"
-    })
+    });
   } catch {
-    return "-"
+    return "-";
   }
+
+
 },
 
 formatTime(val, date = null) {

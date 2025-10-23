@@ -9,6 +9,8 @@ import { auth } from "./middleware/auth.js";
 import usersRouter from './routes/users.js';
 import departmentsRouter from "./routes/departments.js";
 import workSessionsRouter from './routes/workSessions.js';
+import workflowRouter from './routes/workflow.js';
+
 
 dotenv.config();
 const pool = await initDB();
@@ -18,6 +20,8 @@ app.use(bodyParser.json());
 app.use("/api/users", usersRouter);
 app.use("/api/departments", departmentsRouter);
 app.use("/api", workSessionsRouter);
+app.use("/api", workflowRouter);
+
 
 
 // 🟢 Login
@@ -155,13 +159,6 @@ app.get("/api/logs", async (req, res) => {
   }
 })
 
-// --- Dummy-APIs (optional, später mit echten Daten ersetzen) ---
-app.get("/api/workflow", (req, res) => {
-  res.json([
-    { id: 1, task: "Check-In um 08:00", status: "done" },
-    { id: 2, task: "Meeting mit IT", status: "open" }
-  ])
-})
 
 app.get("/api/schedule", (req, res) => {
   res.json([
@@ -188,63 +185,8 @@ app.get('/api/reports', async (req, res) => {
   }
 })
 
-// ✅ Workflow – alle Tasks abrufen
-app.get("/api/workflow", async (req, res) => {
-  try {
-    const [rows] = await pool.execute("SELECT * FROM workflow ORDER BY id DESC");
-    res.json(rows);
-  } catch (err) {
-    console.error("Fehler beim Abrufen:", err);
-    res.status(500).json({ error: "Fehler beim Laden der Workflow-Daten" });
-  }
-});
 
-// ✅ Workflow – neuen Task hinzufügen
-app.post("/api/workflow", async (req, res) => {
-  try {
-    const { task, status } = req.body;
 
-    if (!task) {
-      return res.status(400).json({ error: "Task-Name ist erforderlich" });
-    }
-
-    const [result] = await pool.execute(
-      "INSERT INTO workflow (task, status) VALUES (?, ?)",
-      [task, status || "open"]
-    );
-
-    const [newTask] = await pool.execute("SELECT * FROM workflow WHERE id = ?", [result.insertId]);
-
-    res.status(201).json(newTask[0]);
-  } catch (err) {
-    console.error("Fehler beim Hinzufügen:", err);
-    res.status(500).json({ error: "Fehler beim Speichern des Tasks" });
-  }
-});
-// ✅ Task als "done" markieren
-app.put("/api/workflow/:id/done", async (req, res) => {
-  try {
-    const { id } = req.params;
-    await pool.execute("UPDATE workflow SET status = 'done' WHERE id = ?", [id]);
-    const [updated] = await pool.execute("SELECT * FROM workflow WHERE id = ?", [id]);
-    res.json(updated[0]);
-  } catch (err) {
-    console.error("Fehler beim Aktualisieren:", err);
-    res.status(500).json({ error: "Fehler beim Aktualisieren des Tasks" });
-  }
-});
-
-// ❌ Task löschen
-app.delete("/api/workflow/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    await pool.execute("DELETE FROM workflow WHERE id = ?", [id]);
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Fehler beim Löschen:", err);
-    res.status(500).json({ error: "Fehler beim Löschen des Tasks" });
-  }
-});
 
 // Alle Abteilungen
 app.get("/api/departments", auth("admin"), async (req, res) => {

@@ -167,17 +167,17 @@ router.get("/summary", auth(), async (req, res) => {
       params
     );
 
-  const toVienna = (utcStr) => {
-  if (!utcStr) return null;
-  const d = new Date(utcStr + "Z"); // UTC
-  if (isNaN(d)) return null;
-  // ISO-String für Frontend
-  return d.toISOString(); 
-};
+  // const toVienna = (utcStr) => {
+  // if (!utcStr) return null;
+  // const d = new Date(utcStr + "Z"); // UTC
+  // if (isNaN(d)) return null;
+  // // ISO-String für Frontend
+  // return d.toISOString(); 
+// };
 
     res.json({
-      lastStart: toVienna(lastStartRows[0]?.start_time),
-      lastEnd: toVienna(lastEndRows[0]?.end_time),
+      lastStart: lastStartRows[0]?.start_time,
+      lastEnd: lastEndRows[0]?.end_time,
       totalEntries: countRows[0]?.total ?? 0,
     });
   } catch (err) {
