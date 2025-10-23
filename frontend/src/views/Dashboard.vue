@@ -93,13 +93,13 @@
               </td>
             </tr>
             <tr v-for="s in workSessions" :key="s.id">
+             
               <td v-if="user && user.role === 'admin'">{{ s.name }}</td>
               <td>{{ s.department || '-' }}</td>
-              <td>{{ s.date_today }}</td>
-              <td>{{ formatTime(s.start_time, s.date_today) }}</td>
-              <td>{{ formatTime(s.end_time, s.date_today) }}</td>
-              <td>{{ s.end_time ? calcDuration(s.start_time, s.end_time, s.date_today) : "-" }}</td>
-
+              <td>{{ s.date_today || '-'}}</td>
+              <td>{{ s.start_time || '-'}}</td>
+              <td>{{ s.end_time || '-' }}</td>
+              <td>{{ calcDuration(s.start_time, s.end_time, s.date_today) || '-' }}</td>
             </tr>
           </tbody>
         </table>
@@ -146,7 +146,20 @@ export default {
     async loadWorkSessions() {
       try {
         const res = await api.get('/workSessions')
-        this.workSessions = res.data
+        // 🕒 Berechne Dauer für jede Session
+        this.workSessions = res.data.map(item => {
+          let duration = { hhmm: "00:00", decimal: "0.00" }
+
+          if (item.start_time && item.end_time) {
+            duration = this.calcDuration(item.start_time, item.end_time, item.date_today)
+          }
+
+          return {
+            ...item,
+            hours: duration.hhmm,
+            hoursDecimal: duration.decimal
+          }
+        })
       } catch (err) {
         console.error("Fehler beim Laden der Work-Sessions:", err)
         this.workSessions = []
@@ -192,64 +205,66 @@ export default {
       setTimeout(() => { this.message.text = '' }, 4000)
     },
 
-  formatDate(val) {
-  if (!val) return "-";
-  try {
-    // Nur das Datum extrahieren, Zeitzonenprobleme vermeiden
-    const parts = val.split(" ")[0].split("T")[0];
-    const [year, month, day] = parts.split("-");
-    return new Date(year, month - 1, day).toLocaleDateString("de-DE", {
-      weekday: "short",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric"
-    });
-  } catch {
-    return "-";
-  }
+    formatDate(val) {
+      if (!val) return "-"
+      try {
+        const parts = val.split("T")[0].split("-")
+        const [year, month, day] = parts
+        return new Date(year, month - 1, day).toLocaleDateString("de-DE", {
+          weekday: "short",
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric"
+        })
+      } catch {
+        return "-"
+      }
+    },
 
+    formatTime(val, date = null) {
+      if (!val) return "-"
+      try {
+        let full = val
+        if (/^\d{2}:\d{2}:\d{2}$/.test(val) && date) {
+          full = `${date}T${val}`
+        } else if (/^\d{2}:\d{2}:\d{2}$/.test(val)) {
+          full = `1970-01-01T${val}`
+        }
+        const d = new Date(full)
+        return d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })
+      } catch {
+        return "-"
+      }
+    },
 
-},
+    // Berechnet Dauer HH:MM und Dezimalstunden
+    calcDuration(start, end, date = null) {
+      if (!start || !end) return { hhmm: "00:00", decimal: "0.00" }
+      try {
+        const s = new Date(`${date || "1970-01-01"}T${start}`)
+        let e = new Date(`${date || "1970-01-01"}T${end}`)
 
-formatTime(val, date = null) {
-  if (!val) return "-"
-  try {
-    // Wenn nur Uhrzeit ohne Datum -> künstlich Datum ergänzen
-    let full = val
-    if (/^\d{2}:\d{2}:\d{2}$/.test(val) && date) {
-      full = `${date}T${val}`
-    } else if (/^\d{2}:\d{2}:\d{2}$/.test(val)) {
-      full = `1970-01-01T${val}`
+        // Endzeit kleiner als Start → nächste Tag
+        if (e < s) e.setDate(e.getDate() + 1)
+
+        const diffMs = e - s
+        if (diffMs < 0) return { hhmm: "00:00", decimal: "0.00" }
+
+        const totalMinutes = Math.floor(diffMs / 60000)
+        const h = Math.floor(totalMinutes / 60)
+        const m = totalMinutes % 60
+        const hhmm = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`
+        const decimal = (diffMs / 1000 / 60 / 60).toFixed(2)
+
+        return decimal 
+      } catch {
+        return { hhmm: "00:00", decimal: "0.00" }
+      }
     }
-    const d = new Date(full)
-    return d.toLocaleTimeString("de-DE", {
-      hour: "2-digit",
-      minute: "2-digit"
-    })
-  } catch {
-    return "-"
-  }
-},
-
-calcDuration(start, end, date = null) {
-  if (!start || !end) return "-"
-  try {
-    // auch hier Datum hinzufügen, wenn nur Uhrzeit
-    const s = new Date(`${date || "1970-01-01"}T${start}`)
-    const e = new Date(`${date || "1970-01-01"}T${end}`)
-    const diffMs = e - s
-    if (diffMs < 0) return "-"
-    const h = Math.floor(diffMs / 1000 / 60 / 60)
-    const m = Math.floor((diffMs / 1000 / 60) % 60)
-    return `${h}:${m.toString().padStart(2, "0")}`
-  } catch {
-    return "-"
-  }
-}
-
   }
 }
 </script>
+
 
 <style scoped>
 .table-hover tbody tr:hover {

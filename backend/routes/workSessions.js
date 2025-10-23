@@ -80,12 +80,13 @@ router.get("/", auth(), async (req, res) => {
         u.id AS user_id,
         u.name,
         u.department,
-        ws.start_time,
-        ws.end_time,
-        ws.date_today
+        DATE_FORMAT(ws.start_time, '%H:%i') AS start_time,
+        DATE_FORMAT(ws.start_time, '%Y-%m-%d') AS start_date,
+        DATE_FORMAT(ws.end_time, '%H:%i') AS end_time,
+        DATE_FORMAT(ws.end_time, '%Y-%m-%d') AS end_date,
+        DATE_FORMAT(ws.date_today, '%Y-%m-%d') AS date_today
       FROM work_sessions ws
       INNER JOIN users u ON u.id = ws.user_id
-      WHERE 1 = 1
     `;
     const params = [];
 
@@ -125,6 +126,7 @@ router.get("/", auth(), async (req, res) => {
     res.status(500).json({ error: "Fehler beim Laden der Arbeitszeiten" });
   }
 });
+
 
 // 🟢 Dashboard Summary (letzter Start, letztes Ende, Gesamtanzahl)
 router.get("/summary", auth(), async (req, res) => {

@@ -4,8 +4,6 @@
 
     <div class="card shadow-sm p-4">
       <h5 class="mb-3">📝 Arbeitszeiten im Detail</h5>
-      <!-- // todo -->
-{{ events }}
       <div v-if="events.length === 0" class="alert alert-info">
         Keine Arbeitszeiten gefunden.
       </div>
@@ -23,11 +21,10 @@
         <tbody>
           <tr v-for="e in events" :key="e.id">
            <td>{{ e.user_name || e.name || "-" }}</td>
-
             <td>{{ e.department || '-' }}</td>
-            <td>{{ formatDateTime(e.date_today, e.start_time) }}</td>
-            <td>{{ formatDateTime(e.date_today, e.end_time) }}</td>
-            <td>{{ calcDuration(e.date_today, e.start_time, e.end_time) }}</td>
+            <td>{{ formatDateTime(e.start_date, e.start_time) }}</td>
+            <td>{{ formatDateTime(e.end_date, e.end_time) }}</td>
+            <td>{{ calcDuration(e.start_date,e.end_date, e.start_time, e.end_time) }}</td>
           </tr>
         </tbody>
       </table>
@@ -61,9 +58,9 @@ export default {
       return dt.toLocaleString("de-DE");
     },
 
-    calcDuration(date, start, end) {
-      const s = this.combineDateTime(date, start);
-      const e = this.combineDateTime(date, end);
+    calcDuration(start_date, end_date, start, end) {
+      const s = this.combineDateTime(start_date, start);
+      const e = this.combineDateTime(end_date, end);
       if (!s || !e) return "-";
       const diffMs = e - s;
       const diffHrs = diffMs / 1000 / 60 / 60;
