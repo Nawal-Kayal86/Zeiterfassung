@@ -19,8 +19,8 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use("/api/users", usersRouter);
 app.use("/api/departments", departmentsRouter);
-app.use("/api", workSessionsRouter);
-app.use("/api", workflowRouter);
+app.use("/api/workSessions", workSessionsRouter);
+app.use("/api/workflow", workflowRouter);
 
 
 

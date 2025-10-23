@@ -137,7 +137,7 @@ export default {
                     axios.get("http://localhost:3000/api/users", {
                         headers: { Authorization: `Bearer ${this.token}` },
                     }),
-                    axios.get("http://localhost:3000/api", {
+                    axios.get("http://localhost:3000/api/workSessions", {
                         params: {
                             startDate: this.startDate,
                             endDate: this.endDate,

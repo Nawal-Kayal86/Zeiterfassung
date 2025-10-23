@@ -4,7 +4,8 @@
 
     <div class="card shadow-sm p-4">
       <h5 class="mb-3">📝 Arbeitszeiten im Detail</h5>
-
+      <!-- // todo -->
+{{ events }}
       <div v-if="events.length === 0" class="alert alert-info">
         Keine Arbeitszeiten gefunden.
       </div>
@@ -71,7 +72,7 @@ export default {
   },
   async created() {
     try {
-      const res = await api.get("/");
+      const res = await api.get("/workSessions");
       console.log("✅ Daten vom Backend:", res.data);
       this.events = res.data;
     } catch (err) {

@@ -95,7 +95,7 @@
             <tr v-for="s in workSessions" :key="s.id">
               <td v-if="user && user.role === 'admin'">{{ s.name }}</td>
               <td>{{ s.department || '-' }}</td>
-              <td>{{ formatDate(s.date_today) }}</td>
+              <td>{{ s.date_today }}</td>
               <td>{{ formatTime(s.start_time, s.date_today) }}</td>
               <td>{{ formatTime(s.end_time, s.date_today) }}</td>
               <td>{{ s.end_time ? calcDuration(s.start_time, s.end_time, s.date_today) : "-" }}</td>
@@ -134,7 +134,7 @@ export default {
   methods: {
     async loadSummary() {
       try {
-        const res = await api.get('/summary')
+        const res = await api.get('/workSessions/summary')
         console.log("Summary vom Backend:", res.data)
         this.summary = res.data
       } catch (err) {
@@ -145,7 +145,7 @@ export default {
 
     async loadWorkSessions() {
       try {
-        const res = await api.get('/')
+        const res = await api.get('/workSessions')
         this.workSessions = res.data
       } catch (err) {
         console.error("Fehler beim Laden der Work-Sessions:", err)
@@ -155,7 +155,7 @@ export default {
 
     async start() {
       try {
-        await api.post('/start')
+        await api.post('/workSessions/start')
         this.showMessage('Arbeitsbeginn erfasst ✅', 'success')
         await this.loadWorkSessions()
         await this.loadSummary()
@@ -166,7 +166,7 @@ export default {
 
     async stop() {
       try {
-        await api.post('/stop')
+        await api.post('/workSessions/stop')
         this.showMessage('Arbeitsende erfasst ✅', 'success')
         await this.loadWorkSessions()
         await this.loadSummary()
@@ -177,7 +177,7 @@ export default {
 
     async addManualTime() {
       try {
-        await api.post('/manual-time', this.manual)
+        await api.post('/workSessions/manual-time', this.manual)
         this.showMessage('Manuell eingetragen ✅', 'success')
         this.manual = { date: '', start: '', end: '' }
         await this.loadWorkSessions()

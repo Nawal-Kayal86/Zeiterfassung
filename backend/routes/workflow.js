@@ -1,13 +1,12 @@
 import express from "express";
 import { initDB } from "../db.js";
-import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 const pool = await initDB();
 
 
 // ✅ Workflow – alle Tasks abrufen
-router.get("/workflow", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const [rows] = await pool.execute("SELECT * FROM workflow ORDER BY id DESC");
     res.json(rows);
@@ -18,7 +17,7 @@ router.get("/workflow", async (req, res) => {
 });
 
 // ✅ Workflow – neuen Task hinzufügen
-router.post("/workflow", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
     const { task, status } = req.body;
 
@@ -40,7 +39,7 @@ router.post("/workflow", async (req, res) => {
   }
 });
 // ✅ Task als "done" markieren
-router.put("/workflow/:id/done", async (req, res) => {
+router.put("/:id/done", async (req, res) => {
   try {
     const { id } = req.params;
     await pool.execute("UPDATE workflow SET status = 'done' WHERE id = ?", [id]);
@@ -53,7 +52,7 @@ router.put("/workflow/:id/done", async (req, res) => {
 });
 
 // ❌ Task löschen
-router.delete("/workflow/:id", async (req, res) => {
+router.delete("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     await pool.execute("DELETE FROM workflow WHERE id = ?", [id]);

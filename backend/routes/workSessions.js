@@ -66,6 +66,8 @@ router.post("/manual-time", auth(), async (req, res) => {
   }
 });
 
+
+// todo
 // 🟢 Alle Arbeitszeiten mit Filtern (Dashboard)
 router.get("/", auth(), async (req, res) => {
   try {
@@ -117,15 +119,7 @@ router.get("/", auth(), async (req, res) => {
 
     const [rows] = await pool.query(query, params);
 
-    // 🕒 Formatierung
-    const formattedRows = rows.map(r => ({
-      ...r,
-      start_time: r.start_time ? new Date(r.start_time).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Vienna" }) : "",
-      end_time: r.end_time ? new Date(r.end_time).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "Europe/Vienna" }) : "",
-      date_today: r.date_today ? new Date(r.date_today).toISOString().split("T")[0] : null
-    }));
-
-    res.json(formattedRows);
+    res.json(rows);
   } catch (err) {
     console.error("❌ Fehler bei GET /api/work-sessions:", err);
     res.status(500).json({ error: "Fehler beim Laden der Arbeitszeiten" });
