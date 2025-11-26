@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/Nawal-Kayal86/Zeiterfassung#readme",
   "dependencies": {
-    "date-fns": "^4.1.0"
+    "date-fns": "^4.1.0",
+    "mongoose": "^9.0.0"
   }
 }

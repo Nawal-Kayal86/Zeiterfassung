@@ -1,15 +1,21 @@
+// routes/workflow.js
 import express from "express";
-import { initDB } from "../db.js";
+import { auth } from "../middleware/auth.js";
+import Workflow from "../models/Workflow.js";
 
 const router = express.Router();
-const pool = await initDB();
-
 
 // ✅ Workflow – alle Tasks abrufen
-router.get("/", async (req, res) => {
+router.get("/", auth(), async (req, res) => {
   try {
-    const [rows] = await pool.execute("SELECT * FROM workflow ORDER BY id DESC");
-    res.json(rows);
+    const tasks = await Workflow.find().sort({ _id: -1 }).populate("userid", "name role department");
+    res.json(tasks.map(t => ({
+      id: t._id,
+      task: t.task,
+      status: t.status,
+      created_at: t.created_at,
+      userid: t.userid
+    })));
   } catch (err) {
     console.error("Fehler beim Abrufen:", err);
     res.status(500).json({ error: "Fehler beim Laden der Workflow-Daten" });
@@ -17,34 +23,48 @@ router.get("/", async (req, res) => {
 });
 
 // ✅ Workflow – neuen Task hinzufügen
-router.post("/", async (req, res) => {
+router.post("/", auth(), async (req, res) => {
   try {
-    const { task, status } = req.body;
+    const { task, status, userid } = req.body;
+    if (!task || !userid) return res.status(400).json({ error: "Task-Name und Benutzer-ID erforderlich" });
 
-    if (!task) {
-      return res.status(400).json({ error: "Task-Name ist erforderlich" });
-    }
+    const newTask = await Workflow.create({
+      task,
+      status: status || "open",
+      userid
+    });
 
-    const [result] = await pool.execute(
-      "INSERT INTO workflow (task, status) VALUES (?, ?)",
-      [task, status || "open"]
-    );
-
-    const [newTask] = await pool.execute("SELECT * FROM workflow WHERE id = ?", [result.insertId]);
-
-    res.status(201).json(newTask[0]);
+    res.status(201).json({
+      id: newTask._id,
+      task: newTask.task,
+      status: newTask.status,
+      created_at: newTask.created_at,
+      userid: newTask.userid
+    });
   } catch (err) {
     console.error("Fehler beim Hinzufügen:", err);
     res.status(500).json({ error: "Fehler beim Speichern des Tasks" });
   }
 });
+
 // ✅ Task als "done" markieren
-router.put("/:id/done", async (req, res) => {
+router.put("/:id/done", auth(), async (req, res) => {
   try {
-    const { id } = req.params;
-    await pool.execute("UPDATE workflow SET status = 'done' WHERE id = ?", [id]);
-    const [updated] = await pool.execute("SELECT * FROM workflow WHERE id = ?", [id]);
-    res.json(updated[0]);
+    const updated = await Workflow.findByIdAndUpdate(
+      req.params.id,
+      { status: "done" },
+      { new: true }
+    );
+
+    if (!updated) return res.status(404).json({ error: "Task nicht gefunden" });
+
+    res.json({
+      id: updated._id,
+      task: updated.task,
+      status: updated.status,
+      created_at: updated.created_at,
+      userid: updated.userid
+    });
   } catch (err) {
     console.error("Fehler beim Aktualisieren:", err);
     res.status(500).json({ error: "Fehler beim Aktualisieren des Tasks" });
@@ -52,10 +72,10 @@ router.put("/:id/done", async (req, res) => {
 });
 
 // ❌ Task löschen
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth(), async (req, res) => {
   try {
-    const { id } = req.params;
-    await pool.execute("DELETE FROM workflow WHERE id = ?", [id]);
+    const deleted = await Workflow.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ error: "Task nicht gefunden" });
     res.json({ success: true });
   } catch (err) {
     console.error("Fehler beim Löschen:", err);

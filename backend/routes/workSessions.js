@@ -1,21 +1,21 @@
 // routes/workSessions.js
 import express from 'express';
 import { auth } from '../middleware/auth.js';
-import { initDB } from '../db.js';
+import WorkSession from '../models/WorkSession.js';
+import User from '../models/User.js';
 
 const router = express.Router();
-const pool = await initDB();
 
 // 🟢 Arbeitsbeginn
 router.post("/start", auth(), async (req, res) => {
   try {
-    const now = new Date();
-    const date_today = now.toISOString().split("T")[0]; // YYYY-MM-DD
-    await pool.query(
-      "INSERT INTO work_sessions (user_id, start_time, date_today) VALUES (?, NOW(), ?)",
-      [req.user.id, date_today]
-    );
-    res.json({ message: "Arbeitsbeginn erfasst" });
+    const date_today = new Date().toISOString().split("T")[0];
+    const session = await WorkSession.create({
+      user_id: req.user.id,
+      start_time: new Date(),
+      date_today
+    });
+    res.json({ message: "Arbeitsbeginn erfasst", sessionId: session._id });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "DB error" });
@@ -25,19 +25,14 @@ router.post("/start", auth(), async (req, res) => {
 // 🟢 Arbeitsende
 router.post("/stop", auth(), async (req, res) => {
   try {
-    const now = new Date();
-    const date_today = now.toISOString().split("T")[0];
-
-    const [result] = await pool.query(
-      `UPDATE work_sessions
-       SET end_time = NOW()
-       WHERE user_id = ? AND date_today = ? AND end_time IS NULL
-       ORDER BY start_time DESC
-       LIMIT 1`,
-      [req.user.id, date_today]
+    const date_today = new Date().toISOString().split("T")[0];
+    const session = await WorkSession.findOneAndUpdate(
+      { user_id: req.user.id, date_today, end_time: null },
+      { end_time: new Date() },
+      { sort: { start_time: -1 }, new: true }
     );
-
-    res.json({ message: "Arbeitsende erfasst", affectedRows: result.affectedRows });
+    if (!session) return res.status(404).json({ error: "Keine offene Session gefunden" });
+    res.json({ message: "Arbeitsende erfasst", session });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "DB error" });
@@ -46,138 +41,78 @@ router.post("/stop", auth(), async (req, res) => {
 
 // 🟢 Manuelle Arbeitszeit erfassen
 router.post("/manual-time", auth(), async (req, res) => {
-  const { date, start, end } = req.body;
-  if (!date || !start || !end) return res.status(400).json({ error: "Alle Felder erforderlich" });
-
   try {
-    // Datum + Uhrzeit in Wien (lokal) -> UTC
+    const { date, start, end } = req.body;
+    if (!date || !start || !end) return res.status(400).json({ error: "Alle Felder erforderlich" });
+
     const startDT = new Date(`${date}T${start}:00+02:00`);
     const endDT = new Date(`${date}T${end}:00+02:00`);
 
-    await pool.query(
-      "INSERT INTO work_sessions (user_id, start_time, end_time, date_today) VALUES (?, ?, ?, ?)",
-      [req.user.id, startDT, endDT, date]
-    );
+    const session = await WorkSession.create({
+      user_id: req.user.id,
+      start_time: startDT,
+      end_time: endDT,
+      date_today: date
+    });
 
-    res.json({ message: "Arbeitszeit manuell eingetragen" });
+    res.json({ message: "Arbeitszeit manuell eingetragen", session });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "DB error" });
   }
 });
 
-
-// todo
-// 🟢 Alle Arbeitszeiten mit Filtern (Dashboard)
+// 🟢 Alle Arbeitszeiten abrufen (mit Filter)
 router.get("/", auth(), async (req, res) => {
   try {
     const { startDate, endDate, employeeName, department } = req.query;
-    const { id: userId, role } = req.user;
+    const query = {};
 
-    let query = `
-      SELECT
-        ws.id,
-        u.id AS user_id,
-        u.name,
-        u.department,
-        DATE_FORMAT(ws.start_time, '%H:%i') AS start_time,
-        DATE_FORMAT(ws.start_time, '%Y-%m-%d') AS start_date,
-        DATE_FORMAT(ws.end_time, '%H:%i') AS end_time,
-        DATE_FORMAT(ws.end_time, '%Y-%m-%d') AS end_date,
-        DATE_FORMAT(ws.date_today, '%Y-%m-%d') AS date_today
-      FROM work_sessions ws
-      INNER JOIN users u ON u.id = ws.user_id
-    `;
-    const params = [];
+    if (req.user.role !== "admin") query.user_id = req.user.id;
 
-    // 👤 Nur eigene Daten für normale User
-    if (role !== "admin") {
-      query += " AND u.id = ?";
-      params.push(userId);
+    if (startDate) query.date_today = { ...query.date_today, $gte: startDate };
+    if (endDate) query.date_today = { ...query.date_today, $lte: endDate };
+
+    let sessionsQuery = WorkSession.find(query).sort({ date_today: -1, start_time: -1 }).populate("user_id", "name role department");
+
+    if (req.user.role === "admin") {
+      if (employeeName) sessionsQuery = sessionsQuery.where("user_id.name").regex(new RegExp(employeeName, "i"));
+      if (department) sessionsQuery = sessionsQuery.where("user_id.department").regex(new RegExp(department, "i"));
     }
 
-    // 📅 Datum
-    if (startDate) {
-      query += " AND ws.date_today >= ?";
-      params.push(startDate);
-    }
-    if (endDate) {
-      query += " AND ws.date_today <= ?";
-      params.push(endDate);
-    }
+    const sessions = await sessionsQuery.exec();
 
-    // 👤 Nur Admin darf diese Filter
-    if (role === "admin" && employeeName) {
-      query += " AND u.name LIKE ?";
-      params.push(`%${employeeName}%`);
-    }
-    if (role === "admin" && department) {
-      query += " AND u.department LIKE ?";
-      params.push(`%${department}%`);
-    }
-
-    query += " ORDER BY ws.date_today DESC, ws.start_time DESC";
-
-    const [rows] = await pool.query(query, params);
-
-    res.json(rows);
+    res.json(sessions.map(s => ({
+      id: s._id,
+      user_id: s.user_id._id,
+      name: s.user_id.name,
+      department: s.user_id.department,
+      start_time: s.start_time,
+      end_time: s.end_time,
+      date_today: s.date_today
+    })));
   } catch (err) {
-    console.error("❌ Fehler bei GET /api/work-sessions:", err);
+    console.error(err);
     res.status(500).json({ error: "Fehler beim Laden der Arbeitszeiten" });
   }
 });
 
-
-// 🟢 Dashboard Summary (letzter Start, letztes Ende, Gesamtanzahl)
+// 🟢 Dashboard Summary
 router.get("/summary", auth(), async (req, res) => {
   try {
-    const { id: userId, role } = req.user;
-    const params = [];
-    let userFilter = "";
+    const filter = req.user.role !== "admin" ? { user_id: req.user.id } : {};
 
-    if (role !== "admin") {
-      userFilter = " AND ws.user_id = ?";
-      params.push(userId);
-    }
-
-    // Letzter Start
-    const [lastStartRows] = await pool.query(
-      `SELECT start_time FROM work_sessions ws
-       WHERE ws.start_time IS NOT NULL ${userFilter}
-       ORDER BY ws.start_time DESC LIMIT 1`,
-      params
-    );
-
-    // Letztes Ende
-    const [lastEndRows] = await pool.query(
-      `SELECT end_time FROM work_sessions ws
-       WHERE ws.end_time IS NOT NULL ${userFilter}
-       ORDER BY ws.end_time DESC LIMIT 1`,
-      params
-    );
-
-    // Gesamtanzahl Einträge
-    const [countRows] = await pool.query(
-      `SELECT COUNT(*) AS total FROM work_sessions ws
-       WHERE ws.start_time IS NOT NULL ${userFilter}`,
-      params
-    );
-
-  // const toVienna = (utcStr) => {
-  // if (!utcStr) return null;
-  // const d = new Date(utcStr + "Z"); // UTC
-  // if (isNaN(d)) return null;
-  // // ISO-String für Frontend
-  // return d.toISOString(); 
-// };
+    const lastStart = await WorkSession.find(filter).sort({ start_time: -1 }).limit(1);
+    const lastEnd = await WorkSession.find(filter).sort({ end_time: -1 }).limit(1);
+    const totalEntries = await WorkSession.countDocuments(filter);
 
     res.json({
-      lastStart: lastStartRows[0]?.start_time,
-      lastEnd: lastEndRows[0]?.end_time,
-      totalEntries: countRows[0]?.total ?? 0,
+      lastStart: lastStart[0]?.start_time,
+      lastEnd: lastEnd[0]?.end_time,
+      totalEntries
     });
   } catch (err) {
-    console.error("❌ Fehler bei GET /api/work-sessions/summary:", err);
+    console.error(err);
     res.status(500).json({ error: "Fehler beim Laden der Summary" });
   }
 });

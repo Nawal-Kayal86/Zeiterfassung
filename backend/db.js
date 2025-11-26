@@ -1,21 +1,26 @@
-import mysql from 'mysql2/promise';
-import dotenv from 'dotenv';
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 dotenv.config();
 
-let pool;
+let isConnected = false;
 
 export async function initDB() {
-  if (!pool) {
-    pool = await mysql.createPool({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-      port: process.env.DB_PORT || 3306, // Railway Port benutzen
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0
+  if (isConnected) return;
+
+  try {
+    const conn = await mongoose.connect(process.env.MONGO_URI);
+    isConnected = true;
+
+    console.log(`MongoDB verbunden: ${conn.connection.name || "unbekannt"}`);
+    console.log(`MongoDB Host: ${conn.connection.host || "unbekannt"}`);
+
+    mongoose.connection.on("disconnected", () => {
+      console.warn("MongoDB getrennt. Versuche erneut zu verbinden...");
+      isConnected = false;
     });
+
+  } catch (err) {
+    console.error("MongoDB Fehler:", err);
+    throw err;
   }
-    return pool;
 }

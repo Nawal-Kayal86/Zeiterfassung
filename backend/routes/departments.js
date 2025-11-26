@@ -1,36 +1,20 @@
 // routes/departments.js
 import express from "express";
-import { initDB } from "../db.js";
 import { auth } from "../middleware/auth.js";
+import Department from "../models/Department.js";
 
 const router = express.Router();
-const pool = await initDB();
 
 // ✅ Alle Abteilungen abrufen
 router.get("/", auth(), async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT id, name FROM departments ORDER BY name ASC");
-    res.json(rows);
+    const departments = await Department.find().sort({ name: 1 });
+    res.json(departments.map(d => ({ id: d._id, name: d.name })));
   } catch (err) {
     console.error("Fehler beim Laden der Abteilungen:", err);
     res.status(500).json({ error: "DB error" });
   }
 });
-
-// // ✅ Neue Abteilung hinzufügen (Admin)
-// router.post("/", auth("admin"), async (req, res) => {
-//   try {
-//     const { name } = req.body;
-//     if (!name) return res.status(400).json({ error: "Name ist erforderlich" });
-
-//     const [result] = await pool.query("INSERT INTO departments (name) VALUES (?)", [name]);
-//     const [newDept] = await pool.query("SELECT id, name FROM departments WHERE id = ?", [result.insertId]);
-//     res.status(201).json(newDept[0]);
-//   } catch (err) {
-//     console.error("Fehler beim Hinzufügen:", err);
-//     res.status(500).json({ error: "DB error" });
-//   }
-// });
 
 // ✅ Neue Abteilung hinzufügen (Admin)
 router.post("/", auth("admin"), async (req, res) => {
@@ -38,21 +22,16 @@ router.post("/", auth("admin"), async (req, res) => {
     const { name } = req.body;
     if (!name) return res.status(400).json({ error: "Name ist erforderlich" });
 
-    // Einfügen versuchen
-    const [result] = await pool.query("INSERT INTO departments (name) VALUES (?)", [name]);
-    const [newDept] = await pool.query("SELECT id, name FROM departments WHERE id = ?", [result.insertId]);
-    return res.status(201).json({ message: "Abteilung erfolgreich angelegt", department: newDept[0] });
-  } catch (err) {
-    // 🔥 Duplikat prüfen
-    if (err.code === "ER_DUP_ENTRY") {
-      return res.status(409).json({ error: "Abteilung existiert bereits" });
-    }
+    const exists = await Department.findOne({ name });
+    if (exists) return res.status(409).json({ error: "Abteilung existiert bereits" });
 
+    const newDept = await Department.create({ name });
+    res.status(201).json({ message: "Abteilung erfolgreich angelegt", department: { id: newDept._id, name: newDept.name } });
+  } catch (err) {
     console.error("Fehler beim Hinzufügen:", err);
-    return res.status(500).json({ error: "DB error" });
+    res.status(500).json({ error: "DB error" });
   }
 });
-
 
 // ✅ Abteilung bearbeiten (Admin)
 router.put("/:id", auth("admin"), async (req, res) => {
@@ -61,9 +40,10 @@ router.put("/:id", auth("admin"), async (req, res) => {
     const { name } = req.body;
     if (!name) return res.status(400).json({ error: "Name ist erforderlich" });
 
-    await pool.query("UPDATE departments SET name = ? WHERE id = ?", [name, id]);
-    const [updated] = await pool.query("SELECT id, name FROM departments WHERE id = ?", [id]);
-    res.json(updated[0]);
+    const updated = await Department.findByIdAndUpdate(id, { name }, { new: true });
+    if (!updated) return res.status(404).json({ error: "Abteilung nicht gefunden" });
+
+    res.json({ id: updated._id, name: updated.name });
   } catch (err) {
     console.error("Fehler beim Bearbeiten:", err);
     res.status(500).json({ error: "DB error" });
@@ -74,7 +54,9 @@ router.put("/:id", auth("admin"), async (req, res) => {
 router.delete("/:id", auth("admin"), async (req, res) => {
   try {
     const { id } = req.params;
-    await pool.query("DELETE FROM departments WHERE id = ?", [id]);
+    const deleted = await Department.findByIdAndDelete(id);
+    if (!deleted) return res.status(404).json({ error: "Abteilung nicht gefunden" });
+
     res.json({ success: true });
   } catch (err) {
     console.error("Fehler beim Löschen:", err);
