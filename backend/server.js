@@ -13,7 +13,8 @@ import workflowRouter from './routes/workflow.js';
 import User from './models/User.js';
 import WorkSession from './models/WorkSession.js';
 import Department from './models/Department.js';
-
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 await initDB(); // MongoDB verbinden
@@ -22,6 +23,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// API-Routen
 app.use("/api/users", usersRouter);
 app.use("/api/departments", departmentsRouter);
 app.use("/api/workSessions", workSessionsRouter);
@@ -141,6 +143,18 @@ app.get("/api/errors", (req, res) => {
   res.json(rows);
 });
 
+
+// -------------- Vue Frontend serven -----------------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Alle nicht-API-Routen auf index.html umleiten (Vue Router)
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  }
+});
 
 // Server starten
 const PORT = process.env.PORT || 3000;
