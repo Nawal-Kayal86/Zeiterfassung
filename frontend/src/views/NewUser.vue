@@ -69,7 +69,6 @@
     <table class="table table-striped align-middle">
       <thead>
         <tr>
-          <th>ID</th>
           <th>Name</th>
           <th>E-Mail</th>
           <th>Rolle</th>
@@ -81,7 +80,6 @@
       </thead>
       <tbody>
         <tr v-for="u in users" :key="u.id">
-          <td>{{ u.id }}</td>
           <td>{{ u.name }}</td>
           <td>{{ u.email }}</td>
           <td>{{ u.role }}</td>
