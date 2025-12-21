@@ -4,15 +4,13 @@
 
     <div class="card shadow-sm p-4">
       <h5 class="mb-3">📝 Arbeitszeiten im Detail</h5>
-      <div v-if="events.length === 0" class="alert alert-info">
-        Keine Arbeitszeiten gefunden.
-      </div>
 
-      <table v-else class="table table-striped">
+      <table class="table table-striped" v-if="events.length">
         <thead>
           <tr>
             <th>Name</th>
             <th>Abteilung</th>
+            <th>Datum</th>
             <th>Start</th>
             <th>Ende</th>
             <th>Dauer (h)</th>
@@ -20,14 +18,19 @@
         </thead>
         <tbody>
           <tr v-for="e in events" :key="e.id">
-           <td>{{ e.user_name || e.name || "-" }}</td>
+            <td>{{ e.name || '-' }}</td>
             <td>{{ e.department || '-' }}</td>
-            <td>{{ formatDateTime(e.start_date, e.start_time) }}</td>
-            <td>{{ formatDateTime(e.end_date, e.end_time) }}</td>
-            <td>{{ calcDuration(e.start_date,e.end_date, e.start_time, e.end_time) }}</td>
+            <td>{{ formatDate(e.date_today) }}</td>
+            <td>{{ e.start_time || '-' }}</td>
+            <td>{{ e.end_time || '-' }}</td>
+            <td>{{ calcDuration(e.date_today, e.start_time, e.end_time) }}</td>
           </tr>
         </tbody>
       </table>
+
+      <div v-else class="alert alert-info">
+        Keine Arbeitszeiten gefunden.
+      </div>
     </div>
   </div>
 </template>
@@ -37,44 +40,57 @@ import api from "../api";
 
 export default {
   name: "Kalender",
+
   data() {
     return {
-      events: [],
+      events: []
     };
   },
-  methods: {
-    // Baut ein gültiges Datum aus date_today + Uhrzeit
-    combineDateTime(date, time) {
-      if (!date || !time) return null;
-      const day = new Date(date);
-      // Nur yyyy-mm-dd extrahieren
-      const datePart = day.toISOString().split("T")[0];
-      return new Date(`${datePart}T${time}`);
-    },
 
-    formatDateTime(date, time) {
-      const dt = this.combineDateTime(date, time);
-      if (!dt) return "-";
-      return dt.toLocaleString("de-DE");
-    },
-
-    calcDuration(start_date, end_date, start, end) {
-      const s = this.combineDateTime(start_date, start);
-      const e = this.combineDateTime(end_date, end);
-      if (!s || !e) return "-";
-      const diffMs = e - s;
-      const diffHrs = diffMs / 1000 / 60 / 60;
-      return diffHrs.toFixed(2);
-    },
-  },
   async created() {
     try {
       const res = await api.get("/workSessions");
-      console.log("✅ Daten vom Backend:", res.data);
-      this.events = res.data;
+      this.events = res.data; // الترتيب يأتي جاهز من الـ backend
     } catch (err) {
-      console.error("❌ Fehler beim Laden:", err);
+      console.error("Fehler beim Laden der Kalender-Daten:", err);
+      this.events = [];
     }
   },
+
+  methods: {
+    formatDate(date) {
+      if (!date) return "-";
+      return new Date(date).toLocaleDateString("de-DE");
+    },
+
+    // ✅ حساب المدة بشكل صحيح وبسيط
+    calcDuration(date, start, end) {
+      if (!date || !start || !end) return "-";
+
+      try {
+        const startDate = new Date(`${date}T${start}`);
+        let endDate = new Date(`${date}T${end}`);
+
+        // إذا انتهى بعد منتصف الليل
+        if (endDate < startDate) {
+          endDate.setDate(endDate.getDate() + 1);
+        }
+
+        const diffMs = endDate - startDate;
+        if (diffMs <= 0) return "-";
+
+        const hours = diffMs / 1000 / 60 / 60;
+        return hours.toFixed(2);
+      } catch (e) {
+        return "-";
+      }
+    }
+  }
 };
 </script>
+
+<style scoped>
+.card {
+  border-radius: 12px;
+}
+</style>

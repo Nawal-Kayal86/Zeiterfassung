@@ -99,7 +99,7 @@
               <td>{{ s.date_today || '-'}}</td>
               <td>{{ s.start_time || '-'}}</td>
               <td>{{ s.end_time || '-' }}</td>
-              <td>{{ calcDuration(s.start_time, s.end_time, s.date_today) || '-' }}</td>
+              <td>{{ s.duration_decimal }}</td>
             </tr>
           </tbody>
         </table>
@@ -144,27 +144,32 @@ export default {
     },
 
     async loadWorkSessions() {
-      try {
-        const res = await api.get('/workSessions')
-        // 🕒 Berechne Dauer für jede Session
-        this.workSessions = res.data.map(item => {
-          let duration = { hhmm: "00:00", decimal: "0.00" }
+  try {
+    const res = await api.get('/workSessions')
 
-          if (item.start_time && item.end_time) {
-            duration = this.calcDuration(item.start_time, item.end_time, item.date_today)
-          }
+    this.workSessions = res.data.map(item => {
+      let duration = { hhmm: "-", decimal: "-" }
 
-          return {
-            ...item,
-            hours: duration.hhmm,
-            hoursDecimal: duration.decimal
-          }
-        })
-      } catch (err) {
-        console.error("Fehler beim Laden der Work-Sessions:", err)
-        this.workSessions = []
+      if (item.start_time && item.end_time) {
+        duration = this.calcDuration(
+          item.start_time,
+          item.end_time,
+          item.date_today
+        )
       }
-    },
+
+      return {
+        ...item,
+        duration_hhmm: duration.hhmm,
+        duration_decimal: duration.decimal
+      }
+    })
+
+  } catch (err) {
+    console.error("Fehler beim Laden der Work-Sessions:", err)
+    this.workSessions = []
+  }
+},
 
     async start() {
       try {
@@ -256,7 +261,7 @@ export default {
         const hhmm = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`
         const decimal = (diffMs / 1000 / 60 / 60).toFixed(2)
 
-        return decimal 
+        return decimal ? { hhmm, decimal } : { hhmm: "00:00", decimal: "0.00" }
       } catch {
         return { hhmm: "00:00", decimal: "0.00" }
       }
