@@ -3,7 +3,6 @@
     <h2 class="mb-4 fw-bold text-primary">📅 Kalender</h2>
 
     <div class="card shadow-sm p-4">
-      <h5 class="mb-3">📝 Arbeitszeiten im Detail</h5>
       <table class="table table-striped" v-if="events.length">
         <thead>
           <tr>
