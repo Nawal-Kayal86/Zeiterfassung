@@ -4,8 +4,12 @@
 
     <!-- Arbeitszeit Buttons -->
     <div class="mb-4 d-flex gap-3 flex-wrap">
-      <button class="btn btn-success shadow" @click="start">🟢 Arbeitsbeginn</button>
-      <button class="btn btn-danger shadow" @click="stop">🔴 Arbeitsende</button>
+      <button class="btn btn-success shadow" @click="start">
+        🟢 Arbeitsbeginn
+      </button>
+      <button class="btn btn-danger shadow" @click="stop">
+        🔴 Arbeitsende
+      </button>
     </div>
 
     <!-- Meldungen -->
@@ -21,7 +25,7 @@
           <p class="fw-bold fs-5">
             {{ summary.lastStart ? formatDate(summary.lastStart) : '-' }}<br>
             {{ summary.lastStart ? formatTime(summary.lastStart) : '-' }}
-          </p>
+            </p>
         </div>
       </div>
 
@@ -53,19 +57,23 @@
         </div>
         <div class="mb-3">
           <label class="form-label">🟢 Startzeit</label>
-          <input type="time" v-model="manual.start" class="form-control shadow-sm" required />
+          <input type="time" v-model="manual.start" class="form-control shadow-sm"/>
         </div>
         <div class="mb-3">
           <label class="form-label">🔴 Endzeit</label>
-          <input type="time" v-model="manual.end" class="form-control shadow-sm" required />
+          <input type="time" v-model="manual.end" class="form-control shadow-sm"/>
         </div>
-        <button type="submit" class="btn btn-primary w-100 shadow">💾 Speichern</button>
+        <button type="submit" class="btn btn-primary w-100 shadow">
+          💾 Speichern
+        </button>
       </form>
     </div>
 
     <!-- Übersicht aller Einträge -->
     <div class="card shadow-sm mt-4">
-      <div class="card-header bg-light fw-bold">📜 Alle Einträge</div>
+      <div class="card-header bg-light fw-bold">
+        📜 Alle Einträge
+      </div>
       <div class="card-body p-0">
         <table class="table table-hover mb-0">
           <thead class="table-light">
@@ -80,21 +88,18 @@
           </thead>
           <tbody>
             <tr v-if="workSessions.length === 0">
-              <td colspan="6" class="text-center py-3 text-muted">Keine Einträge gefunden</td>
+              <td colspan="6" class="text-center py-3 text-muted">
+                Keine Einträge gefunden
+              </td>
             </tr>
             <tr v-for="s in workSessions" :key="s.id">
+             
               <td v-if="user && user.role === 'admin'">{{ s.name }}</td>
               <td>{{ s.department || '-' }}</td>
-<<<<<<< HEAD
-              <td>{{ s.date_today || '-'}}</td>
-              <td>{{ s.start_time || '-'}}</td>
-              <td>{{ s.end_time || '-' }}</td>
-              <td>{{ s.duration_decimal }}</td>
-=======
-              <td>{{ s.start_time ? formatDateTime(s.start_time) : '-' }}</td>
-              <td>{{ s.end_time ? formatDateTime(s.end_time) : '-' }}</td>
-              <td>{{ s.end_time ? s.hours : '-' }}</td>
->>>>>>> 13d1e08ccbda6ef44a5cc3db97539d9511538d7c
+              <td>{{ formatDate(s.date_today) || '-' }}</td>
+              <td>{{ formatTime(s.start_time) || '-' }}</td>
+              <td>{{ formatTime(s.end_time) || '-' }}</td>
+              <td>{{ calcDuration(s.start_time, s.end_time, s.date_today) || '-' }}</td>
             </tr>
           </tbody>
         </table>
@@ -102,6 +107,7 @@
     </div>
   </div>
 </template>
+
 
 <script>
 import api from '../api'
@@ -136,20 +142,6 @@ export default {
     },
 
     async loadWorkSessions() {
-<<<<<<< HEAD
-  try {
-    const res = await api.get('/workSessions')
-
-    this.workSessions = res.data.map(item => {
-      let duration = { hhmm: "-", decimal: "-" }
-
-      if (item.start_time && item.end_time) {
-        duration = this.calcDuration(
-          item.start_time,
-          item.end_time,
-          item.date_today
-        )
-=======
       try {
         const res = await api.get('/workSessions')
         this.workSessions = res.data.map(item => {
@@ -158,21 +150,8 @@ export default {
         })
       } catch {
         this.workSessions = []
->>>>>>> 13d1e08ccbda6ef44a5cc3db97539d9511538d7c
       }
-
-      return {
-        ...item,
-        duration_hhmm: duration.hhmm,
-        duration_decimal: duration.decimal
-      }
-    })
-
-  } catch (err) {
-    console.error("Fehler beim Laden der Work-Sessions:", err)
-    this.workSessions = []
-  }
-},
+    },
 
     async start() {
       try {
@@ -243,31 +222,18 @@ export default {
     },
 
     calcDuration(start, end) {
-      if (!start || !end) return { hhmm: "00:00", decimal: "0.00" }
+      if (!start || !end) return '-'
       try {
-        const s = new Date(start)
-        const e = new Date(end)
-        if (e < s) e.setDate(e.getDate() + 1)
-        const diffMs = e - s
-<<<<<<< HEAD
-        if (diffMs < 0) return { hhmm: "00:00", decimal: "0.00" }
-
-        const totalMinutes = Math.floor(diffMs / 60000)
-        const h = Math.floor(totalMinutes / 60)
-        const m = totalMinutes % 60
-        const hhmm = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`
-        const decimal = (diffMs / 1000 / 60 / 60).toFixed(2)
-
-        return decimal ? { hhmm, decimal } : { hhmm: "00:00", decimal: "0.00" }
-=======
-        const h = Math.floor(diffMs / 3600000)
-        const m = Math.floor((diffMs % 3600000) / 60000)
-        const hhmm = `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}`
-        const decimal = (diffMs / 3600000).toFixed(2)
-        return { hhmm, decimal }
->>>>>>> 13d1e08ccbda6ef44a5cc3db97539d9511538d7c
+      const s = new Date(start)
+      const e = new Date(end)
+      if (e < s) e.setDate(e.getDate() + 1)
+      const diffMs = e - s
+      const h = Math.floor(diffMs / 3600000)
+      const m = Math.floor((diffMs % 3600000) / 60000)
+      const hhmm = `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}`
+      return hhmm
       } catch {
-        return { hhmm: "00:00", decimal: "0.00" }
+      return '-'
       }
     }
   }
