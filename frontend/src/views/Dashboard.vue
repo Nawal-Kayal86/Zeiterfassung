@@ -4,12 +4,8 @@
 
     <!-- Arbeitszeit Buttons -->
     <div class="mb-4 d-flex gap-3 flex-wrap">
-      <button class="btn btn-success shadow" @click="start">
-        🟢 Arbeitsbeginn
-      </button>
-      <button class="btn btn-danger shadow" @click="stop">
-        🔴 Arbeitsende
-      </button>
+      <button class="btn btn-success shadow" @click="start">🟢 Arbeitsbeginn</button>
+      <button class="btn btn-danger shadow" @click="stop">🔴 Arbeitsende</button>
     </div>
 
     <!-- Meldungen -->
@@ -25,7 +21,7 @@
           <p class="fw-bold fs-5">
             {{ summary.lastStart ? formatDate(summary.lastStart) : '-' }}<br>
             {{ summary.lastStart ? formatTime(summary.lastStart) : '-' }}
-            </p>
+          </p>
         </div>
       </div>
 
@@ -63,17 +59,13 @@
           <label class="form-label">🔴 Endzeit</label>
           <input type="time" v-model="manual.end" class="form-control shadow-sm" required />
         </div>
-        <button type="submit" class="btn btn-primary w-100 shadow">
-          💾 Speichern
-        </button>
+        <button type="submit" class="btn btn-primary w-100 shadow">💾 Speichern</button>
       </form>
     </div>
 
     <!-- Übersicht aller Einträge -->
     <div class="card shadow-sm mt-4">
-      <div class="card-header bg-light fw-bold">
-        📜 Alle Einträge
-      </div>
+      <div class="card-header bg-light fw-bold">📜 Alle Einträge</div>
       <div class="card-body p-0">
         <table class="table table-hover mb-0">
           <thead class="table-light">
@@ -88,18 +80,21 @@
           </thead>
           <tbody>
             <tr v-if="workSessions.length === 0">
-              <td colspan="6" class="text-center py-3 text-muted">
-                Keine Einträge gefunden
-              </td>
+              <td colspan="6" class="text-center py-3 text-muted">Keine Einträge gefunden</td>
             </tr>
             <tr v-for="s in workSessions" :key="s.id">
-             
               <td v-if="user && user.role === 'admin'">{{ s.name }}</td>
               <td>{{ s.department || '-' }}</td>
+<<<<<<< HEAD
               <td>{{ s.date_today || '-'}}</td>
               <td>{{ s.start_time || '-'}}</td>
               <td>{{ s.end_time || '-' }}</td>
               <td>{{ s.duration_decimal }}</td>
+=======
+              <td>{{ s.start_time ? formatDateTime(s.start_time) : '-' }}</td>
+              <td>{{ s.end_time ? formatDateTime(s.end_time) : '-' }}</td>
+              <td>{{ s.end_time ? s.hours : '-' }}</td>
+>>>>>>> 13d1e08ccbda6ef44a5cc3db97539d9511538d7c
             </tr>
           </tbody>
         </table>
@@ -119,14 +114,13 @@ export default {
       manual: { date: '', start: '', end: '' },
       message: { text: '', type: 'success' },
       summary: { lastStart: null, lastEnd: null, totalEntries: 0 },
-      workSessions: [] // 🟢 Wichtig für Tabelle
+      workSessions: []
     }
   },
 
   async created() {
     this.user = JSON.parse(localStorage.getItem('user'))
     if (!this.user) router.push('/login')
-
     await this.loadWorkSessions()
     await this.loadSummary()
   },
@@ -135,15 +129,14 @@ export default {
     async loadSummary() {
       try {
         const res = await api.get('/workSessions/summary')
-        console.log("Summary vom Backend:", res.data)
         this.summary = res.data
-      } catch (err) {
-        console.error("Fehler beim Laden der Summary:", err)
+      } catch {
         this.summary = { lastStart: null, lastEnd: null, totalEntries: 0 }
       }
     },
 
     async loadWorkSessions() {
+<<<<<<< HEAD
   try {
     const res = await api.get('/workSessions')
 
@@ -156,6 +149,16 @@ export default {
           item.end_time,
           item.date_today
         )
+=======
+      try {
+        const res = await api.get('/workSessions')
+        this.workSessions = res.data.map(item => {
+          const duration = this.calcDuration(item.start_time, item.end_time)
+          return { ...item, hours: duration.hhmm, hoursDecimal: duration.decimal }
+        })
+      } catch {
+        this.workSessions = []
+>>>>>>> 13d1e08ccbda6ef44a5cc3db97539d9511538d7c
       }
 
       return {
@@ -213,46 +216,40 @@ export default {
     formatDate(val) {
       if (!val) return "-"
       try {
-        const parts = val.split("T")[0].split("-")
-        const [year, month, day] = parts
-        return new Date(year, month - 1, day).toLocaleDateString("de-DE", {
-          weekday: "short",
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric"
-        })
-      } catch {
-        return "-"
+        const date = new Date(val)
+        return date.toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" })
       }
+      catch { return "-" }
     },
 
-    formatTime(val, date = null) {
+    formatTime(val) {
       if (!val) return "-"
       try {
-        let full = val
-        if (/^\d{2}:\d{2}:\d{2}$/.test(val) && date) {
-          full = `${date}T${val}`
-        } else if (/^\d{2}:\d{2}:\d{2}$/.test(val)) {
-          full = `1970-01-01T${val}`
-        }
-        const d = new Date(full)
-        return d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })
-      } catch {
-        return "-"
+        const date = new Date(val)
+        return date.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
       }
+      catch { return "-" }
     },
 
-    // Berechnet Dauer HH:MM und Dezimalstunden
-    calcDuration(start, end, date = null) {
+    formatDateTime(val) {
+      if (!val) return "-"
+      try {
+        const date = new Date(val)
+        const d = date.toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" })
+        const t = date.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" })
+        return `${d} ${t}`
+      }
+      catch { return "-" }
+    },
+
+    calcDuration(start, end) {
       if (!start || !end) return { hhmm: "00:00", decimal: "0.00" }
       try {
-        const s = new Date(`${date || "1970-01-01"}T${start}`)
-        let e = new Date(`${date || "1970-01-01"}T${end}`)
-
-        // Endzeit kleiner als Start → nächste Tag
+        const s = new Date(start)
+        const e = new Date(end)
         if (e < s) e.setDate(e.getDate() + 1)
-
         const diffMs = e - s
+<<<<<<< HEAD
         if (diffMs < 0) return { hhmm: "00:00", decimal: "0.00" }
 
         const totalMinutes = Math.floor(diffMs / 60000)
@@ -262,6 +259,13 @@ export default {
         const decimal = (diffMs / 1000 / 60 / 60).toFixed(2)
 
         return decimal ? { hhmm, decimal } : { hhmm: "00:00", decimal: "0.00" }
+=======
+        const h = Math.floor(diffMs / 3600000)
+        const m = Math.floor((diffMs % 3600000) / 60000)
+        const hhmm = `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}`
+        const decimal = (diffMs / 3600000).toFixed(2)
+        return { hhmm, decimal }
+>>>>>>> 13d1e08ccbda6ef44a5cc3db97539d9511538d7c
       } catch {
         return { hhmm: "00:00", decimal: "0.00" }
       }
@@ -270,12 +274,7 @@ export default {
 }
 </script>
 
-
 <style scoped>
-.table-hover tbody tr:hover {
-  background-color: #f9f9f9;
-}
-.card {
-  border-radius: 12px;
-}
+.table-hover tbody tr:hover { background-color: #f9f9f9; }
+.card { border-radius: 12px; }
 </style>
