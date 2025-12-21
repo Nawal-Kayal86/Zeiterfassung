@@ -9,77 +9,152 @@ const router = express.Router();
 // 🟢 Arbeitsbeginn
 router.post("/start", auth(), async (req, res) => {
   try {
+    const openSession = await WorkSession.findOne({
+      user_id: req.user.id,
+      end_time: null
+    });
+
+    if (openSession) {
+      return res.status(400).json({
+        error: "Es existiert bereits eine offene Arbeitszeit"
+      });
+    }
+
     const date_today = new Date().toISOString().split("T")[0];
+
     const session = await WorkSession.create({
       user_id: req.user.id,
       start_time: new Date(),
       date_today
     });
-    res.json({ message: "Arbeitsbeginn erfasst", sessionId: session._id });
+
+    res.json({
+      message: "Arbeitsbeginn erfasst ✅",
+      session
+    });
   } catch (err) {
-    console.error(err);
+    ////console.error(err);
     res.status(500).json({ error: "DB error" });
   }
 });
+
 
 // 🟢 Arbeitsende
 router.post("/stop", auth(), async (req, res) => {
   try {
-    const date_today = new Date().toISOString().split("T")[0];
-    const session = await WorkSession.findOneAndUpdate(
-      { user_id: req.user.id, date_today, end_time: null },
-      { end_time: new Date() },
-      { sort: { start_time: -1 }, new: true }
-    );
-    if (!session) return res.status(404).json({ error: "Keine offene Session gefunden" });
-    res.json({ message: "Arbeitsende erfasst", session });
+    const openSession = await WorkSession.findOne({
+      user_id: req.user.id,
+      end_time: null
+    });
+
+    if (!openSession) {
+      return res.status(400).json({
+        error: "Keine offene Arbeitszeit vorhanden"
+      });
+    }
+
+    const endTime = new Date();
+
+    if (endTime <= openSession.start_time) {
+      return res.status(400).json({
+        error: "Endzeit muss nach Startzeit liegen"
+      });
+    }
+
+    openSession.end_time = endTime;
+    await openSession.save();
+
+    res.json({
+      message: "Arbeitsende erfasst ✅",
+      session: openSession
+    });
   } catch (err) {
-    console.error(err);
+    //console.error(err);
     res.status(500).json({ error: "DB error" });
   }
 });
 
+// 🟢 Manuelle Zeiterfassung
 router.post("/manual-time", auth(), async (req, res) => {
   try {
     const { date, start, end } = req.body;
-    if (!date || (!start && !end)) 
-      return res.status(400).json({ error: "Datum und mindestens Start oder Ende erforderlich" });
 
-    const openSession = await WorkSession.findOne({ user_id: req.user.id, end_time: null });
+    if (!date || (!start && !end)) {
+      return res
+        .status(400)
+        .json({ error: "Datum und mindestens Start oder Ende erforderlich" });
+    }
 
-    // Nur Ende setzen, offene Session schließen
+    const startDT = start
+      ? new Date(`${date}T${start}:00+02:00`)
+      : null;
+
+    const endDT = end
+      ? new Date(`${date}T${end}:00+02:00`)
+      : null;
+
+    const openSession = await WorkSession.findOne({
+      user_id: req.user.id,
+      end_time: null
+    });
+
+    // 🔴 NUR ENDE → offene Session beenden
     if (!start && end) {
-      if (!openSession) return res.status(400).json({ error: "Keine offene Startzeit vorhanden" });
-      openSession.end_time = new Date(`${date}T${end}:00+02:00`);
+      if (!openSession)
+        return res.status(400).json({ error: "Keine offene Startzeit vorhanden" });
+
+      if (endDT <= openSession.start_time)
+        return res.status(400).json({ error: "Endzeit muss nach Startzeit liegen" });
+
+      openSession.end_time = endDT;
       await openSession.save();
-      return res.json({ message: "Offene Arbeitszeit beendet ✅", session: openSession });
+
+      return res.json({
+        message: "Offene Arbeitszeit beendet ✅",
+        session: openSession
+      });
     }
 
-    // Start eintragen, aber nur wenn keine offene Session existiert
+    // 🟢 NUR START → nur wenn keine offene Session
     if (start && !end) {
-      if (openSession) return res.status(400).json({ error: "Es gibt bereits eine offene Startzeit" });
+      if (openSession)
+        return res.status(400).json({ error: "Es gibt bereits eine offene Startzeit" });
+
       const session = await WorkSession.create({
         user_id: req.user.id,
-        start_time: new Date(`${date}T${start}:00+02:00`),
+        start_time: startDT,
         date_today: date
       });
-      return res.json({ message: "Arbeitsbeginn manuell erfasst ✅", session });
+
+      return res.json({
+        message: "Arbeitsbeginn manuell erfasst ✅",
+        session
+      });
     }
 
-    // Start + Ende gleichzeitig, nur wenn keine offene Session
+    // 🟢 START + ENDE → nur wenn keine offene Session
     if (start && end) {
-      if (openSession) return res.status(400).json({ error: "Offene Startzeit existiert, Start+Ende nicht erlaubt" });
+      if (openSession)
+        return res.status(400).json({ error: "Offene Startzeit existiert" });
+
+      if (endDT <= startDT)
+        return res.status(400).json({ error: "Endzeit muss nach Startzeit liegen" });
+
       const session = await WorkSession.create({
         user_id: req.user.id,
-        start_time: new Date(`${date}T${start}:00+02:00`),
-        end_time: new Date(`${date}T${end}:00+02:00`),
+        start_time: startDT,
+        end_time: endDT,
         date_today: date
       });
-      return res.json({ message: "Arbeitszeit manuell erfasst ✅", session });
+
+      return res.json({
+        message: "Arbeitszeit manuell erfasst ✅",
+        session
+      });
     }
 
   } catch (err) {
-    console.error(err);
+    //console.error(err);
     res.status(500).json({ error: "DB error" });
   }
 });
@@ -115,7 +190,7 @@ router.get("/", auth(), async (req, res) => {
       date_today: s.date_today
     })));
   } catch (err) {
-    console.error(err);
+    //console.error(err);
     res.status(500).json({ error: "Fehler beim Laden der Arbeitszeiten" });
   }
 });
@@ -135,7 +210,7 @@ router.get("/summary", auth(), async (req, res) => {
       totalEntries
     });
   } catch (err) {
-    console.error(err);
+    //console.error(err);
     res.status(500).json({ error: "Fehler beim Laden der Summary" });
   }
 });

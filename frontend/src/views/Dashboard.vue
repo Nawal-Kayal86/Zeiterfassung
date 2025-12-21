@@ -25,7 +25,7 @@
           <p class="fw-bold fs-5">
             {{ summary.lastStart ? formatDate(summary.lastStart) : '-' }}<br>
             {{ summary.lastStart ? formatTime(summary.lastStart) : '-' }}
-            </p>
+          </p>
         </div>
       </div>
 
@@ -57,11 +57,11 @@
         </div>
         <div class="mb-3">
           <label class="form-label">🟢 Startzeit</label>
-          <input type="time" v-model="manual.start" class="form-control shadow-sm"/>
+          <input type="time" v-model="manual.start" class="form-control shadow-sm" />
         </div>
         <div class="mb-3">
           <label class="form-label">🔴 Endzeit</label>
-          <input type="time" v-model="manual.end" class="form-control shadow-sm"/>
+          <input type="time" v-model="manual.end" class="form-control shadow-sm" />
         </div>
         <button type="submit" class="btn btn-primary w-100 shadow">
           💾 Speichern
@@ -93,7 +93,7 @@
               </td>
             </tr>
             <tr v-for="s in workSessions" :key="s.id">
-             
+
               <td v-if="user && user.role === 'admin'">{{ s.name }}</td>
               <td>{{ s.department || '-' }}</td>
               <td>{{ formatDate(s.date_today) || '-' }}</td>
@@ -155,35 +155,38 @@ export default {
 
     async start() {
       try {
-        await api.post('/workSessions/start')
-        this.showMessage('Arbeitsbeginn erfasst ✅', 'success')
+        const res = await api.post('/workSessions/start')
+        this.showMessage(res.data.message, 'success')
         await this.loadWorkSessions()
         await this.loadSummary()
-      } catch {
-        this.showMessage('Fehler beim Arbeitsbeginn ❌', 'danger')
+      } catch (err) {
+        const text = err.response?.data?.error || 'Fehler beim Arbeitsbeginn ❌'
+        this.showMessage(text, 'danger')
       }
     },
 
     async stop() {
       try {
-        await api.post('/workSessions/stop')
-        this.showMessage('Arbeitsende erfasst ✅', 'success')
+        const res = await api.post('/workSessions/stop')
+        this.showMessage(res.data.message, 'success')
         await this.loadWorkSessions()
         await this.loadSummary()
-      } catch {
-        this.showMessage('Fehler beim Arbeitsende ❌', 'danger')
+      } catch (err) {
+        const text = err.response?.data?.error || 'Fehler beim Arbeitsende ❌'
+        this.showMessage(text, 'danger')
       }
     },
 
     async addManualTime() {
       try {
-        await api.post('/workSessions/manual-time', this.manual)
-        this.showMessage('Manuell eingetragen ✅', 'success')
+        const res = await api.post('/workSessions/manual-time', this.manual)
+        this.showMessage(res.data.message, 'success')
         this.manual = { date: '', start: '', end: '' }
         await this.loadWorkSessions()
         await this.loadSummary()
-      } catch {
-        this.showMessage('Fehler beim Eintragen ❌', 'danger')
+      } catch (err) {
+        const text = err.response?.data?.error || 'Fehler beim Eintragen ❌'
+        this.showMessage(text, 'danger')
       }
     },
 
@@ -224,16 +227,16 @@ export default {
     calcDuration(start, end) {
       if (!start || !end) return '-'
       try {
-      const s = new Date(start)
-      const e = new Date(end)
-      if (e < s) e.setDate(e.getDate() + 1)
-      const diffMs = e - s
-      const h = Math.floor(diffMs / 3600000)
-      const m = Math.floor((diffMs % 3600000) / 60000)
-      const hhmm = `${h.toString().padStart(2,"0")}:${m.toString().padStart(2,"0")}`
-      return hhmm
+        const s = new Date(start)
+        const e = new Date(end)
+        if (e < s) e.setDate(e.getDate() + 1)
+        const diffMs = e - s
+        const h = Math.floor(diffMs / 3600000)
+        const m = Math.floor((diffMs % 3600000) / 60000)
+        const hhmm = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`
+        return hhmm
       } catch {
-      return '-'
+        return '-'
       }
     }
   }
@@ -241,6 +244,11 @@ export default {
 </script>
 
 <style scoped>
-.table-hover tbody tr:hover { background-color: #f9f9f9; }
-.card { border-radius: 12px; }
+.table-hover tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.card {
+  border-radius: 12px;
+}
 </style>
