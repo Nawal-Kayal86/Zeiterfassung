@@ -4,93 +4,85 @@
 
     <div class="card shadow-sm p-4">
       <h5 class="mb-3">📝 Arbeitszeiten im Detail</h5>
-
       <table class="table table-striped" v-if="events.length">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Abteilung</th>
-            <th>Datum</th>
-            <th>Start</th>
-            <th>Ende</th>
-            <th>Dauer (h)</th>
+            <th>DATUM,TAG</th>
+            <th>ZEITMODELL_</th>
+            <th>STEMPELUNGEN___</th>
+            <th>BEWERTUNG_</th>
+            <th>IST_</th>
+            <th>SOLL</th>
+            <th>Ü/TAG</th>
+            <th>1:1/TAG</th>
+            <th>1:1 GES.</th>
+            <th>ZGÜ_</th>
+            <th>SAL./GES.</th>
+            <th>davon ER</th>
+            <th>SAB</th>
+            <th>PAUSCH</th>
+            <th>BF Verpl</th>
+            <th>BF Rest</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="e in events" :key="e.id">
-            <td>{{ e.name || '-' }}</td>
-            <td>{{ e.department || '-' }}</td>
-            <td>{{ formatDate(e.date_today) }}</td>
-            <td>{{ e.start_time || '-' }}</td>
-            <td>{{ e.end_time || '-' }}</td>
-            <td>{{ calcDuration(e.date_today, e.start_time, e.end_time) }}</td>
+          <tr v-for="(e, i) in events" :key="i">
+            <td>{{ formatDateWithWeekday(e.date) }}</td>
+            <td>{{ e.zeitmodell }}</td>
+            <td>{{ e.stempelungen }}</td>
+            <td>{{ e.bewertung || '-' }}</td>
+            <td>{{ e.ist }}</td>
+            <td>{{ e.soll }}</td>
+            <td>{{ e.uebertrag }}</td>
+            <td>{{ e.oneToOneTag }}</td>
+            <td>{{ e.oneToOneGes }}</td>
+            <td>{{ e.zgu }}</td>
+            <td>{{ e.salG }}</td>
+            <td>{{ e.davonER }}</td>
+            <td>{{ e.sab }}</td>
+            <td>{{ e.pausch }}</td>
+            <td>{{ e.bfVerpl }}</td>
+            <td>{{ e.bfRest }}</td>
           </tr>
         </tbody>
       </table>
 
-      <div v-else class="alert alert-info">
-        Keine Arbeitszeiten gefunden.
-      </div>
+      <div v-else class="alert alert-info">Keine Arbeitszeiten gefunden.</div>
     </div>
   </div>
 </template>
 
 <script>
-import api from "../api";
+import axios from "axios";
 
 export default {
-  name: "Kalender",
-
   data() {
     return {
       events: []
     };
   },
-
   async created() {
     try {
-      const res = await api.get("/workSessions");
-      this.events = res.data; // الترتيب يأتي جاهز من الـ backend
+      const res = await axios.get("http://localhost:3000/workSessions");
+      this.events = res.data;
     } catch (err) {
-      console.error("Fehler beim Laden der Kalender-Daten:", err);
-      this.events = [];
+      console.error(err);
     }
   },
-
   methods: {
-    formatDate(date) {
+    formatDateWithWeekday(date) {
       if (!date) return "-";
-      return new Date(date).toLocaleDateString("de-DE");
-    },
-
-    // ✅ حساب المدة بشكل صحيح وبسيط
-    calcDuration(date, start, end) {
-      if (!date || !start || !end) return "-";
-
-      try {
-        const startDate = new Date(`${date}T${start}`);
-        let endDate = new Date(`${date}T${end}`);
-
-        // إذا انتهى بعد منتصف الليل
-        if (endDate < startDate) {
-          endDate.setDate(endDate.getDate() + 1);
-        }
-
-        const diffMs = endDate - startDate;
-        if (diffMs <= 0) return "-";
-
-        const hours = diffMs / 1000 / 60 / 60;
-        return hours.toFixed(2);
-      } catch (e) {
-        return "-";
-      }
+      const d = new Date(date);
+      const weekday = ["So","Mo","Di","Mi","Do","Fr","Sa"][d.getDay()];
+      const day = String(d.getDate()).padStart(2, "0");
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const year = d.getFullYear();
+      return `${day}.${month}.${year}, ${weekday}`;
     }
   }
 };
 </script>
 
 <style scoped>
-.card {
-  border-radius: 12px;
-}
+.card { border-radius: 12px; }
 </style>
