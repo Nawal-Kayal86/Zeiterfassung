@@ -8,79 +8,71 @@ const router = express.Router();
 // ✅ Workflow – alle Tasks abrufen
 router.get("/", auth(), async (req, res) => {
   try {
-    const tasks = await Workflow.find().sort({ _id: -1 }).populate("userid", "name role department");
+    const tasks = await Workflow
+      .find()
+      .populate("user_id", "name department")
+      .sort({ created_at: -1 });
+
     res.json(tasks.map(t => ({
-      id: t._id,
-      task: t.task,
-      status: t.status,
-      created_at: t.created_at,
-      userid: t.userid
-    })));
+  id: t._id,
+  task: t.task,
+  status: t.status,
+  created_at: t.created_at,
+  user: {
+    name: t.user_id?.name || "-",
+    department: t.user_id?.department || "-"
+  }
+})));
+
   } catch (err) {
-    console.error("Fehler beim Abrufen:", err);
+    console.error(err);
     res.status(500).json({ error: "Fehler beim Laden der Workflow-Daten" });
   }
 });
 
+
 // ✅ Workflow – neuen Task hinzufügen
 router.post("/", auth(), async (req, res) => {
   try {
-    const { task, status, userid } = req.body;
-    if (!task || !userid) return res.status(400).json({ error: "Task-Name und Benutzer-ID erforderlich" });
+    const { task, status } = req.body;
+    if (!task) {
+      return res.status(400).json({ error: "Task erforderlich" });
+    }
 
     const newTask = await Workflow.create({
       task,
       status: status || "open",
-      userid
+      user_id: req.user.id   // ✅ من التوكن
     });
 
     res.status(201).json({
       id: newTask._id,
       task: newTask.task,
       status: newTask.status,
-      created_at: newTask.created_at,
-      userid: newTask.userid
+      created_at: newTask.created_at
     });
   } catch (err) {
-    console.error("Fehler beim Hinzufügen:", err);
+    console.error(err);
     res.status(500).json({ error: "Fehler beim Speichern des Tasks" });
   }
 });
 
 // ✅ Task als "done" markieren
 router.put("/:id/done", auth(), async (req, res) => {
-  try {
-    const updated = await Workflow.findByIdAndUpdate(
-      req.params.id,
-      { status: "done" },
-      { new: true }
-    );
-
-    if (!updated) return res.status(404).json({ error: "Task nicht gefunden" });
-
-    res.json({
-      id: updated._id,
-      task: updated.task,
-      status: updated.status,
-      created_at: updated.created_at,
-      userid: updated.userid
-    });
-  } catch (err) {
-    console.error("Fehler beim Aktualisieren:", err);
-    res.status(500).json({ error: "Fehler beim Aktualisieren des Tasks" });
-  }
+  const updated = await Workflow.findByIdAndUpdate(
+    req.params.id,
+    { status: "done" },
+    { new: true }
+  );
+  res.json(updated);
 });
 
+ 
 // ❌ Task löschen
 router.delete("/:id", auth(), async (req, res) => {
-  try {
-    const deleted = await Workflow.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ error: "Task nicht gefunden" });
-    res.json({ success: true });
-  } catch (err) {
-    console.error("Fehler beim Löschen:", err);
-    res.status(500).json({ error: "Fehler beim Löschen des Tasks" });
-  }
+  await Workflow.findByIdAndDelete(req.params.id);
+  res.json({ success: true });
 });
+
 
 export default router;

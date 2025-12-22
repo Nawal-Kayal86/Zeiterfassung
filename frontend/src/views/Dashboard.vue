@@ -13,7 +13,11 @@
     </div>
 
     <!-- Meldungen -->
-    <div v-if="message.text" :class="`alert alert-${message.type} shadow-sm`" role="alert">
+    <div
+      v-if="message.text"
+      :class="`alert alert-${message.type} shadow-sm`"
+      role="alert"
+    >
       {{ message.text }}
     </div>
 
@@ -23,8 +27,8 @@
         <div class="card shadow-sm h-100 text-center p-3">
           <h6 class="text-muted">Letzter Beginn</h6>
           <p class="fw-bold fs-5">
-            {{ summary.lastStart ? formatDate(summary.lastStart) : '-' }}<br>
-            {{ summary.lastStart ? formatTime(summary.lastStart) : '-' }}
+            {{ summary.lastStart ? formatDate(summary.lastStart) : "-" }}<br />
+            {{ summary.lastStart ? formatTime(summary.lastStart) : "-" }}
           </p>
         </div>
       </div>
@@ -33,8 +37,8 @@
         <div class="card shadow-sm h-100 text-center p-3">
           <h6 class="text-muted">Letztes Ende</h6>
           <p class="fw-bold fs-5">
-            {{ summary.lastEnd ? formatDate(summary.lastEnd) : '-' }}<br>
-            {{ summary.lastEnd ? formatTime(summary.lastEnd) : '-' }}
+            {{ summary.lastEnd ? formatDate(summary.lastEnd) : "-" }}<br />
+            {{ summary.lastEnd ? formatTime(summary.lastEnd) : "-" }}
           </p>
         </div>
       </div>
@@ -42,7 +46,9 @@
       <div class="col-md-4 mb-3">
         <div class="card shadow-sm h-100 text-center p-3">
           <h6 class="text-muted">Gesamteinträge</h6>
-          <p class="fw-bold fs-4 text-primary">{{ summary.totalEntries }}</p>
+          <p class="fw-bold fs-4 text-primary">
+            {{ summary.totalEntries }}
+          </p>
         </div>
       </div>
     </div>
@@ -53,16 +59,32 @@
       <form @submit.prevent="addManualTime">
         <div class="mb-3">
           <label class="form-label">📅 Datum</label>
-          <input type="date" v-model="manual.date" class="form-control shadow-sm" required />
+          <input
+            type="date"
+            v-model="manual.date"
+            class="form-control shadow-sm"
+            required
+          />
         </div>
+
         <div class="mb-3">
           <label class="form-label">🟢 Startzeit</label>
-          <input type="time" v-model="manual.start" class="form-control shadow-sm" />
+          <input
+            type="time"
+            v-model="manual.start"
+            class="form-control shadow-sm"
+          />
         </div>
+
         <div class="mb-3">
           <label class="form-label">🔴 Endzeit</label>
-          <input type="time" v-model="manual.end" class="form-control shadow-sm" />
+          <input
+            type="time"
+            v-model="manual.end"
+            class="form-control shadow-sm"
+          />
         </div>
+
         <button type="submit" class="btn btn-primary w-100 shadow">
           💾 Speichern
         </button>
@@ -86,20 +108,21 @@
               <th>Dauer</th>
             </tr>
           </thead>
+
           <tbody>
             <tr v-if="workSessions.length === 0">
               <td colspan="6" class="text-center py-3 text-muted">
                 Keine Einträge gefunden
               </td>
             </tr>
-            <tr v-for="s in workSessions" :key="s.id">
 
+            <tr v-for="s in workSessions" :key="s.id">
               <td v-if="user && user.role === 'admin'">{{ s.name }}</td>
               <td>{{ s.department || '-' }}</td>
-              <td>{{ formatDate(s.date_today) || '-' }}</td>
-              <td>{{ formatTime(s.start_time) || '-' }}</td>
-              <td>{{ formatTime(s.end_time) || '-' }}</td>
-              <td>{{ calcDuration(s.start_time, s.end_time, s.date_today) || '-' }}</td>
+              <td>{{ formatDate(s.start) }}</td>
+              <td>{{ formatTime(s.start) }}</td>
+              <td>{{ formatTime(s.end) }}</td>
+              <td>{{ calcDuration(s.start, s.end) }}</td>
             </tr>
           </tbody>
         </table>
@@ -108,139 +131,103 @@
   </div>
 </template>
 
-
 <script>
-import api from '../api'
-import router from '../router'
+import api from "../api";
+import router from "../router";
+import { formatDate, formatTime, calcDuration } from "../utils/time";
 
 export default {
+  name: "Dashboard",
+
   data() {
     return {
       user: null,
-      manual: { date: '', start: '', end: '' },
-      message: { text: '', type: 'success' },
+      manual: { date: "", start: "", end: "" },
+      message: { text: "", type: "success" },
       summary: { lastStart: null, lastEnd: null, totalEntries: 0 },
       workSessions: []
-    }
+    };
   },
 
   async created() {
-    this.user = JSON.parse(localStorage.getItem('user'))
-    if (!this.user) router.push('/login')
-    await this.loadWorkSessions()
-    await this.loadSummary()
+    this.user = JSON.parse(localStorage.getItem("user"));
+    if (!this.user) router.push("/login");
+
+    await this.loadWorkSessions();
+    await this.loadSummary();
   },
 
   methods: {
+    formatDate,
+    formatTime,
+    calcDuration,
+
     async loadSummary() {
       try {
-        const res = await api.get('/workSessions/summary')
-        this.summary = res.data
+        const res = await api.get("/workSessions/summary");
+        this.summary = res.data;
       } catch {
-        this.summary = { lastStart: null, lastEnd: null, totalEntries: 0 }
+        this.summary = { lastStart: null, lastEnd: null, totalEntries: 0 };
       }
     },
 
-    async loadWorkSessions() {
-      try {
-        const res = await api.get('/workSessions')
-        this.workSessions = res.data.map(item => {
-          const duration = this.calcDuration(item.start_time, item.end_time)
-          return { ...item, hours: duration.hhmm, hoursDecimal: duration.decimal }
-        })
-      } catch {
-        this.workSessions = []
-      }
-    },
+  async loadWorkSessions() {
+  try {
+    const res = await api.get('/workSessions')
+    this.workSessions = res.data
+  } catch {
+    this.workSessions = []
+  }
+},
 
     async start() {
       try {
-        const res = await api.post('/workSessions/start')
-        this.showMessage(res.data.message, 'success')
-        await this.loadWorkSessions()
-        await this.loadSummary()
+        const res = await api.post("/workSessions/start");
+        this.showMessage(res.data.message, "success");
+        await this.loadWorkSessions();
+        await this.loadSummary();
       } catch (err) {
-        const text = err.response?.data?.error || 'Fehler beim Arbeitsbeginn ❌'
-        this.showMessage(text, 'danger')
+        const text =
+          err.response?.data?.error || "Fehler beim Arbeitsbeginn ❌";
+        this.showMessage(text, "danger");
       }
     },
 
     async stop() {
       try {
-        const res = await api.post('/workSessions/stop')
-        this.showMessage(res.data.message, 'success')
-        await this.loadWorkSessions()
-        await this.loadSummary()
+        const res = await api.post("/workSessions/stop");
+        this.showMessage(res.data.message, "success");
+        await this.loadWorkSessions();
+        await this.loadSummary();
       } catch (err) {
-        const text = err.response?.data?.error || 'Fehler beim Arbeitsende ❌'
-        this.showMessage(text, 'danger')
+        const text =
+          err.response?.data?.error || "Fehler beim Arbeitsende ❌";
+        this.showMessage(text, "danger");
       }
     },
 
     async addManualTime() {
       try {
-        const res = await api.post('/workSessions/manual-time', this.manual)
-        this.showMessage(res.data.message, 'success')
-        this.manual = { date: '', start: '', end: '' }
-        await this.loadWorkSessions()
-        await this.loadSummary()
+        const res = await api.post("/workSessions/manual-time", this.manual);
+        this.showMessage(res.data.message, "success");
+        this.manual = { date: "", start: "", end: "" };
+        await this.loadWorkSessions();
+        await this.loadSummary();
       } catch (err) {
-        const text = err.response?.data?.error || 'Fehler beim Eintragen ❌'
-        this.showMessage(text, 'danger')
+        const text =
+          err.response?.data?.error || "Fehler beim Eintragen ❌";
+        this.showMessage(text, "danger");
       }
     },
 
-    showMessage(text, type = 'success') {
-      this.message = { text, type }
-      setTimeout(() => { this.message.text = '' }, 4000)
-    },
-
-    formatDate(val) {
-      if (!val) return "-"
-      try {
-        const date = new Date(val)
-        return date.toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" })
-      }
-      catch { return "-" }
-    },
-
-    formatTime(val) {
-      if (!val) return "-"
-      try {
-        const date = new Date(val)
-        return date.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
-      }
-      catch { return "-" }
-    },
-
-    formatDateTime(val) {
-      if (!val) return "-"
-      try {
-        const date = new Date(val)
-        const d = date.toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" })
-        const t = date.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" })
-        return `${d} ${t}`
-      }
-      catch { return "-" }
-    },
-
-    calcDuration(start, end) {
-      if (!start || !end) return '-'
-      try {
-        const s = new Date(start)
-        const e = new Date(end)
-        if (e < s) e.setDate(e.getDate() + 1)
-        const diffMs = e - s
-        const h = Math.floor(diffMs / 3600000)
-        const m = Math.floor((diffMs % 3600000) / 60000)
-        const hhmm = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`
-        return hhmm
-      } catch {
-        return '-'
-      }
+    showMessage(text, type = "success") {
+      this.message = { text, type };
+      setTimeout(() => {
+        this.message.text = "";
+      }, 4000);
     }
   }
-}
+};
 </script>
 
 <style scoped>

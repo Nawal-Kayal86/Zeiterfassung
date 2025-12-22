@@ -3,7 +3,6 @@ import express from 'express';
 import { auth } from '../middleware/auth.js';
 import WorkSession from '../models/WorkSession.js';
 import User from '../models/User.js';
-
 const router = express.Router();
 
 // 🟢 Arbeitsbeginn
@@ -160,40 +159,51 @@ router.post("/manual-time", auth(), async (req, res) => {
 });
 
 
-// 🟢 Alle Arbeitszeiten abrufen (mit Filter)
+// 🟢 Alle Arbeitszeiten abrufen (FINAL)
 router.get("/", auth(), async (req, res) => {
   try {
-    const { startDate, endDate, employeeName, department } = req.query;
-    const query = {};
+    const query = req.user.role === "admin"
+      ? {}
+      : { user_id: req.user.id };
 
-    if (req.user.role !== "admin") query.user_id = req.user.id;
+    const sessions = await WorkSession
+      .find(query)
+      .sort({ start_time: -1 })
+      .populate("user_id", "name department");
 
-    if (startDate) query.date_today = { ...query.date_today, $gte: startDate };
-    if (endDate) query.date_today = { ...query.date_today, $lte: endDate };
+    const result = sessions.map(s => {
+      const start = s.start_time ? new Date(s.start_time) : null;
+      const end = s.end_time ? new Date(s.end_time) : null;
 
-    let sessionsQuery = WorkSession.find(query).sort({ date_today: -1, start_time: -1 }).populate("user_id", "name role department");
+      let duration = "-";
+      if (start && end && end > start) {
+        const diffMin = Math.floor((end - start) / 60000);
+        const h = String(Math.floor(diffMin / 60)).padStart(2, "0");
+        const m = String(diffMin % 60).padStart(2, "0");
+        duration = `${h}:${m}`;
+      }
 
-    if (req.user.role === "admin") {
-      if (employeeName) sessionsQuery = sessionsQuery.where("user_id.name").regex(new RegExp(employeeName, "i"));
-      if (department) sessionsQuery = sessionsQuery.where("user_id.department").regex(new RegExp(department, "i"));
-    }
+      return {
+  id: s._id,
+  name: s.user_id?.name || "-",
+  department: s.user_id?.department || "-",
 
-    const sessions = await sessionsQuery.exec();
+  start: start ? start.toISOString() : null,
+  end: end ? end.toISOString() : null,
+};
+      });
 
-    res.json(sessions.map(s => ({
-      id: s._id,
-      user_id: s.user_id._id,
-      name: s.user_id.name,
-      department: s.user_id.department,
-      start_time: s.start_time,
-      end_time: s.end_time,
-      date_today: s.date_today
-    })));
+    res.json(result);
   } catch (err) {
-    //console.error(err);
+    console.error(err);
     res.status(500).json({ error: "Fehler beim Laden der Arbeitszeiten" });
   }
 });
+
+
+
+
+
 
 // 🟢 Dashboard Summary
 router.get("/summary", auth(), async (req, res) => {

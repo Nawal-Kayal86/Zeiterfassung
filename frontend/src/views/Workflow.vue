@@ -41,42 +41,40 @@
       <h5 class="mb-3">Aktuelle Aufgaben</h5>
       <table class="table table-striped align-middle">
   <thead>
-    <tr>
-      <th>#</th>
-      <th>Aufgabe</th>
-      <th>Status</th>
-      <th>Aktionen</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr v-for="t in tasks" :key="t.id">
-      <td>{{ t.id }}</td>
-      <td>{{ t.task }}</td>
-      <td>
-        <span v-if="t.status === 'done'" class="badge bg-success">
-          ✅ Erledigt
-        </span>
-        <span v-else class="badge bg-warning text-dark">
-          ⚠️ Offen
-        </span>
-      </td>
-      <td>
-        <button
-          v-if="t.status !== 'done'"
-          class="btn btn-success btn-sm me-2"
-          @click="markDone(t.id)"
-        >
-          ✅ Fertig
-        </button>
-        <button
-          class="btn btn-danger btn-sm"
-          @click="deleteTask(t.id)"
-        >
-          ❌ Löschen
-        </button>
-      </td>
-    </tr>
-  </tbody>
+  <tr>
+    <th>Mitarbeiter</th>
+    <th>Aufgabe</th>
+    <th>Status</th>
+    <th>Aktionen</th>
+  </tr>
+</thead>
+
+<tbody>
+  <tr v-for="t in tasks" :key="t.id">
+    <td>{{ t.user?.name || "-" }}</td>
+    <td>{{ t.task }}</td>
+    <td>
+      <span v-if="t.status === 'done'" class="badge bg-success">✅ Erledigt</span>
+      <span v-else class="badge bg-warning text-dark">⚠️ Offen</span>
+    </td>
+    <td>
+      <button
+        v-if="t.status !== 'done'"
+        class="btn btn-success btn-sm me-2"
+        @click="markDone(t.id)"
+      >
+        ✅ Fertig
+      </button>
+      <button
+        class="btn btn-danger btn-sm"
+        @click="deleteTask(t.id)"
+      >
+        ❌ Löschen
+      </button>
+    </td>
+  </tr>
+</tbody>
+
 </table>
 
     </div>
@@ -88,40 +86,72 @@
 
 <script setup>
 import { ref, onMounted } from "vue"
-import axios from "axios"
+import api from "../api"
 
+// state
 const tasks = ref([])
 const loading = ref(true)
 const error = ref("")
 const newTask = ref("")
 const newStatus = ref("open")
 
-// Aufgaben laden
+// user
+const user = JSON.parse(localStorage.getItem("user"))
+
+// 🔄 Aufgaben laden
 const loadWorkflow = async () => {
   try {
-    const res = await axios.get("http://localhost:3000/api/workflow")
+    const res = await api.get("/workflow")
     tasks.value = res.data
   } catch (err) {
-    error.value = "Fehler beim Laden: " + (err.response?.data?.error || err.message)
+    error.value =
+      "Fehler beim Laden: " +
+      (err.response?.data?.error || err.message)
   } finally {
     loading.value = false
   }
 }
 
-// Neue Aufgabe hinzufügen
+// ➕ Neue Aufgabe hinzufügen
 const addTask = async () => {
   try {
-    const res = await axios.post("http://localhost:3000/api/workflow", {
+    const res = await api.post("/workflow", {
       task: newTask.value,
-      status: newStatus.value
+      status: newStatus.value,
+      userid: user.id // 👈 مهم
     })
+
     tasks.value.push(res.data)
     newTask.value = ""
     newStatus.value = "open"
   } catch (err) {
-    alert("Fehler beim Hinzufügen: " + (err.response?.data?.error || err.message))
+    alert(
+      "Fehler beim Hinzufügen: " +
+      (err.response?.data?.error || err.message)
+    )
+  }
+}
+
+// ✅ Task als erledigt markieren
+const markDone = async (id) => {
+  try {
+    await api.put(`/workflow/${id}/done`)
+    await loadWorkflow()
+  } catch (err) {
+    alert("Fehler beim Abschließen")
+  }
+}
+
+// ❌ Task löschen
+const deleteTask = async (id) => {
+  try {
+    await api.delete(`/workflow/${id}`)
+    await loadWorkflow()
+  } catch (err) {
+    alert("Fehler beim Löschen")
   }
 }
 
 onMounted(loadWorkflow)
 </script>
+
