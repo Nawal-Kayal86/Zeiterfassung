@@ -107,8 +107,25 @@ const calendar = computed(() => {
   return weeks
 })
 
-function prevMonth(){ monthRef.value = (monthRef.value+11)%12 }
-function nextMonth(){ monthRef.value = (monthRef.value+1)%12 }
+function prevMonth() {
+  if (monthRef.value === 0) {
+    monthRef.value = 11
+    yearRef.value--
+    loadCalendarData()
+  } else {
+    monthRef.value--
+  }
+}
+
+function nextMonth() {
+  if (monthRef.value === 11) {
+    monthRef.value = 0
+    yearRef.value++
+    loadCalendarData()
+  } else {
+    monthRef.value++
+  }
+}
 
 onMounted(loadCalendarData)
 </script>

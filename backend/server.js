@@ -145,6 +145,73 @@ app.get("/api/errors", (req, res) => {
   res.json(rows);
 });
 
+// 🟢 Berichte / Statistiken (NEU)
+app.get("/api/reports", auth("admin"), async (req, res) => {
+  try {
+    // 1. Basis-Statistiken
+    const userCount = await User.countDocuments();
+    const departmentsCount = await Department.countDocuments();
+
+    // 2. Stunden und Mitarbeiter pro Abteilung
+    // Zuerst alle User pro Abteilung zählen
+    const usersPerDept = await User.aggregate([
+      { $group: { _id: "$department", count: { $sum: 1 } } }
+    ]);
+
+    // Dann Stunden pro Abteilung summieren (via WorkSessions + User Lookup)
+    const hoursPerDept = await WorkSession.aggregate([
+      { $match: { end_time: { $ne: null } } }, // Nur fertige Sessions
+      {
+        $lookup: {
+          from: "users",
+          localField: "user_id",
+          foreignField: "_id",
+          as: "user"
+        }
+      },
+      { $unwind: "$user" },
+      {
+        $group: {
+          _id: "$user.department",
+          totalMillis: { $sum: { $subtract: ["$end_time", "$start_time"] } }
+        }
+      }
+    ]);
+
+    // 3. Daten zusammenführen
+    const reportMap = {};
+    let totalHoursAll = 0;
+
+    // Init mit User-Counts
+    usersPerDept.forEach(u => {
+      const dept = u._id || "Ohne Abteilung";
+      reportMap[dept] = { department: dept, count: u.count, hours: 0 };
+    });
+
+    // Stunden hinzufügen
+    hoursPerDept.forEach(h => {
+      const dept = h._id || "Ohne Abteilung";
+      const hours = h.totalMillis / (1000 * 60 * 60); // ms in Stunden
+      
+      if (!reportMap[dept]) {
+        reportMap[dept] = { department: dept, count: 0, hours: 0 };
+      }
+      reportMap[dept].hours = hours;
+      totalHoursAll += hours;
+    });
+
+    res.json({
+      userCount,
+      departments: departmentsCount,
+      totalHours: totalHoursAll,
+      byDepartment: Object.values(reportMap)
+    });
+
+  } catch (err) {
+    console.error("Report Error:", err);
+    res.status(500).json({ error: "Fehler beim Erstellen des Berichts" });
+  }
+});
 
 // -------------- Vue Frontend serven -----------------
 const __filename = fileURLToPath(import.meta.url);

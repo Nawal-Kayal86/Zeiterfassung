@@ -14,9 +14,9 @@
     <section>
       <h3>Feiertage</h3>
       <ul>
-        <li v-for="h in holidays" :key="h.date" :style="{color: changedHolidays.includes(h.date) ? 'red' : 'black'}">
+        <li v-for="(h, index) in holidays" :key="index" :style="{color: changedHolidays.includes(h.date) ? 'red' : 'black'}">
           <input v-model="h.name" /> - {{ h.date }}
-          <button @click="removeHoliday(h.date)">✖</button>
+          <button @click="removeHoliday(index)">✖</button>
           <span v-if="changedHolidays.includes(h.date)"> (neu/geändert)</span>
         </li>
       </ul>
@@ -26,11 +26,11 @@
     <section>
       <h3>Ferien</h3>
       <ul>
-        <li v-for="f in ferien" :key="f.name">
+        <li v-for="(f, index) in ferien" :key="index">
           <input v-model="f.name" />: 
           <input type="date" v-model="f.start" /> → 
           <input type="date" v-model="f.end" />
-          <button @click="removeFerien(f.name)">✖</button>
+          <button @click="removeFerien(index)">✖</button>
         </li>
       </ul>
       <button @click="addFerien">+ Ferien hinzufügen</button>
@@ -83,17 +83,16 @@ function addHoliday() {
   holidays.value.push({ date: newDate, name: "" })
 }
 
-function removeHoliday(date) {
-  holidays.value = holidays.value.filter(h => h.date !== date)
-  changedHolidays.value = changedHolidays.value.filter(d => d !== date)
+function removeHoliday(index) {
+  holidays.value.splice(index, 1)
 }
 
 function addFerien() {
   ferien.value.push({ name: "", start: new Date().toISOString().slice(0, 10), end: new Date().toISOString().slice(0, 10) })
 }
 
-function removeFerien(name) {
-  ferien.value = ferien.value.filter(f => f.name !== name)
+function removeFerien(index) {
+  ferien.value.splice(index, 1)
 }
 
 async function fetchFromInternet() {

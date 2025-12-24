@@ -8,7 +8,10 @@ router.get("/", async (req, res) => {
   const { year, state="W" } = req.query;
   try {
     const data = await Holiday.findOne({ year, state });
-    if (!data) return res.status(404).json({ msg: "Keine Daten gefunden" });
+    // Falls noch keine Daten existieren, leeres Gerüst zurückgeben (statt 404 Fehler)
+    if (!data) {
+      return res.json({ year, state, holidays: [], ferien: [] });
+    }
     res.json(data);
   } catch(e) {
     res.status(500).json({ error: e.message });

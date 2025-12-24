@@ -1,17 +1,25 @@
 import mongoose from "mongoose";
 
-const holidaySchema = new mongoose.Schema({
+const HolidaySchema = new mongoose.Schema({
   year: { type: Number, required: true },
-  country: { type: String, default: "AT" },
-  state: { type: String, default: "W" }, // Wien
-  region: { type: String, default: "Wien" },
+  state: { type: String, default: "W" }, // Bundesland (z.B. W für Wien)
   holidays: [
-    { date: String, name: String } // YYYY-MM-DD
+    {
+      date: String, // YYYY-MM-DD
+      name: String,
+    },
   ],
   ferien: [
-    { name: String, start: String, end: String }
+    {
+      name: String,
+      start: String, // YYYY-MM-DD
+      end: String,   // YYYY-MM-DD
+    },
   ],
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
-export const Holiday = mongoose.model("Holiday", holidaySchema);
+// Verhindert doppelte Einträge für das gleiche Jahr + Bundesland
+HolidaySchema.index({ year: 1, state: 1 }, { unique: true });
+
+export const Holiday = mongoose.model("Holiday", HolidaySchema);

@@ -56,6 +56,7 @@
 
 <script>
 import axios from "axios";
+import { toViennaTime, calcHours, formatDate } from "@/utils/time";
 
 export default {
   data() {
@@ -78,19 +79,19 @@ export default {
     groupedData() {
       const grouped = {};
       this.filteredData.forEach(item => {
-        const dateObj = new Date(item.date_today);
-        const dateStr = dateObj.toLocaleDateString("de-AT");
+        // Datum formatieren (Fallback auf start, falls date_today fehlt)
+        const dateStr = formatDate(item.date_today || item.start);
         const key = `${item.name}_${dateStr}`;
 
         if (!grouped[key]) grouped[key] = { name: item.name, date: dateStr, intervals: [], totalHours: 0 };
 
         // Zeit-Intervalle
-        const start = item.start_time ? this.toViennaTime(item.start_time) : "-";
-        const end = item.end_time ? this.toViennaTime(item.end_time) : start;
+        const start = toViennaTime(item.start);
+        const end = item.end ? toViennaTime(item.end) : start;
         grouped[key].intervals.push(`${start}-${end}`);
 
         // Stunden berechnen
-        grouped[key].totalHours += this.calcHours(item.start_time, item.end_time);
+        grouped[key].totalHours += calcHours(item.start, item.end);
       });
       return grouped;
     }
@@ -102,12 +103,6 @@ export default {
   },
 
   methods: {
-    toViennaTime(isoStr) {
-      if (!isoStr) return "-";
-      const dt = new Date(isoStr);
-      return dt.toLocaleTimeString("de-AT",{ hour:"2-digit", minute:"2-digit" });
-    },
-
     async fetchDepartments() {
       try {
         const res = await axios.get("http://localhost:3000/api/departments", { headers: { Authorization: `Bearer ${this.token}` } });
@@ -135,14 +130,6 @@ export default {
           this.filteredData = sessions;
         }
       } catch(err){ console.error(err); }
-    },
-
-    calcHours(startISO, endISO) {
-      if (!startISO) return 0;
-      const s = new Date(startISO);
-      const e = endISO ? new Date(endISO) : new Date(startISO);
-      if(e < s) e.setDate(e.getDate()+1);
-      return (e - s)/3600000;
     },
 
     clearFilters(){

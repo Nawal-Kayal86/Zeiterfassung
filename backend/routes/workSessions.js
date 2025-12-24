@@ -190,6 +190,7 @@ router.get("/", auth(), async (req, res) => {
 
   start: start ? start.toISOString() : null,
   end: end ? end.toISOString() : null,
+  date_today: s.date_today,
 };
       });
 
