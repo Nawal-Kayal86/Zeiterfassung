@@ -210,6 +210,11 @@
         <i class="bi bi-calendar-event"></i> Kalender
       </RouterLink>
     </li>
+    <li v-if="currentuser?.role === 'admin'">
+      <RouterLink to="/config" class="nav-item">
+        <i class="bi bi-gear"></i> Einstellungen
+      </RouterLink>
+    </li>
     <li>
       <RouterLink to="/errors" class="nav-item">
         <i class="bi bi-bug"></i> Fehlerprotokoll

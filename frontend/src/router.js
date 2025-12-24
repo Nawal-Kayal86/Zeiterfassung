@@ -13,6 +13,7 @@ import Workflow from './views/Workflow.vue'
 import Schedule from './views/Dienstplan.vue'
 import Reports from './views/Berichte.vue'
 import Departments from './views/DepartmentsAdmin.vue'
+import Config from './views/Config.vue'
 
 
 const routes = [
@@ -37,7 +38,8 @@ const routes = [
       { path: 'workflow', component: Workflow }, // workflow
       { path: 'schedule', component: Schedule }, // dienstplan
       { path: 'reports', component: Reports }, // berichte
-       { path: 'departments', component: Departments , meta: { requiresAuth: true, requiresAdmin: true } }, // departments admin
+      { path: 'departments', component: Departments , meta: { requiresAuth: true, requiresAdmin: true } }, // departments admin
+      { path: 'config',component: Config, meta: { requiresAuth: true, requiresAdmin: true } } // config
       
     ]
   }

@@ -1,9 +1,10 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:3000/api"
+  baseURL: "http://localhost:3000/api" // Backend URL
 });
 
+// Request: Token automatisch setzen
 api.interceptors.request.use(config => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -12,10 +13,10 @@ api.interceptors.request.use(config => {
   return config;
 });
 
+// Response: Fehler zentral loggen
 api.interceptors.response.use(
   response => response,
   error => {
-    // فقط نرجع الخطأ، لا نمسح التوكن تلقائيًا
     console.error("API error:", error.response?.data || error.message);
     return Promise.reject(error);
   }

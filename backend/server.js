@@ -13,6 +13,7 @@ import workflowRouter from './routes/workflow.js';
 import User from './models/User.js';
 import WorkSession from './models/WorkSession.js';
 import Department from './models/Department.js';
+import calendarRoutes from "./routes/calendar.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -28,6 +29,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/departments", departmentsRouter);
 app.use("/api/workSessions", workSessionsRouter);
 app.use("/api/workflow", workflowRouter);
+app.use("/api/calendar", calendarRoutes);
 
 // 🟢 Login
 app.post("/api/login", async (req, res) => {
