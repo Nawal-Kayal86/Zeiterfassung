@@ -4,54 +4,75 @@
 
     <!-- Arbeitszeit Buttons -->
     <div class="mb-4 d-flex gap-3 flex-wrap">
-      <button class="btn btn-success shadow" @click="start">
+      <button class="btn btn-success" @click="start" :disabled="activeSession">
         🟢 Arbeitsbeginn
       </button>
-      <button class="btn btn-danger shadow" @click="stop">
+      <button class="btn btn-danger" @click="stop" :disabled="!activeSession">
         🔴 Arbeitsende
       </button>
     </div>
 
     <!-- Meldungen -->
     <div
+  v-if="activeSession"
+  class="alert alert-warning mt-3 shadow-sm"
+>
+  ⏱️ جلسة عمل جارية منذ
+  <strong>{{ liveDuration }}</strong>
+</div>
+    <div
       v-if="message.text"
-      :class="`alert alert-${message.type} shadow-sm`"
-      role="alert"
+      :class="`alert alert-${message.type} mt-3 shadow-sm`"
     >
       {{ message.text }}
     </div>
+    
 
     <!-- Statuskarten -->
-    <div class="row mb-4">
-      <div class="col-md-4 mb-3">
-        <div class="card shadow-sm h-100 text-center p-3">
-          <h6 class="text-muted">Letzter Beginn</h6>
-          <p class="fw-bold fs-5">
-            {{ summary.lastStart ? formatDate(summary.lastStart) : "-" }}<br />
-            {{ summary.lastStart ? formatTime(summary.lastStart) : "-" }}
-          </p>
-        </div>
-      </div>
-
-      <div class="col-md-4 mb-3">
-        <div class="card shadow-sm h-100 text-center p-3">
-          <h6 class="text-muted">Letztes Ende</h6>
-          <p class="fw-bold fs-5">
-            {{ summary.lastEnd ? formatDate(summary.lastEnd) : "-" }}<br />
-            {{ summary.lastEnd ? formatTime(summary.lastEnd) : "-" }}
-          </p>
-        </div>
-      </div>
-
-      <div class="col-md-4 mb-3">
-        <div class="card shadow-sm h-100 text-center p-3">
-          <h6 class="text-muted">Gesamteinträge</h6>
-          <p class="fw-bold fs-4 text-primary">
-            {{ summary.totalEntries }}
-          </p>
-        </div>
-      </div>
+<div class="row mb-4">
+  <!-- Letzter Beginn -->
+  <div class="col-md-4 mb-3">
+    <div class="card shadow-sm h-100 text-center p-3">
+      <h6 class="text-muted">Letzter Beginn</h6>
+      <p class="fw-bold fs-5">
+        <template v-if="summary.lastStart">
+          {{ formatDate(summary.lastStart) }}<br />
+          {{ formatTime(summary.lastStart) }}
+        </template>
+        <template v-else>
+          -----
+        </template>
+      </p>
     </div>
+  </div>
+
+  <!-- Letztes Ende -->
+  <div class="col-md-4 mb-3">
+    <div class="card shadow-sm h-100 text-center p-3">
+      <h6 class="text-muted">Letztes Ende</h6>
+      <p class="fw-bold fs-5">
+        <template v-if="!activeSession && summary.lastEnd">
+          {{ formatDate(summary.lastEnd) }}<br />
+          {{ formatTime(summary.lastEnd) }}
+        </template>
+        <template v-else>
+          -----
+        </template>
+      </p>
+    </div>
+  </div>
+
+  <!-- Gesamteinträge -->
+  <div class="col-md-4 mb-3">
+    <div class="card shadow-sm h-100 text-center p-3">
+      <h6 class="text-muted">Gesamteinträge</h6>
+      <p class="fw-bold fs-4 text-primary">
+        {{ summary.totalEntries }}
+      </p>
+    </div>
+  </div>
+</div>
+
 
     <!-- Manuelle Arbeitszeiterfassung -->
     <div class="card shadow-sm p-4 mb-5" style="max-width: 500px;">
@@ -145,7 +166,9 @@ export default {
       manual: { date: "", start: "", end: "" },
       message: { text: "", type: "success" },
       summary: { lastStart: null, lastEnd: null, totalEntries: 0 },
-      workSessions: []
+      workSessions: [],
+      liveDuration: "00:00:00",   
+      timer: null
     };
   },
 
@@ -155,6 +178,28 @@ export default {
 
     await this.loadWorkSessions();
     await this.loadSummary();
+  },
+ computed: {
+  activeSession() {
+    return this.workSessions.find(s => {
+      if (!s.start) return false
+      if (!s.end) return true
+
+      const start = new Date(s.start)
+      const end = new Date(s.end)
+
+      return end <= start
+    }) || null
+  }
+},
+  watch: {
+    activeSession(newSession, oldSession) {
+      if (newSession) {
+        this.startLiveTimer();
+      } else {
+        this.stopLiveTimer();
+      }
+    }
   },
 
   methods: {
@@ -219,6 +264,36 @@ export default {
         this.showMessage(text, "danger");
       }
     },
+    
+    startLiveTimer() {
+  if (!this.activeSession) return;
+
+  // أوقف أي مؤقت قديم
+  if (this.timer) clearInterval(this.timer);
+
+  this.timer = setInterval(() => {
+    const start = new Date(this.activeSession.start);
+    const now = new Date();
+
+    const diffMs = now - start;
+    if (diffMs < 0) return;
+
+    const totalSeconds = Math.floor(diffMs / 1000);
+    const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+    const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+    const s = String(totalSeconds % 60).padStart(2, "0");
+
+    this.liveDuration = `${h}:${m}:${s}`;
+  }, 1000);
+},
+stopLiveTimer() {
+  if (this.timer) {
+    clearInterval(this.timer);
+    this.timer = null;
+    this.liveDuration = "00:00:00";
+  }
+},
+
 
     showMessage(text, type = "success") {
       this.message = { text, type };
