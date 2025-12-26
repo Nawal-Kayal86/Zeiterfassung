@@ -2,61 +2,71 @@
   <div class="container py-4">
     <h2 class="mb-4 fw-bold text-primary">📅 Dienstplan</h2>
 
-    <!-- إضافة / تعديل -->
+    <!-- Formular -->
     <div class="card shadow-sm mb-4">
-      <div class="card-header fw-bold">
-        {{ editingId ? "✏️ Schicht bearbeiten" : "➕ Neue Schicht" }}
-      </div>
-      <div class="card-body row g-3">
+      <div class="card-body">
+        <h5 class="mb-3">
+          {{ editId ? "✏️ Schicht bearbeiten" : "➕ Neue Schicht" }}
+        </h5>
 
-        <div class="col-md-3">
-          <label class="form-label">Mitarbeiter</label>
-          <input v-model="form.employee" class="form-control" />
-        </div>
+        <form @submit.prevent="save">
+          <div class="row g-3">
+            <div class="col-md-3">
+              <label class="form-label">Mitarbeiter</label>
+              <input v-model="form.name" class="form-control" required />
+            </div>
 
-        <div class="col-md-3">
-          <label class="form-label">Abteilung</label>
-          <input v-model="form.department" class="form-control" />
-        </div>
+            <div class="col-md-3">
+              <label class="form-label">Abteilung</label>
+              <select v-model="form.shift" class="form-select" required>
+                <option value="">–Abteilung wählen –</option>
+                <option>HR</option>
+                <option>IT</option>
+                <option>Trainer</option>
+                <option>Öko Bosoter</option>
+                <option>Einkauf</option>
+              </select>
+            </div>
 
-        <div class="col-md-3">
-          <label class="form-label">Datum</label>
-          <input type="date" v-model="form.date" class="form-control" />
-        </div>
+            <div class="col-md-3">
+              <label class="form-label">Datum</label>
+              <input type="date" v-model="form.date" class="form-control" required />
+            </div>
 
-        <div class="col-md-3">
-          <label class="form-label">Schicht</label>
-          <select v-model="form.shift" class="form-select">
-            <option value="">-- wählen --</option>
-            <option>Frühschicht</option>
-            <option>Spätschicht</option>
-            <option>Nachtschicht</option>
-          </select>
-        </div>
+            <div class="col-md-3">
+              <label class="form-label">Schicht</label>
+              <select v-model="form.shift" class="form-select" required>
+                <option value="">–Schicht wählen –</option>
+                <option>Frühschicht</option>
+                <option>Spätschicht</option>
+                <option>Nachtschicht</option>
+              </select>
+            </div>
+          </div>
 
-        <div class="col-12 d-flex gap-2">
-          <button class="btn btn-primary" @click="save">
-            💾 Speichern
-          </button>
-          <button
-            v-if="editingId"
-            class="btn btn-secondary"
-            @click="resetForm"
-          >
-            Abbrechen
-          </button>
-        </div>
+          <div class="mt-3 d-flex gap-2">
+            <button class="btn btn-primary">
+              💾 Speichern
+            </button>
+            <button
+              v-if="editId"
+              type="button"
+              class="btn btn-secondary"
+              @click="reset"
+            >
+              Abbrechen
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
-    <!-- جدول -->
+    <!-- Tabelle -->
     <div class="card shadow-sm">
       <div class="card-header fw-bold">📋 Übersicht</div>
-
-      <!-- Desktop -->
-      <div class="table-responsive d-none d-md-block">
-        <table class="table table-striped mb-0">
-          <thead>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
             <tr>
               <th>Mitarbeiter</th>
               <th>Abteilung</th>
@@ -66,48 +76,32 @@
             </tr>
           </thead>
           <tbody>
+            <tr v-if="schedules.length === 0">
+              <td colspan="5" class="text-center text-muted py-3">
+                Keine Einträge
+              </td>
+            </tr>
+
             <tr v-for="s in schedules" :key="s._id">
-              <td>{{ s.employee }}</td>
+              <td>{{ s.name }}</td>
               <td>{{ s.department }}</td>
               <td>{{ formatDate(s.date) }}</td>
-              <td>{{ s.shift }}</td>
+              <td>
+                <span :class="badgeClass(s.shift)">
+                  {{ s.shift }}
+                </span>
+              </td>
               <td class="text-end">
-                <button class="btn btn-sm btn-warning me-2" @click="edit(s)">
+                <button class="btn btn-sm btn-outline-primary me-2" @click="edit(s)">
                   ✏️
                 </button>
-                <button class="btn btn-sm btn-danger" @click="remove(s._id)">
+                <button class="btn btn-sm btn-outline-danger" @click="remove(s._id)">
                   🗑
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
-      </div>
-
-      <!-- Mobile -->
-      <div class="d-md-none">
-        <div
-          v-for="s in schedules"
-          :key="s._id"
-          class="border-bottom p-3"
-        >
-          <div><strong>{{ s.employee }}</strong></div>
-          <div>{{ s.department }}</div>
-          <div>{{ formatDate(s.date) }}</div>
-          <div>{{ s.shift }}</div>
-          <div class="mt-2">
-            <button class="btn btn-sm btn-warning me-2" @click="edit(s)">
-              ✏️
-            </button>
-            <button class="btn btn-sm btn-danger" @click="remove(s._id)">
-              🗑
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="!schedules.length" class="p-3 text-muted">
-        Keine Einträge vorhanden.
       </div>
     </div>
   </div>
@@ -118,20 +112,14 @@ import { ref, onMounted } from "vue"
 import api from "@/api"
 
 const schedules = ref([])
+const editId = ref(null)
 
 const form = ref({
-  employee: "",
+  name: "",
   department: "",
   date: "",
   shift: ""
 })
-
-const editingId = ref(null)
-
-function resetForm() {
-  form.value = { employee: "", department: "", date: "", shift: "" }
-  editingId.value = null
-}
 
 async function load() {
   const res = await api.get("/schedule")
@@ -139,22 +127,19 @@ async function load() {
 }
 
 async function save() {
-  if (!form.value.employee || !form.value.date) return
-
-  if (editingId.value) {
-    await api.put(`/schedule/${editingId.value}`, form.value)
+  if (editId.value) {
+    await api.put(`/schedule/${editId.value}`, form.value)
   } else {
     await api.post("/schedule", form.value)
   }
-
-  resetForm()
+  reset()
   load()
 }
 
 function edit(s) {
-  editingId.value = s._id
+  editId.value = s._id
   form.value = {
-    employee: s.employee,
+    name: s.name,
     department: s.department,
     date: s.date.slice(0, 10),
     shift: s.shift
@@ -167,15 +152,22 @@ async function remove(id) {
   load()
 }
 
+function reset() {
+  editId.value = null
+  form.value = { name: "", department: "", date: "", shift: "" }
+}
+
 function formatDate(d) {
   return new Date(d).toLocaleDateString("de-DE")
 }
 
+function badgeClass(shift) {
+  return {
+    "badge bg-success": shift === "Frühschicht",
+    "badge bg-warning text-dark": shift === "Spätschicht",
+    "badge bg-dark": shift === "Nachtschicht"
+  }
+}
+
 onMounted(load)
 </script>
-
-<style scoped>
-.card {
-  border-radius: 12px;
-}
-</style>

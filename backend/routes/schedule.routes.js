@@ -24,4 +24,31 @@ router.post("/", async (req, res) => {
   }
 })
 
+// PUT update schedule
+router.put("/:id", async (req, res) => {
+  try {
+    const updated = await Schedule.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    )
+    res.json(updated)
+  } catch (err) {
+    res.status(400).json({ error: "Fehler beim Aktualisieren" })
+  }
+})
+
+
+router.delete("/:id", async (req, res) => {
+  try {
+    await Schedule.findByIdAndDelete(req.params.id)
+    res.json({ success: true })
+  } catch (err) {
+    res.status(400).json({ error: "Fehler beim Löschen" })
+  }
+})
+
+
+
+
 export default router
