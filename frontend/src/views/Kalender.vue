@@ -1,143 +1,132 @@
 <template>
-  <div class="calendar container py-4">
-    <h2 class="mb-4 fw-bold text-primary">📅 Kalender</h2>
+  <div class="calendar-container">
+    <h2 class="title">📅 Kalender</h2>
 
     <!-- Header -->
-    <div class="d-flex justify-content-center align-items-center gap-3 mb-3">
-      <button class="btn btn-outline-secondary" @click="prevMonth">&lt;</button>
+    <div class="calendar-header">
+      <button @click="prevMonth">‹</button>
 
-      <select v-model="yearRef" class="form-select w-auto" @change="loadCalendarData">
+      <select v-model="yearRef" @change="loadData">
         <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
       </select>
 
-      <strong class="fs-5">{{ monthName }}</strong>
+      <strong>{{ monthName }}</strong>
 
-      <button class="btn btn-outline-secondary" @click="nextMonth">&gt;</button>
+      <button @click="nextMonth">›</button>
     </div>
 
-    <!-- Days header -->
-    <div class="grid header">
-      <div>KW</div>
-      <div v-for="d in days" :key="d">{{ d }}</div>
-    </div>
-
-    <!-- Calendar -->
-    <div v-for="week in calendar" :key="week.kw" class="grid week">
-      <div class="kw">{{ week.kw }}</div>
+    <!-- Calendar Wrapper (scroll on mobile) -->
+    <div class="calendar-scroll">
+      <div class="grid header">
+        <div class="kw-col">KW</div>
+        <div v-for="d in days" :key="d">{{ d }}</div>
+      </div>
 
       <div
-  v-for="day in week.days"
-  :key="day.key"
-  class="day"
-  :class="{
-    weekend: day.isWeekend,
-    holiday: day.holiday,
-    selected: selectedDate === day.key,
-    hasOpen: day.hasOpen,
-    hasClosed: day.hasClosed && !day.hasOpen
-  }"
-  @click="day.day && selectDay(day)"
->
+        v-for="week in calendar"
+        :key="week.kw"
+        class="grid week"
+      >
+        <div class="kw-col">{{ week.kw }}</div>
 
-        <div class="day-number">{{ day.day }}</div>
+        <div
+          v-for="day in week.days"
+          :key="day.key"
+          class="day"
+          :class="{
+            weekend: day.isWeekend,
+            holiday: day.holiday,
+            open: day.hasOpen,
+            closed: day.hasClosed && !day.hasOpen,
+            selected: selectedDate === day.key
+          }"
+          :title="day.tooltip"
+          @click="selectDay(day)"
+        >
+          <div class="day-number">{{ day.day }}</div>
 
-        <!-- ● indicator -->
-        <div v-if="day.hasOpen" class="dot red"></div>
-        <div v-else-if="day.hasClosed" class="dot green"></div>
+          <div v-if="day.hasOpen" class="dot red"></div>
+          <div v-else-if="day.hasClosed" class="dot green"></div>
 
-        <div v-if="day.holiday" class="label">{{ day.holiday }}</div>
+          <div v-if="day.holiday" class="label">{{ day.holiday }}</div>
+        </div>
       </div>
     </div>
 
-    <!-- Day details -->
-    <div v-if="selectedDate" class="card shadow-sm p-3 mt-4">
-      <h5 class="mb-3">📌Details{{ selectedDate }}</h5>
+    <!-- Details -->
+    <div v-if="dayDetails.length" class="details">
+      <h4>📌 Details {{ selectedDate }}</h4>
 
-      <table class="table table-sm">
-        <thead>
-          <tr>
-            <th>Mitarbeiter</th>
-            <th>Start</th>
-            <th>Ende</th>
-            <th>Dauer</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="s in daySessions"
-            :key="s._id"
-            :class="{ 'table-warning': !s.end }"
-          >
-            <td>{{ s.name }}</td>
-            <td>{{ formatTime(s.start) }}</td>
-            <td>{{ s.end ? formatTime(s.end) : '-----' }}</td>
-            <td>{{ s.end ? calcDuration(s.start, s.end) : liveDuration }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="details-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Mitarbeiter</th>
+              <th>Start</th>
+              <th>Ende</th>
+              <th>Dauer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="s in dayDetails" :key="s._id">
+              <td>{{ s.name }}</td>
+              <td>{{ formatTime(s.start) }}</td>
+              <td>{{ s.end ? formatTime(s.end) : '-----' }}</td>
+              <td>{{ calcDuration(s.start, s.end) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
 
+
 <script setup>
-import { ref, computed, onMounted, watch } from "vue"
+import { ref, computed, onMounted } from "vue"
 import api from "@/api"
 import { formatTime, calcDuration } from "@/utils/time"
 
+/* ------------------ helpers ------------------ */
+function toLocalKey(d) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${day}`
+}
+
+function getKW(d) {
+  const date = new Date(d)
+  date.setHours(0, 0, 0)
+  date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7))
+  const kw1 = new Date(date.getFullYear(), 0, 4)
+  return (
+    1 +
+    Math.round(
+      ((date - kw1) / 86400000 - 3 + ((kw1.getDay() + 6) % 7)) / 7
+    )
+  )
+}
+
+/* ------------------ state ------------------ */
 const today = new Date()
 const monthRef = ref(today.getMonth())
 const yearRef = ref(today.getFullYear())
 const years = Array.from({ length: 10 }, (_, i) => today.getFullYear() - 5 + i)
+
 const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 
 const workSessions = ref([])
+const holidays = ref({})
 const selectedDate = ref(null)
-const daySessions = ref([])
+const dayDetails = ref([])
 
-const timer = ref(null)
-const liveDuration = ref("00:00:00")
-
+/* ------------------ computed ------------------ */
 const monthName = computed(() =>
-  new Date(yearRef.value, monthRef.value).toLocaleString("de-DE", { month: "long" })
+  new Date(yearRef.value, monthRef.value).toLocaleString("de-DE", {
+    month: "long"
+  })
 )
-
-async function loadCalendarData() {
-  const res = await api.get("/workSessions")
-  workSessions.value = res.data
-}
-
-function selectDay(day) {
-  selectedDate.value = day.key
-  daySessions.value = workSessions.value.filter(
-    s => s.start?.slice(0, 10) === day.key
-  )
-  startLiveTimer()
-}
-
-function startLiveTimer() {
-  if (timer.value) clearInterval(timer.value)
-
-  const open = daySessions.value.find(s => !s.end)
-  if (!open) return
-
-  timer.value = setInterval(() => {
-    const diff = new Date() - new Date(open.start)
-    const sec = Math.floor(diff / 1000)
-    const h = String(Math.floor(sec / 3600)).padStart(2, "0")
-    const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0")
-    const s = String(sec % 60).padStart(2, "0")
-    liveDuration.value = `${h}:${m}:${s}`
-  }, 1000)
-}
-
-watch(daySessions, startLiveTimer)
-
-function getKW(d) {
-  const t = new Date(d)
-  t.setDate(t.getDate() + 3 - ((t.getDay() + 6) % 7))
-  const w1 = new Date(t.getFullYear(), 0, 4)
-  return 1 + Math.round(((t - w1) / 86400000 - 3 + ((w1.getDay() + 6) % 7)) / 7)
-}
 
 const calendar = computed(() => {
   const first = new Date(yearRef.value, monthRef.value, 1)
@@ -151,28 +140,54 @@ const calendar = computed(() => {
     const week = { kw: getKW(date), days: [] }
 
     for (let i = 0; i < 7; i++) {
-      const key = date.toISOString().slice(0, 10)
-      const sessions = workSessions.value.filter(s => s.start?.slice(0, 10) === key)
+      const key = toLocalKey(date)
+      const sessions = workSessions.value.filter(
+        s => toLocalKey(new Date(s.start)) === key
+      )
 
       week.days.push({
         key,
         day: date.getMonth() === monthRef.value ? date.getDate() : "",
         isWeekend: [0, 6].includes(date.getDay()),
         hasOpen: sessions.some(s => !s.end),
-        hasClosed: sessions.some(s => s.end)
+        hasClosed: sessions.some(s => s.end),
+        holiday: holidays.value[key] || null,
+        tooltip: sessions.length
+          ? `${sessions.length} Sitzung(en)`
+          : ""
       })
 
       date.setDate(date.getDate() + 1)
     }
+
     weeks.push(week)
   }
+
   return weeks
 })
+
+/* ------------------ actions ------------------ */
+async function loadData() {
+  const res = await api.get("/workSessions")
+  workSessions.value = res.data
+
+  const h = await api.get(`/calendar?year=${yearRef.value}`)
+  holidays.value = {}
+  h.data?.holidays?.forEach(x => (holidays.value[x.date] = x.name))
+}
+
+function selectDay(day) {
+  selectedDate.value = day.key
+  dayDetails.value = workSessions.value.filter(
+    s => toLocalKey(new Date(s.start)) === day.key
+  )
+}
 
 function prevMonth() {
   if (monthRef.value === 0) {
     monthRef.value = 11
     yearRef.value--
+    loadData()
   } else monthRef.value--
 }
 
@@ -180,41 +195,163 @@ function nextMonth() {
   if (monthRef.value === 11) {
     monthRef.value = 0
     yearRef.value++
+    loadData()
   } else monthRef.value++
 }
 
-onMounted(loadCalendarData)
+onMounted(loadData)
 </script>
 
 <style scoped>
-.calendar { max-width: 1100px }
-.grid { display: grid; grid-template-columns: 60px repeat(7, 1fr); gap: 4px }
-.weekend { background: #daf107 }
-.day { border: 1px solid #e24242; min-height: 90px; padding: 4px; cursor: pointer }
-.day:hover { background: #eef5ff }
-.selected { outline: 2px solid #0dfd69 }
-.day-number { font-weight: bold }
-.dot { width: 8px; height: 8px; border-radius: 50%; margin: 4px auto }
-
-
-.day.hasClosed {
-  background-color: #e9482cbe; 
+.calendar-container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 10px;
 }
 
-
-.day.hasOpen {
-  background-color: #0af33c; 
+.title {
+  text-align: center;
+  margin-bottom: 15px;
 }
 
-
-.day.selected {
-  outline: 2px solid #0d6efd;
-  background-color: #dbeafe !important;
+/* Header */
+.calendar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
 }
 
+/* Horizontal scroll on small screens */
+.calendar-scroll {
+  overflow-x: auto;
+}
 
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: 50px repeat(7, minmax(80px, 1fr));
+  min-width: 700px;
+}
+
+.header {
+  font-weight: bold;
+  background: #f8f8f8;
+}
+
+.week {
+  margin-bottom: 4px;
+}
+
+/* KW column */
+.kw-col {
+  font-weight: bold;
+  text-align: center;
+  padding: 6px;
+}
+
+/* Day cell */
 .day {
-  transition: background-color 0.2s ease;
+  border: 1px solid #ddd;
+  min-height: 70px;
+  position: relative;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Colors */
+.weekend {
+  background: #c9e257;
+}
+
+.holiday {
+  background: #ffcccc;
+}
+
+.open {
+  background: #ffe6e6;
+}
+
+.closed {
+  background: #e6ffe6;
+}
+
+.selected {
+  outline: 2px solid #007bff;
+}
+
+/* Content */
+.day-number {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.label {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+/* Dot */
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+}
+
+.red {
+  background: red;
+}
+
+.green {
+  background: green;
+}
+
+/* Details */
+.details {
+  margin-top: 20px;
+}
+
+.details-scroll {
+  overflow-x: auto;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 400px;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 6px;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* 📱 Mobile tweaks */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 40px repeat(7, 90px);
+  }
+
+  .day {
+    min-height: 90px;
+  }
+
+  .day-number {
+    font-size: 16px;
+  }
+
+  .label {
+    font-size: 12px;
+  }
 }
 
 </style>

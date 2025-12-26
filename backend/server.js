@@ -16,6 +16,7 @@ import Department from './models/Department.js';
 import calendarRoutes from "./routes/calendar.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
+import scheduleRoutes from "./routes/schedule.routes.js";
 
 dotenv.config();
 await initDB(); // MongoDB verbinden
@@ -30,6 +31,7 @@ app.use("/api/departments", departmentsRouter);
 app.use("/api/workSessions", workSessionsRouter);
 app.use("/api/workflow", workflowRouter);
 app.use("/api/calendar", calendarRoutes);
+app.use("/api/schedule", scheduleRoutes);
 
 // 🟢 Login
 app.post("/api/login", async (req, res) => {

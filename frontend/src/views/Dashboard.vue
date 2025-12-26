@@ -17,7 +17,7 @@
   v-if="activeSession"
   class="alert alert-warning mt-3 shadow-sm"
 >
-  ⏱️ جلسة عمل جارية منذ
+   Findet eine Arbeitssitzung statt  ⏱️.
   <strong>{{ liveDuration }}</strong>
 </div>
     <div
