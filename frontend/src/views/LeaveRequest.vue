@@ -48,7 +48,7 @@
           <tr>
             <th>Von</th>
             <th>Bis</th>
-            <th>Art</th>
+            <th>Grund</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -79,7 +79,7 @@ const requests = ref([])
 const form = ref({ from:"", to:"", type:"vacation", reason:"" })
 
 const load = async () => {
-  const res = await api.get("/leave-requests/my")
+  const res = await api.get("/leave-requests")
   requests.value = res.data
 }
 

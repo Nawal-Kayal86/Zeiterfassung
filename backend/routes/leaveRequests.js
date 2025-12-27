@@ -28,6 +28,31 @@ router.post("/", auth(), async (req, res) => {
     res.status(500).json({ error: "Fehler beim Absenden" });
   }
 });
+// 🧑‍💼 المستخدم يرى طلباته فقط
+router.get("/", auth(), async (req, res) => {
+  try {
+    const requests = await LeaveRequest.find({
+      user_id: req.user.id   // ⭐ الفلترة المهمة
+    }).sort({ created_at: -1 });
+
+    res.json(requests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Laden der Anträge" });
+  }
+});
+
+/* =========================
+        Kalender (ثابت)
+========================= */
+
+router.get("/calendar", auth(), async (req, res) => {
+  const leaves = await LeaveRequest.find({
+    status: "approved"
+  }).populate("user_id", "name");
+
+  res.json(leaves);
+});
 
 // 👨‍💼 المدير يرى جميع الطلبات
 router.get("/admin", auth("admin"), async (req, res) => {
@@ -59,17 +84,4 @@ router.put("/:id/reject", auth("admin"), async (req, res) => {
 });
 
 export default router;
-// 🧑‍💼 المستخدم يرى طلباته
-// 🧑‍💼 المستخدم يرى طلباته
-router.get("/", auth(), async (req, res) => {
-  try {
-    const requests = await LeaveRequest.find({
-      user_id: req.user.id   // ✅ مهم جدًا
-    }).sort({ created_at: -1 });
 
-    res.json(requests);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Fehler beim Laden der Anträge" });
-  }
-});

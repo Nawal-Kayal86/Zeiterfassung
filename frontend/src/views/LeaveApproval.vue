@@ -11,7 +11,7 @@
           <th>Abteilung</th>
           <th>Von</th>
           <th>Bis</th>
-          <th>Art</th>
+          <th>Grund</th>
           <th>Status</th>
           <th>Aktion</th>
         </tr>
