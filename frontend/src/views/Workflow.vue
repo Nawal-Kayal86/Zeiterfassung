@@ -115,15 +115,14 @@ const loadWorkflow = async () => {
 // ➕ Neue Aufgabe hinzufügen
 const addTask = async () => {
   try {
-    const res = await api.post("/workflow", {
+    await api.post("/workflow", {
       task: newTask.value,
-      status: newStatus.value,
-      userid: user.id // 👈 مهم
+      status: newStatus.value
     })
 
-    tasks.value.push(res.data)
     newTask.value = ""
     newStatus.value = "open"
+    await loadWorkflow()
   } catch (err) {
     alert(
       "Fehler beim Hinzufügen: " +
@@ -131,6 +130,7 @@ const addTask = async () => {
     )
   }
 }
+
 
 // ✅ Task als erledigt markieren
 const markDone = async (id) => {

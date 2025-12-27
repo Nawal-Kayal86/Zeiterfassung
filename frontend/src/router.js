@@ -14,7 +14,8 @@ import Schedule from './views/Dienstplan.vue'
 import Reports from './views/Berichte.vue'
 import Departments from './views/DepartmentsAdmin.vue'
 import Config from './views/Config.vue'
-
+import LeaveRequest  from "./views/LeaveRequest.vue"  
+import LeaveApproval from "./views/LeaveApproval.vue"
 
 const routes = [
   {
@@ -36,10 +37,13 @@ const routes = [
       { path: 'errors', component: Errors }, // errors
       { path: 'terminal', component: Terminal }, // terminal
       { path: 'workflow', component: Workflow }, // workflow
+      { path: "leave-request", component: LeaveRequest}, // leave request
+      { path: "leave-approval", component: LeaveApproval, meta: { requiresAuth: true, requiresAdmin: true }}, // leave approval
       { path: 'schedule', component: Schedule }, // dienstplan
       { path: 'reports', component: Reports }, // berichte
       { path: 'departments', component: Departments , meta: { requiresAuth: true, requiresAdmin: true } }, // departments admin
       { path: 'config',component: Config, meta: { requiresAuth: true, requiresAdmin: true } } // config
+      
       
     ]
   }

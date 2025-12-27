@@ -9,7 +9,6 @@ import { auth } from "./middleware/auth.js";
 import usersRouter from './routes/users.js';
 import departmentsRouter from "./routes/departments.js";
 import workSessionsRouter from './routes/workSessions.js';
-import workflowRouter from './routes/workflow.js';
 import User from './models/User.js';
 import WorkSession from './models/WorkSession.js';
 import Department from './models/Department.js';
@@ -17,6 +16,8 @@ import calendarRoutes from "./routes/calendar.js";
 import path from 'path';
 import { fileURLToPath } from 'url';
 import scheduleRoutes from "./routes/schedule.routes.js";
+import workflowRoutes from "./routes/workflow.routes.js";
+import leaveRequestsRoutes from "./routes/leaveRequests.js";
 
 dotenv.config();
 await initDB(); // MongoDB verbinden
@@ -29,9 +30,10 @@ app.use(bodyParser.json());
 app.use("/api/users", usersRouter);
 app.use("/api/departments", departmentsRouter);
 app.use("/api/workSessions", workSessionsRouter);
-app.use("/api/workflow", workflowRouter);
 app.use("/api/calendar", calendarRoutes);
 app.use("/api/schedule", scheduleRoutes);
+app.use("/api/workflow", workflowRoutes);
+app.use("/api/leave-requests", leaveRequestsRoutes);
 
 // 🟢 Login
 app.post("/api/login", async (req, res) => {

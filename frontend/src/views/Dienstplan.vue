@@ -18,13 +18,13 @@
 
             <div class="col-md-3">
               <label class="form-label">Abteilung</label>
-              <select v-model="form.shift" class="form-select" required>
+              <select v-model="form.department" class="form-select" required>
                 <option value="">–Abteilung wählen –</option>
-                <option>HR</option>
                 <option>IT</option>
+                <option>HR</option>
+                <option>Einauf</option>
                 <option>Trainer</option>
                 <option>Öko Bosoter</option>
-                <option>Einkauf</option>
               </select>
             </div>
 

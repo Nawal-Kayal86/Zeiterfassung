@@ -231,6 +231,14 @@
       </RouterLink>
     </li>
     <li>
+      <RouterLink to="/leave-request" class="nav-item">
+        <i class="bi bi-sun me-2"></i>Urlaubsantrag
+      </RouterLink>
+    </li>
+      <RouterLink to="/leave-approval" class="nav-link">
+        <i class="bi bi-check2-square me-2"></i> Urlaubsfreigabe
+      </RouterLink>
+    <li>
       <RouterLink to="/workflow" class="nav-item">
         <i class="bi bi-diagram-3"></i> Workflow
       </RouterLink>
