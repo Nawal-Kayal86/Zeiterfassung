@@ -220,24 +220,31 @@
         <i class="bi bi-bug"></i> Fehlerprotokoll
       </RouterLink>
     </li>
+
     <li>
       <RouterLink to="/attendance" class="nav-item">
         <i class="bi bi-people"></i> Anwesenheitsübersicht
       </RouterLink>
     </li>
+
     <li>
       <RouterLink to="/terminal" class="nav-item">
         <i class="bi bi-pc-display"></i> Terminal
       </RouterLink>
     </li>
+
     <li>
       <RouterLink to="/leave-request" class="nav-item">
         <i class="bi bi-sun me-2"></i>Urlaubsantrag
       </RouterLink>
     </li>
-      <RouterLink to="/leave-approval" class="nav-link">
+    
+    <li>
+      <RouterLink to="/leave-approval" class="nav-item">
         <i class="bi bi-check2-square me-2"></i> Urlaubsfreigabe
       </RouterLink>
+    </li>
+    
     <li>
       <RouterLink to="/workflow" class="nav-item">
         <i class="bi bi-diagram-3"></i> Workflow
