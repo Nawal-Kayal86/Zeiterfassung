@@ -1,55 +1,55 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">🌴 طلب إجازة</h2>
+    <h2 class="mb-4">🌴 Urlaubsantrag</h2>
 
-    <!-- نموذج -->
+    <!-- Formular -->
     <div class="card shadow-sm p-3 mb-4">
-      <h5>📝 تقديم طلب جديد</h5>
+      <h5>📝 Neuen Antrag stellen</h5>
 
       <form @submit.prevent="submitRequest">
         <div class="row g-3">
           <div class="col-md-4">
-            <label>من</label>
+            <label>Von</label>
             <input type="date" v-model="form.from" class="form-control" required />
           </div>
 
           <div class="col-md-4">
-            <label>إلى</label>
+            <label>Bis</label>
             <input type="date" v-model="form.to" class="form-control" required />
           </div>
 
           <div class="col-md-4">
-            <label>نوع الإجازة</label>
+            <label>Urlaubsart</label>
             <select v-model="form.type" class="form-select">
-              <option value="vacation">إجازة سنوية</option>
-              <option value="sick">إجازة مرضية</option>
-              <option value="other">أخرى</option>
+              <option value="vacation">Jahresurlaub</option>
+              <option value="sick">Krankheitsurlaub</option>
+              <option value="other">Andere</option>
             </select>
           </div>
 
           <div class="col-12">
-            <label>السبب</label>
+            <label>Grund</label>
             <textarea v-model="form.reason" class="form-control" required />
           </div>
 
           <div class="col-12">
-            <button class="btn btn-primary w-100">➕ إرسال الطلب</button>
+            <button class="btn btn-primary w-100">➕ Antrag absenden</button>
           </div>
         </div>
       </form>
     </div>
 
-    <!-- طلباتي -->
+    <!-- Meine Anträge -->
     <div class="card shadow-sm p-3">
-      <h5>📋 طلباتي</h5>
+      <h5>📋 Meine Anträge</h5>
 
       <table v-if="requests.length" class="table table-striped">
         <thead>
           <tr>
-            <th>من</th>
-            <th>إلى</th>
-            <th>النوع</th>
-            <th>الحالة</th>
+            <th>Von</th>
+            <th>Bis</th>
+            <th>Art</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
@@ -58,15 +58,15 @@
             <td>{{ format(r.to) }}</td>
             <td>{{ translateType(r.type) }}</td>
             <td>
-              <span class="badge bg-warning" v-if="r.status==='pending'">قيد المراجعة</span>
-              <span class="badge bg-success" v-if="r.status==='approved'">مقبول</span>
-              <span class="badge bg-danger" v-if="r.status==='rejected'">مرفوض</span>
+              <span class="badge bg-warning" v-if="r.status==='pending'">In Bearbeitung</span>
+              <span class="badge bg-success" v-if="r.status==='approved'">Genehmigt</span>
+              <span class="badge bg-danger" v-if="r.status==='rejected'">Abgelehnt</span>
             </td>
           </tr>
         </tbody>
       </table>
 
-      <div v-else class="alert alert-secondary">لا توجد طلبات</div>
+      <div v-else class="alert alert-secondary">Keine Anträge vorhanden</div>
     </div>
   </div>
 </template>
@@ -92,7 +92,7 @@ const submitRequest = async () => {
 const format = d => new Date(d).toLocaleDateString()
 
 const translateType = t =>
-  t === "vacation" ? "سنوية" : t === "sick" ? "مرضية" : "أخرى"
+  t === "vacation" ? "Jahresurlaub" : t === "sick" ? "Krankheitsurlaub" : "Andere"
 
 onMounted(load)
 </script>

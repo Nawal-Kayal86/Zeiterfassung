@@ -1,19 +1,19 @@
 <template>
   <div class="container mt-4">
-    <h2>✅ موافقة الإجازات</h2>
+    <h2>✅ Urlaubsfreigabe</h2>
 
-    <div v-if="loading" class="alert alert-info">جاري التحميل...</div>
+    <div v-if="loading" class="alert alert-info">Wird geladen...</div>
 
     <table v-else class="table table-striped">
       <thead>
         <tr>
-          <th>الموظف</th>
-          <th>القسم</th>
-          <th>من</th>
-          <th>إلى</th>
-          <th>النوع</th>
-          <th>الحالة</th>
-          <th>الإجراء</th>
+          <th>Mitarbeiter</th>
+          <th>Abteilung</th>
+          <th>Von</th>
+          <th>Bis</th>
+          <th>Art</th>
+          <th>Status</th>
+          <th>Aktion</th>
         </tr>
       </thead>
 
@@ -39,10 +39,10 @@
 
           <td v-if="r.status === 'pending'">
             <button class="btn btn-success btn-sm me-2" @click="approve(r._id)">
-              ✔️ موافقة
+              ✔️ Genehmigen
             </button>
             <button class="btn btn-danger btn-sm" @click="reject(r._id)">
-              ❌ رفض
+              ❌ Ablehnen
             </button>
           </td>
 

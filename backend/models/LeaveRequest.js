@@ -6,17 +6,16 @@ const LeaveRequestSchema = new mongoose.Schema({
     ref: "User",
     required: true
   },
-
   from: { type: Date, required: true },
   to: { type: Date, required: true },
 
   type: {
     type: String,
-    enum: ["annual", "sick", "unpaid"],
-    default: "annual"
+    enum: ["vacation", "sick", "other"], // ✅ نفس Vue
+    required: true
   },
 
-  reason: { type: String },
+  reason: { type: String, required: true },
 
   status: {
     type: String,
@@ -24,10 +23,10 @@ const LeaveRequestSchema = new mongoose.Schema({
     default: "pending"
   },
 
-  decided_by: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+  created_at: {
+    type: Date,
+    default: Date.now
   }
-}, { timestamps: true });
+});
 
 export default mongoose.model("LeaveRequest", LeaveRequestSchema);
