@@ -263,11 +263,11 @@ onMounted(loadData)
 
 /* Colors */
 .weekend {
-  background: #c9e257;
+  background: #e7dd1d;
 }
 
 .holiday {
-  background: #ffcccc;
+  background: #d15d5d;
 }
 
 .open {
@@ -275,7 +275,7 @@ onMounted(loadData)
 }
 
 .closed {
-  background: #e6ffe6;
+  background: #729772;
 }
 
 .selected {
