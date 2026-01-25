@@ -7,12 +7,7 @@
       <div class="row g-3 align-items-end">
         <div class="col-md-6">
           <label class="form-label">Neue Abteilung:</label>
-          <input
-            type="text"
-            class="form-control"
-            v-model="newDeptName"
-            placeholder="Name der Abteilung"
-          />
+          <input type="text" class="form-control" v-model="newDeptName" placeholder="Name der Abteilung" />
         </div>
         <div class="col-md-2">
           <button class="btn btn-success w-100" @click="addDepartment">
@@ -40,40 +35,20 @@
         <tr v-for="dept in departments" :key="dept.id">
           <td>{{ dept.id }}</td>
           <td>
-            <input
-              v-if="editId === dept.id"
-              type="text"
-              v-model="editName"
-              class="form-control"
-            />
+            <input v-if="editId === dept.id" type="text" v-model="editName" class="form-control" />
             <span v-else>{{ dept.name }}</span>
           </td>
           <td>
-            <button
-              v-if="editId === dept.id"
-              class="btn btn-primary btn-sm me-2"
-              @click="updateDepartment(dept.id)"
-            >
+            <button v-if="editId === dept.id" class="btn btn-primary btn-sm me-2" @click="updateDepartment(dept.id)">
               Speichern
             </button>
-            <button
-              v-if="editId === dept.id"
-              class="btn btn-secondary btn-sm me-2"
-              @click="cancelEdit"
-            >
+            <button v-if="editId === dept.id" class="btn btn-secondary btn-sm me-2" @click="cancelEdit">
               Abbrechen
             </button>
-            <button
-              v-else
-              class="btn btn-warning btn-sm me-2"
-              @click="startEdit(dept)"
-            >
+            <button v-else class="btn btn-warning btn-sm me-2" @click="startEdit(dept)">
               Bearbeiten
             </button>
-            <button
-              class="btn btn-danger btn-sm"
-              @click="openDeleteModal(dept)"
-            >
+            <button class="btn btn-danger btn-sm" @click="openDeleteModal(dept)">
               Löschen
             </button>
           </td>
@@ -82,35 +57,20 @@
     </table>
 
     <!-- 🧨 Bootstrap Modal für Löschbestätigung -->
-    <div
-      class="modal fade"
-      id="deleteModal"
-      tabindex="-1"
-      aria-labelledby="deleteModalLabel"
-      aria-hidden="true"
-      ref="deleteModal"
-    >
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true"
+      ref="deleteModal">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header bg-danger text-white">
             <h5 class="modal-title" id="deleteModalLabel">Löschen bestätigen</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Schließen"
-            ></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
           </div>
           <div class="modal-body">
             Möchten Sie die Abteilung
             <strong>{{ selectedDept?.name }}</strong> wirklich löschen?
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
               Abbrechen
             </button>
             <button type="button" class="btn btn-danger" @click="confirmDelete">
@@ -124,7 +84,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import api from "../api";
 import * as bootstrap from "bootstrap"; // Wichtig für das Modal
 
 export default {
@@ -150,9 +110,7 @@ export default {
     },
     async fetchDepartments() {
       try {
-        const res = await axios.get("http://localhost:3000/api/departments", {
-          headers: { Authorization: `Bearer ${this.token}` },
-        });
+        const res = await api.get("/departments");
         this.departments = res.data;
       } catch (err) {
         console.error("Fehler beim Laden:", err);
@@ -164,10 +122,9 @@ export default {
         return;
       }
       try {
-        const res = await axios.post(
-          "http://localhost:3000/api/departments",
-          { name: this.newDeptName },
-          { headers: { Authorization: `Bearer ${this.token}` } }
+        const res = await api.post(
+          "/departments",
+          { name: this.newDeptName }
         );
 
         this.departments.push(res.data.department);
@@ -195,10 +152,9 @@ export default {
         return;
       }
       try {
-        const res = await axios.put(
-          `http://localhost:3000/api/departments/${id}`,
-          { name: this.editName },
-          { headers: { Authorization: `Bearer ${this.token}` } }
+        const res = await api.put(
+          `/departments/${id}`,
+          { name: this.editName }
         );
         const index = this.departments.findIndex((d) => d.id === id);
         this.departments[index] = res.data;
@@ -221,9 +177,8 @@ export default {
     // ✅ Löschen bestätigen
     async confirmDelete() {
       try {
-        await axios.delete(
-          `http://localhost:3000/api/departments/${this.selectedDept.id}`,
-          { headers: { Authorization: `Bearer ${this.token}` } }
+        await api.delete(
+          `/departments/${this.selectedDept.id}`
         );
         this.departments = this.departments.filter(
           (d) => d.id !== this.selectedDept.id

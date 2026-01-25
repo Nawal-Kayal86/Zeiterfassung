@@ -41,12 +41,7 @@
 
         <div class="mb-3">
           <label class="form-label">Passwort</label>
-          <input
-            v-model="user.password"
-            type="password"
-            class="form-control"
-            :required="!user.id"
-          />
+          <input v-model="user.password" type="password" class="form-control" :required="!user.id" />
         </div>
 
         <button class="btn btn-primary w-100" type="submit">
@@ -54,11 +49,7 @@
         </button>
 
         <!-- 💬 Dynamische Meldung -->
-        <div
-          v-if="message.text"
-          :class="['alert', message.type, 'mt-3', 'fade', 'show']"
-          role="alert"
-        >
+        <div v-if="message.text" :class="['alert', message.type, 'mt-3', 'fade', 'show']" role="alert">
           {{ message.text }}
         </div>
       </div>
@@ -102,7 +93,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue"
-import axios from "axios"
+import api from "../api"
 
 const user = ref({ id: null, name: "", email: "", role: "", department: "", nfc_tag: "", password: "" })
 const users = ref([])
@@ -111,8 +102,7 @@ const departments = ref([])
 // 💬 Nachricht-Objekt (Text + Bootstrap-Klasse)
 const message = ref({ text: "", type: "" })
 
-const token = localStorage.getItem("token")
-const axiosConfig = { headers: { Authorization: `Bearer ${token}` } }
+// Token wird nun zentral im api.js verwaltet
 
 // 🔔 Meldung anzeigen mit Farbe + Auto-Close
 const showMessage = (text, type = "alert-info", duration = 3000) => {
@@ -123,7 +113,7 @@ const showMessage = (text, type = "alert-info", duration = 3000) => {
 // Abteilungen laden
 const loadDepartments = async () => {
   try {
-    const res = await axios.get("http://localhost:3000/api/departments", axiosConfig)
+    const res = await api.get("/departments")
     departments.value = res.data
   } catch (err) {
     showMessage("Fehler beim Laden der Abteilungen!", "alert-danger")
@@ -133,7 +123,7 @@ const loadDepartments = async () => {
 // User laden
 const loadUsers = async () => {
   try {
-    const res = await axios.get("http://localhost:3000/api/users", axiosConfig)
+    const res = await api.get("/users")
     users.value = res.data
   } catch {
     showMessage("Fehler beim Laden der User!", "alert-danger")
@@ -144,10 +134,10 @@ const loadUsers = async () => {
 const saveUser = async () => {
   try {
     if (user.value.id) {
-      await axios.put(`http://localhost:3000/api/users/${user.value.id}`, user.value, axiosConfig)
+      await api.put(`/users/${user.value.id}`, user.value)
       showMessage("User erfolgreich aktualisiert!", "alert-success")
     } else {
-      await axios.post("http://localhost:3000/api/users", user.value, axiosConfig)
+      await api.post("/users", user.value)
       showMessage("User erfolgreich angelegt!", "alert-success")
     }
     await loadUsers()
@@ -178,7 +168,7 @@ const editUser = (u) => {
 const deleteUser = async (id) => {
   if (!confirm("Wirklich löschen?")) return
   try {
-    await axios.delete(`http://localhost:3000/api/users/${id}`, axiosConfig)
+    await api.delete(`/users/${id}`)
     await loadUsers()
     showMessage("User gelöscht!", "alert-secondary")
   } catch (err) {

@@ -26,29 +26,29 @@
 </template>
 
 <script>
-import axios from 'axios'
+import api from "../api"
 export default {
-  data(){ return { userId: '', tag: '', sessions: [] } },
+  data() { return { userId: '', tag: '', sessions: [] } },
   methods: {
-    async start(useTag=false){
+    async start(useTag = false) {
       try {
         const payload = useTag ? { tag: this.tag } : { userId: Number(this.userId) }
-        await axios.post('http://localhost:3000/api/start', payload)
+        await api.post('/start', payload)
         alert('Start erfasst')
         this.loadSessions()
       } catch (e) { alert('Fehler: ' + (e.response?.data?.error || e.message)) }
     },
-    async stop(useTag=false){
+    async stop(useTag = false) {
       try {
         const payload = useTag ? { tag: this.tag } : { userId: Number(this.userId) }
-        await axios.post('http://localhost:3000/api/stop', payload)
+        await api.post('/stop', payload)
         alert('Stop erfasst')
         this.loadSessions()
       } catch (e) { alert('Fehler: ' + (e.response?.data?.error || e.message)) }
     },
-    async loadSessions(){
+    async loadSessions() {
       if (!this.userId) return;
-      const res = await axios.get('http://localhost:3000/api/sessions/' + this.userId)
+      const res = await api.get('/sessions/' + this.userId)
       this.sessions = res.data
     }
   }

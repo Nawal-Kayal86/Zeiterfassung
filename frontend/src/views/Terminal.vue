@@ -16,16 +16,16 @@
         </tr>
       </thead>
       <tbody>
-  <tr v-for="log in logs" :key="log.id">
-    <td>{{ formatDateTime(log.created_at) }}</td>
-    <td>
-      <span v-if="log.level === 'info'">✅ info</span>
-      <span v-else-if="log.level === 'warn'">⚠️ warn</span>
-      <span v-else-if="log.level === 'error'">❌ error</span>
-    </td>
-    <td>{{ log.message }}</td>
-  </tr>
-</tbody>
+        <tr v-for="log in logs" :key="log.id">
+          <td>{{ formatDateTime(log.created_at) }}</td>
+          <td>
+            <span v-if="log.level === 'info'">✅ info</span>
+            <span v-else-if="log.level === 'warn'">⚠️ warn</span>
+            <span v-else-if="log.level === 'error'">❌ error</span>
+          </td>
+          <td>{{ log.message }}</td>
+        </tr>
+      </tbody>
 
     </table>
 
@@ -38,7 +38,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue"
-import axios from "axios"
+import api from "../api"
 
 const logs = ref([])
 const loading = ref(true)
@@ -54,7 +54,7 @@ const formatDateTime = (dt) => {
 // Logs laden
 const loadLogs = async () => {
   try {
-    const res = await axios.get("http://localhost:3000/api/logs")
+    const res = await api.get("/logs")
     // Neueste zuerst, aber mit created_at statt timestamp
     logs.value = res.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
   } catch (err) {

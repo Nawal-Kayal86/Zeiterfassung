@@ -12,14 +12,14 @@
           <label>Endedatum:</label>
           <input type="date" class="form-control" v-model="endDate" />
         </div>
-        <div v-if="user?.role==='admin'" class="col-md-3">
+        <div v-if="user?.role === 'admin'" class="col-md-3">
           <label>Mitarbeiter:</label>
           <select class="form-select" v-model="employee">
             <option value="">Alle</option>
             <option v-for="u in usernames" :key="u.id" :value="u.name">{{ u.name }}</option>
           </select>
         </div>
-        <div v-if="user?.role==='admin'" class="col-md-3">
+        <div v-if="user?.role === 'admin'" class="col-md-3">
           <label>Abteilung:</label>
           <select class="form-select" v-model="department">
             <option value="">Alle</option>
@@ -55,14 +55,14 @@
 </template>
 
 <script>
-import axios from "axios";
+import api from "../api";
 import { toViennaTime, calcHours, formatDate } from "@/utils/time";
 
 export default {
   data() {
     const today = new Date();
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const fmt = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     return {
       startDate: fmt(firstDay),
       endDate: fmt(today),
@@ -105,7 +105,7 @@ export default {
   methods: {
     async fetchDepartments() {
       try {
-        const res = await axios.get("http://localhost:3000/api/departments", { headers: { Authorization: `Bearer ${this.token}` } });
+        const res = await api.get("/departments");
         this.departments = res.data;
       } catch { this.departments = []; }
     },
@@ -113,29 +113,29 @@ export default {
     async fetchData() {
       try {
         const [usersRes, sessionsRes] = await Promise.allSettled([
-          axios.get("http://localhost:3000/api/users", { headers: { Authorization: `Bearer ${this.token}` } }),
-          axios.get("http://localhost:3000/api/workSessions", { params: { startDate:this.startDate,endDate:this.endDate }, headers:{ Authorization:`Bearer ${this.token}` } }),
+          api.get("/users"),
+          api.get("/workSessions", { params: { startDate: this.startDate, endDate: this.endDate } }),
         ]);
 
-        if(usersRes.status==="fulfilled") this.usernames = usersRes.value.data.map(u=>({id:u.id,name:u.name,department:u.department||""}));
+        if (usersRes.status === "fulfilled") this.usernames = usersRes.value.data.map(u => ({ id: u.id, name: u.name, department: u.department || "" }));
 
-        if(sessionsRes.status==="fulfilled") {
+        if (sessionsRes.status === "fulfilled") {
           let sessions = sessionsRes.value.data.map(s => ({
             ...s,
             name: s.name || "–",
             department: s.department || "–"
           }));
-          if(this.employee) sessions = sessions.filter(s=>s.name===this.employee);
-          if(this.department) sessions = sessions.filter(s=>s.department===this.department);
+          if (this.employee) sessions = sessions.filter(s => s.name === this.employee);
+          if (this.department) sessions = sessions.filter(s => s.department === this.department);
           this.filteredData = sessions;
         }
-      } catch(err){ console.error(err); }
+      } catch (err) { console.error(err); }
     },
 
-    clearFilters(){
+    clearFilters() {
       const today = new Date();
       const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-      const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const fmt = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
       this.startDate = fmt(firstDay);
       this.endDate = fmt(today);
       this.employee = "";

@@ -36,7 +36,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue"
-import axios from "axios"
+import api from "../api"
 
 const attendance = ref([])
 const loading = ref(true)
@@ -64,11 +64,7 @@ const loadData = async () => {
       return
     }
 
-    const res = await axios.get("http://localhost:3000/api/attendance", {
-      headers: {
-        Authorization: `Bearer ${token}`   // 👈 Token mitschicken
-      }
-    })
+    const res = await api.get("/attendance")
 
     attendance.value = res.data
   } catch (err) {

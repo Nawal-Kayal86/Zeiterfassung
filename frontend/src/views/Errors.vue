@@ -34,7 +34,7 @@
 
 <script setup>
 import { ref, onMounted } from "vue"
-import axios from "axios"
+import api from "../api"
 
 const logs = ref([])
 const loading = ref(true)
@@ -56,7 +56,7 @@ const getLevelClass = (level) => {
 
 const loadLogs = async () => {
   try {
-    const res = await axios.get("http://localhost:3000/api/errors")
+    const res = await api.get("/errors")
     logs.value = res.data
   } catch (err) {
     error.value = "Fehler beim Laden: " + (err.response?.data?.error || err.message)
