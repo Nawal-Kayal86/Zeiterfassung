@@ -41,7 +41,36 @@ app.use("/api/workflow", workflowRoutes);
 app.use("/api/leave-requests", leaveRequestsRoutes);
 app.use("/api/logs", logsRouter);
 
-// ================= AUTH =================
+import fs from 'fs';
+
+// ================= DEBUG ROUTE =================
+app.get('/api/debug-check', (req, res) => {
+  const info = {
+    __dirname,
+    cwd: process.cwd(),
+    filesInCurrent: fs.readdirSync(__dirname),
+    filesInParent: [],
+    distFolderExists: false,
+    distContent: []
+  };
+
+  try {
+    const parent = path.join(__dirname, '..');
+    info.filesInParent = fs.readdirSync(parent);
+
+    const distPath = path.join(__dirname, '../frontend/dist');
+    if (fs.existsSync(distPath)) {
+      info.distFolderExists = true;
+      info.distContent = fs.readdirSync(distPath);
+    }
+  } catch (e) {
+    info.error = e.message;
+  }
+
+  res.json(info);
+});
+
+// ================= HEALTH CHECK =================
 
 // Login
 app.post("/api/login", async (req, res) => {
