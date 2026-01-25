@@ -56,7 +56,7 @@ const getLevelClass = (level) => {
 
 const loadLogs = async () => {
   try {
-    const res = await api.get("/errors")
+    const res = await api.get("/logs")
     logs.value = res.data
   } catch (err) {
     error.value = "Fehler beim Laden: " + (err.response?.data?.error || err.message)

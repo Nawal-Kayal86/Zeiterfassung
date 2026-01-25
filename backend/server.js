@@ -6,18 +6,23 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { initDB } from './db.js';
 import { auth } from "./middleware/auth.js";
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Routers
 import usersRouter from './routes/users.js';
 import departmentsRouter from "./routes/departments.js";
 import workSessionsRouter from './routes/workSessions.js';
-import User from './models/User.js';
-import WorkSession from './models/WorkSession.js';
-import Department from './models/Department.js';
 import calendarRoutes from "./routes/calendar.js";
-import path from 'path';
-import { fileURLToPath } from 'url';
 import scheduleRoutes from "./routes/schedule.routes.js";
 import workflowRoutes from "./routes/workflow.routes.js";
 import leaveRequestsRoutes from "./routes/leaveRequests.js";
+import logsRouter from "./routes/logs.js";
+
+// Models (nur für Login/Auth benötigt hier direkter Zugriff, sonst via Router)
+import User from './models/User.js';
+import WorkSession from './models/WorkSession.js';
+import Department from './models/Department.js';
 
 dotenv.config();
 await initDB(); // MongoDB verbinden
@@ -26,7 +31,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// API-Routen
+// --- API Routers ---
 app.use("/api/users", usersRouter);
 app.use("/api/departments", departmentsRouter);
 app.use("/api/workSessions", workSessionsRouter);
@@ -34,6 +39,9 @@ app.use("/api/calendar", calendarRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/workflow", workflowRoutes);
 app.use("/api/leave-requests", leaveRequestsRoutes);
+app.use("/api/logs", logsRouter);
+
+// --- Auth Routes (bleiben vorerst hier oder könnten in auth.routes.js) ---
 
 // 🟢 Login
 app.post("/api/login", async (req, res) => {
@@ -63,7 +71,9 @@ app.get("/api/me", auth(), (req, res) => {
   res.json({ user: req.user });
 });
 
-// 🟢 Admin: alle User + Sessions
+// --- Legacy / Spezielle Routes (sollten idealerweise in Router moved werden) ---
+
+// 🟢 Admin: alle User + Sessions (Erweiterte User-Info)
 app.get("/api/admin/users", auth("admin"), async (req, res) => {
   try {
     const list = await User.aggregate([
@@ -84,18 +94,7 @@ app.get("/api/admin/users", auth("admin"), async (req, res) => {
   }
 });
 
-// 🟢 Usernamen-Liste
-app.get("/api/users/names", async (req, res) => {
-  try {
-    const users = await User.find({}, "name");
-    res.json(users.map(u => u.name));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "DB Error" });
-  }
-});
-
-// 🟢 Anwesenheit
+// 🟢 Anwesenheit (Dashboard Übersicht)
 app.get("/api/attendance", auth(), async (req, res) => {
   try {
     const query = req.user.role === "admin" ? {} : { user_id: req.user.id };
@@ -107,64 +106,18 @@ app.get("/api/attendance", auth(), async (req, res) => {
   }
 });
 
-// 🟢 Departments
-app.get("/api/departments", auth("admin"), async (req, res) => {
-  try {
-    const departments = await Department.find().sort({ name: 1 });
-    res.json(departments.map(d => d.name));
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "DB Error" });
-  }
-});
-
-// 🟢 User Department aktualisieren
-app.put("/api/users/:id/department", auth("admin"), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { department } = req.body;
-    await User.findByIdAndUpdate(id, { department });
-    res.json({ message: "Abteilung aktualisiert" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "DB Error" });
-  }
-});
-
-// 🟢 Dummy-Daten: Schedule
-app.get("/api/schedule", (req, res) => {
-  res.json([
-    { id: 1, name: "Ali", department: "IT", date: "2025-09-28", shift: "Frühschicht" },
-    { id: 2, name: "Eva", department: "Einkauf", date: "2025-09-28", shift: "Spätschicht" }
-  ]);
-});
-
-// 🟢 Fehlerprotokoll (Testdaten)
-app.get("/api/errors", (req, res) => {
-  const rows = [
-    { id: 1, message: "Login fehlgeschlagen", level: "WARN", created_at: "2025-09-25 14:20:00" },
-    { id: 2, message: "DB Verbindung verloren", level: "ERROR", created_at: "2025-09-26 08:45:00" },
-    { id: 3, message: "Ungültige Eingabe im Formular", level: "INFO", created_at: "2025-09-26 10:10:00" }
-  ];
-  res.json(rows);
-});
-
-// 🟢 Berichte / Statistiken (NEU)
+// 🟢 Berichte / Statistiken
 app.get("/api/reports", auth("admin"), async (req, res) => {
   try {
-    // 1. Basis-Statistiken
     const userCount = await User.countDocuments();
     const departmentsCount = await Department.countDocuments();
 
-    // 2. Stunden und Mitarbeiter pro Abteilung
-    // Zuerst alle User pro Abteilung zählen
     const usersPerDept = await User.aggregate([
       { $group: { _id: "$department", count: { $sum: 1 } } }
     ]);
 
-    // Dann Stunden pro Abteilung summieren (via WorkSessions + User Lookup)
     const hoursPerDept = await WorkSession.aggregate([
-      { $match: { end_time: { $ne: null } } }, // Nur fertige Sessions
+      { $match: { end_time: { $ne: null } } },
       {
         $lookup: {
           from: "users",
@@ -182,21 +135,18 @@ app.get("/api/reports", auth("admin"), async (req, res) => {
       }
     ]);
 
-    // 3. Daten zusammenführen
     const reportMap = {};
     let totalHoursAll = 0;
 
-    // Init mit User-Counts
     usersPerDept.forEach(u => {
       const dept = u._id || "Ohne Abteilung";
       reportMap[dept] = { department: dept, count: u.count, hours: 0 };
     });
 
-    // Stunden hinzufügen
     hoursPerDept.forEach(h => {
       const dept = h._id || "Ohne Abteilung";
-      const hours = h.totalMillis / (1000 * 60 * 60); // ms in Stunden
-      
+      const hours = h.totalMillis / (1000 * 60 * 60);
+
       if (!reportMap[dept]) {
         reportMap[dept] = { department: dept, count: 0, hours: 0 };
       }
@@ -216,6 +166,7 @@ app.get("/api/reports", auth("admin"), async (req, res) => {
     res.status(500).json({ error: "Fehler beim Erstellen des Berichts" });
   }
 });
+
 
 // -------------- Vue Frontend serven -----------------
 const __filename = fileURLToPath(import.meta.url);
