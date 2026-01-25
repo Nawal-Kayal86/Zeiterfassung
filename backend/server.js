@@ -6,6 +6,8 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { initDB } from './db.js';
 import { auth } from "./middleware/auth.js";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Routers
 import usersRouter from './routes/users.js';
@@ -167,11 +169,22 @@ app.get("/api/reports", auth("admin"), async (req, res) => {
   }
 });
 
-// ================= HEALTH CHECK =================
-app.get("/", (req, res) => {
-  res.send("API läuft 🚀");
+// ================= FRONTEND =================
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Statische Dateien aus dem Frontend-Build-Ordner servieren
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Fallback für alle anderen Routen (SPA Support) -> index.html
+app.get('*', (req, res) => {
+  // Ignoriere API-Pfade, falls sie nicht gefunden wurden (404)
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
 
 // ================= START SERVER =================
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log(`Backend läuft auf Port ${PORT}`));
