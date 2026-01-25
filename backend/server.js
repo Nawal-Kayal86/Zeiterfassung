@@ -80,6 +80,10 @@ app.post("/api/login", async (req, res) => {
     const user = await User.findOne({ name });
     if (!user) return res.status(401).json({ error: "Login fehlgeschlagen" });
 
+    if (user.is_active === false) {
+      return res.status(403).json({ error: "Benutzerkonto ist inaktiv" });
+    }
+
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) return res.status(401).json({ error: "Falsches Passwort" });
 
@@ -89,7 +93,7 @@ app.post("/api/login", async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    res.json({ token, user: { id: user._id, name: user.name, role: user.role } });
+    res.json({ token, user: { id: user._id, name: user.name, role: user.role, is_active: user.is_active } });
 
   } catch (err) {
     console.error(err);

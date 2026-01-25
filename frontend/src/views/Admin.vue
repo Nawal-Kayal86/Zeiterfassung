@@ -20,20 +20,24 @@
             <tr>
               <th>Name</th>
               <th>Rolle</th>
-              <th>Datum</th>
-              <th>Uhrzeit</th>
+              <th>Erster Tag</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="u in filteredUsers" :key="u.user_id + u.start_time">
+            <tr v-for="u in filteredUsers" :key="u.id">
               <td>{{ u.name }}</td>
               <td>
                 <span class="badge" :class="u.role === 'admin' ? 'bg-danger' : 'bg-secondary'">
                   {{ u.role }}
                 </span>
               </td>
-              <td>{{ formatDate(u.start_time) }}</td>
-              <td>{{ formatTime(u.start_time) }} - {{ formatTime(u.end_time) }}</td>
+              <td>{{ formatDate(u.start_date) || '-' }}</td>
+              <td>
+                <span :class="['badge', u.is_active ? 'bg-success' : 'bg-danger']">
+                  {{ u.is_active ? 'Aktiv' : 'Inaktiv' }}
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -99,8 +103,7 @@ export default {
       const f = this.filter.toLowerCase()
       return this.users.filter(u =>
         u.name.toLowerCase().includes(f) ||
-        (u.start_time && this.formatDate(u.start_time).includes(f)) ||
-        (u.end_time && this.formatDate(u.end_time).includes(f))
+        (u.start_date && this.formatDate(u.start_date).includes(f))
       )
     }
   },

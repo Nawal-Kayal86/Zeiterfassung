@@ -76,7 +76,10 @@ router.post("/stop", auth(), async (req, res) => {
 // 🟢 Manuelle Zeiterfassung
 router.post("/manual-time", auth(), async (req, res) => {
   try {
-    const { date, start, end } = req.body;
+    const { date, start, end, userId, pause } = req.body;
+
+    // Admin darf userId setzen, User darf nur für sich selbst (req.user.id)
+    const targetUserId = (req.user.role === 'admin' && userId) ? userId : req.user.id;
 
     if (!date || (!start && !end)) {
       return res
@@ -84,16 +87,18 @@ router.post("/manual-time", auth(), async (req, res) => {
         .json({ error: "Datum und mindestens Start oder Ende erforderlich" });
     }
 
-    const startDT = start
-      ? new Date(`${date}T${start}:00+02:00`)
-      : null;
+    const parseDateTime = (dStr, tStr) => {
+      if (!tStr) return null;
+      const [y, m, d] = dStr.split("-").map(Number);
+      const [hh, mm] = tStr.split(":").map(Number);
+      return new Date(y, m - 1, d, hh, mm);
+    };
 
-    const endDT = end
-      ? new Date(`${date}T${end}:00+02:00`)
-      : null;
+    const startDT = parseDateTime(date, start);
+    const endDT = parseDateTime(date, end);
 
     const openSession = await WorkSession.findOne({
-      user_id: req.user.id,
+      user_id: targetUserId,
       end_time: null
     });
 
@@ -106,6 +111,7 @@ router.post("/manual-time", auth(), async (req, res) => {
         return res.status(400).json({ error: "Endzeit muss nach Startzeit liegen" });
 
       openSession.end_time = endDT;
+      if (pause) openSession.pause = pause;
       await openSession.save();
 
       return res.json({
@@ -120,9 +126,10 @@ router.post("/manual-time", auth(), async (req, res) => {
         return res.status(400).json({ error: "Es gibt bereits eine offene Startzeit" });
 
       const session = await WorkSession.create({
-        user_id: req.user.id,
+        user_id: targetUserId,
         start_time: startDT,
-        date_today: date
+        date_today: date,
+        pause: pause || "0:00"
       });
 
       return res.json({
@@ -131,19 +138,34 @@ router.post("/manual-time", auth(), async (req, res) => {
       });
     }
 
-    // 🟢 START + ENDE → nur wenn keine offene Session
+    // 🟢 START + ENDE
     if (start && end) {
-      if (openSession)
-        return res.status(400).json({ error: "Offene Startzeit existiert" });
-
       if (endDT <= startDT)
         return res.status(400).json({ error: "Endzeit muss nach Startzeit liegen" });
 
+      // Prüfen, ob für diesen Tag bereits ein Eintrag existiert
+      const existingSession = await WorkSession.findOne({
+        user_id: targetUserId,
+        date_today: date
+      });
+
+      if (existingSession) {
+        existingSession.start_time = startDT;
+        existingSession.end_time = endDT;
+        existingSession.pause = pause || existingSession.pause || "0:00";
+        await existingSession.save();
+        return res.json({
+          message: "Arbeitszeit für diesen Tag aktualisiert ✅",
+          session: existingSession
+        });
+      }
+
       const session = await WorkSession.create({
-        user_id: req.user.id,
+        user_id: targetUserId,
         start_time: startDT,
         end_time: endDT,
-        date_today: date
+        date_today: date,
+        pause: pause || "0:00"
       });
 
       return res.json({

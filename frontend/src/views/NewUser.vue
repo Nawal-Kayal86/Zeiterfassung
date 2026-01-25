@@ -3,12 +3,17 @@
 
     <!-- Formular -->
     <form @submit.prevent="saveUser">
+
+
+
+      
       <div class="card p-3 mb-4">
         <div class="mb-3">
           <label class="form-label">Name</label>
           <input v-model="user.name" type="text" class="form-control" required />
         </div>
 
+        
         <div class="mb-3">
           <label class="form-label">E-Mail</label>
           <input v-model="user.email" type="email" class="form-control" />
@@ -23,6 +28,8 @@
           </select>
         </div>
 
+
+        
         <div class="mb-3">
           <label class="form-label">Abteilung</label>
           <select v-model="user.department" class="form-select">
@@ -39,8 +46,19 @@
         </div>
 
         <div class="mb-3">
+          <label class="form-label">Erster Tag</label>
+          <input v-model="user.start_date" type="date" class="form-control" />
+        </div>
+
+        
+
+        <div class="mb-3">
           <label class="form-label">Passwort</label>
           <input v-model="user.password" type="password" class="form-control" :required="!user.id" />
+        </div>
+        <div class="mb-3 form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="isActive" v-model="user.is_active">
+          <label class="form-check-label" for="isActive">Benutzer ist aktiv</label>
         </div>
 
         <button class="btn btn-primary w-100" type="submit">
@@ -64,6 +82,8 @@
           <th>Rolle</th>
           <th>Abteilung</th>
           <th>NFC-Tag</th>
+          <th>Erster Tag</th>
+          <th>Status</th>
           <th>Erstellt am</th>
           <th>Aktionen</th>
         </tr>
@@ -75,6 +95,12 @@
           <td>{{ u.role }}</td>
           <td>{{ u.department }}</td>
           <td>{{ u.nfc_tag }}</td>
+          <td>{{ u.start_date ? new Date(u.start_date).toLocaleDateString() : '-' }}</td>
+          <td>
+            <span :class="['badge', u.is_active ? 'bg-success' : 'bg-danger']">
+              {{ u.is_active ? 'Aktiv' : 'Inaktiv' }}
+            </span>
+          </td>
           <td>{{ new Date(u.created_at).toLocaleString() }}</td>
           <td>
             <button class="btn btn-sm btn-warning me-2" @click="editUser(u)">
@@ -94,7 +120,7 @@
 import { ref, onMounted } from "vue"
 import api from "../api"
 
-const user = ref({ id: null, name: "", email: "", role: "", department: "", nfc_tag: "", password: "" })
+const user = ref({ id: null, name: "", email: "", role: "", department: "", nfc_tag: "", start_date: "", is_active: true, password: "" })
 const users = ref([])
 const departments = ref([])
 
@@ -157,6 +183,8 @@ const editUser = (u) => {
     role: u.role || "",
     department: u.department || "",
     nfc_tag: u.nfc_tag || "",
+    start_date: u.start_date ? u.start_date.split('T')[0] : "",
+    is_active: u.is_active !== false,
     password: ""
   };
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -176,7 +204,7 @@ const deleteUser = async (id) => {
 }
 
 const resetForm = () => {
-  user.value = { id: null, name: "", email: "", role: "", department: "", nfc_tag: "", password: "" }
+  user.value = { id: null, name: "", email: "", role: "", department: "", nfc_tag: "", start_date: "", is_active: true, password: "" }
 }
 
 onMounted(() => {

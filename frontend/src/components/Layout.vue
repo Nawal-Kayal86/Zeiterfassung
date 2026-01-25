@@ -204,8 +204,8 @@
           <h4 class="text-white mb-0">{{ route.meta.title || 'Zeiterfassung' }}</h4>
         </div>
 
-        <!-- Right Spacer (to keep title centered) -->
-        <div style="width: 250px;" class="d-none d-md-block"></div>
+       
+        
       </div>
     </nav>
 
@@ -234,6 +234,12 @@
           </RouterLink>
         </li>
 
+        <li>
+          <RouterLink to="/billing" class="nav-item">
+            <i class="bi bi-receipt"></i> Abrechnungsliste
+          </RouterLink>
+        </li>
+
         <li v-if="currentuser?.role === 'admin'">
           <RouterLink to="/departments" class="nav-item">
             <i class="bi bi-building"></i> Abteilungen
@@ -255,12 +261,6 @@
         <li v-if="currentuser?.role === 'admin'">
           <RouterLink to="/leave-approval" class="nav-item">
             <i class="bi bi-check2-square"></i> Urlaubsfreigabe
-          </RouterLink>
-        </li>
-
-        <li>
-          <RouterLink to="/billing" class="nav-item">
-            <i class="bi bi-receipt"></i> Abrechnungsliste
           </RouterLink>
         </li>
 

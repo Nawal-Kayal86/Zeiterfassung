@@ -20,7 +20,7 @@ router.get("/names", auth("admin"), async (req, res) => {
 // 📄 GET: Alle Benutzer
 router.get("/", auth("admin"), async (req, res) => {
   try {
-    const users = await User.find({}, "name email role department nfc_tag created_at").sort({ created_at: -1 });
+    const users = await User.find({}, "name email role department nfc_tag start_date is_active created_at").sort({ created_at: -1 });
     res.json(users.map(u => ({
       id: u._id,
       name: u.name,
@@ -28,6 +28,8 @@ router.get("/", auth("admin"), async (req, res) => {
       role: u.role,
       department: u.department,
       nfc_tag: u.nfc_tag,
+      start_date: u.start_date,
+      is_active: u.is_active !== false, // default true
       created_at: u.created_at
     })));
   } catch (err) {
@@ -39,7 +41,7 @@ router.get("/", auth("admin"), async (req, res) => {
 // 📄 GET: Einzelner Benutzer
 router.get("/:id", auth("admin"), async (req, res) => {
   try {
-    const user = await User.findById(req.params.id, "name email role department nfc_tag created_at");
+    const user = await User.findById(req.params.id, "name email role department nfc_tag start_date is_active created_at");
     if (!user) return res.status(404).json({ error: "Benutzer nicht gefunden" });
     res.json({
       id: user._id,
@@ -48,6 +50,8 @@ router.get("/:id", auth("admin"), async (req, res) => {
       role: user.role,
       department: user.department,
       nfc_tag: user.nfc_tag,
+      start_date: user.start_date,
+      is_active: user.is_active !== false,
       created_at: user.created_at
     });
   } catch (err) {
@@ -59,7 +63,7 @@ router.get("/:id", auth("admin"), async (req, res) => {
 // ✏️ POST: Benutzer anlegen
 router.post("/", auth("admin"), async (req, res) => {
   try {
-    const { name, email, role, department, nfc_tag, password } = req.body;
+    const { name, email, role, department, nfc_tag, password, start_date, is_active } = req.body;
     if (!name || !email || !password) return res.status(400).json({ error: "Name, Email und Passwort erforderlich" });
 
     const exists = await User.findOne({ $or: [{ email }, { nfc_tag }] });
@@ -72,6 +76,8 @@ router.post("/", auth("admin"), async (req, res) => {
       role: ["user", "admin"].includes(role) ? role : "user",
       department: department || null,
       nfc_tag: nfc_tag || null,
+      start_date: start_date || null,
+      is_active: is_active !== false,
       password_hash
     });
 
@@ -92,13 +98,15 @@ router.post("/", auth("admin"), async (req, res) => {
 // ✏️ PUT: Benutzer aktualisieren
 router.put("/:id", auth("admin"), async (req, res) => {
   try {
-    const { name, email, role, department, nfc_tag, password } = req.body;
+    const { name, email, role, department, nfc_tag, password, start_date, is_active } = req.body;
     const updateData = {
       name,
       email,
       role: ["user", "admin"].includes(role) ? role : "user",
       department: department || null,
-      nfc_tag: nfc_tag || null
+      nfc_tag: nfc_tag || null,
+      start_date: start_date || null,
+      is_active: is_active !== false
     };
     if (password) {
       updateData.password_hash = await bcrypt.hash(password, 10);
