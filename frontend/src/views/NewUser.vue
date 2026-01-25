@@ -1,6 +1,5 @@
 <template>
   <div class="container mt-4">
-    <h2>User Verwaltung</h2>
 
     <!-- Formular -->
     <form @submit.prevent="saveUser">
@@ -45,7 +44,7 @@
         </div>
 
         <button class="btn btn-primary w-100" type="submit">
-          {{ user.id ? "Änderungen speichern" : "User erstellen" }}
+          {{ user.id ? "Änderungen speichern" : "Benutzer erstellen" }}
         </button>
 
         <!-- 💬 Dynamische Meldung -->
@@ -56,7 +55,7 @@
     </form>
 
     <!-- Tabelle -->
-    <h3 class="mt-5">Alle User</h3>
+    <h3 class="mt-5">Alle Benutzer</h3>
     <table class="table table-striped align-middle">
       <thead>
         <tr>

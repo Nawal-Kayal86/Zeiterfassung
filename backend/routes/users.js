@@ -13,11 +13,11 @@ router.get("/names", auth("admin"), async (req, res) => {
     res.json(users.map(u => ({ id: u._id, name: u.name, department: u.department })));
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Fehler beim Laden der User-Namen" });
+    res.status(500).json({ error: "Fehler beim Laden der Benutzernamen" });
   }
 });
 
-// 📄 GET: Alle User
+// 📄 GET: Alle Benutzer
 router.get("/", auth("admin"), async (req, res) => {
   try {
     const users = await User.find({}, "name email role department nfc_tag created_at").sort({ created_at: -1 });
@@ -32,15 +32,15 @@ router.get("/", auth("admin"), async (req, res) => {
     })));
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Fehler beim Laden der User" });
+    res.status(500).json({ error: "Fehler beim Laden der Benutzer" });
   }
 });
 
-// 📄 GET: Einzelner User
+// 📄 GET: Einzelner Benutzer
 router.get("/:id", auth("admin"), async (req, res) => {
   try {
     const user = await User.findById(req.params.id, "name email role department nfc_tag created_at");
-    if (!user) return res.status(404).json({ error: "User nicht gefunden" });
+    if (!user) return res.status(404).json({ error: "Benutzer nicht gefunden" });
     res.json({
       id: user._id,
       name: user.name,
@@ -52,11 +52,11 @@ router.get("/:id", auth("admin"), async (req, res) => {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Fehler beim Laden des Users" });
+    res.status(500).json({ error: "Fehler beim Laden des Benutzers" });
   }
 });
 
-// ✏️ POST: User anlegen
+// ✏️ POST: Benutzer anlegen
 router.post("/", auth("admin"), async (req, res) => {
   try {
     const { name, email, role, department, nfc_tag, password } = req.body;
@@ -69,7 +69,7 @@ router.post("/", auth("admin"), async (req, res) => {
     const newUser = await User.create({
       name,
       email,
-      role: ["user","admin"].includes(role) ? role : "user",
+      role: ["user", "admin"].includes(role) ? role : "user",
       department: department || null,
       nfc_tag: nfc_tag || null,
       password_hash
@@ -89,14 +89,14 @@ router.post("/", auth("admin"), async (req, res) => {
   }
 });
 
-// ✏️ PUT: User aktualisieren
+// ✏️ PUT: Benutzer aktualisieren
 router.put("/:id", auth("admin"), async (req, res) => {
   try {
     const { name, email, role, department, nfc_tag, password } = req.body;
     const updateData = {
       name,
       email,
-      role: ["user","admin"].includes(role) ? role : "user",
+      role: ["user", "admin"].includes(role) ? role : "user",
       department: department || null,
       nfc_tag: nfc_tag || null
     };
@@ -105,25 +105,26 @@ router.put("/:id", auth("admin"), async (req, res) => {
     }
 
     const updated = await User.findByIdAndUpdate(req.params.id, updateData, { new: true });
-    if (!updated) return res.status(404).json({ error: "User nicht gefunden" });
+    if (!updated) return res.status(404).json({ error: "Benutzer nicht gefunden" });
 
-    res.json({ message: "User erfolgreich aktualisiert" });
+    res.json({ message: "Benutzer erfolgreich aktualisiert" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Fehler beim Update" });
   }
 });
 
-// ❌ DELETE: User löschen
+// ❌ DELETE: Benutzer löschen
 router.delete("/:id", auth("admin"), async (req, res) => {
   try {
     const deleted = await User.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ error: "User nicht gefunden" });
-    res.json({ message: "User erfolgreich gelöscht" });
+    if (!deleted) return res.status(404).json({ error: "Benutzer nicht gefunden" });
+    res.json({ message: "Benutzer erfolgreich gelöscht" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Fehler beim Löschen" });
   }
 });
+
 
 export default router;

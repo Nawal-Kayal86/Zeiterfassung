@@ -33,7 +33,7 @@ router.post("/start", auth(), async (req, res) => {
     });
   } catch (err) {
     ////console.error(err);
-    res.status(500).json({ error: "DB error" });
+    res.status(500).json({ error: "Datenbankfehler" });
   }
 });
 
@@ -69,7 +69,7 @@ router.post("/stop", auth(), async (req, res) => {
     });
   } catch (err) {
     //console.error(err);
-    res.status(500).json({ error: "DB error" });
+    res.status(500).json({ error: "Datenbankfehler" });
   }
 });
 
@@ -154,17 +154,35 @@ router.post("/manual-time", auth(), async (req, res) => {
 
   } catch (err) {
     //console.error(err);
-    res.status(500).json({ error: "DB error" });
+    res.status(500).json({ error: "Datenbankfehler" });
   }
 });
 
 
-// 🟢 Alle Arbeitszeiten abrufen (FINAL)
+// 🟢 Alle Arbeitszeiten abrufen (FILTERBAR)
 router.get("/", auth(), async (req, res) => {
   try {
-    const query = req.user.role === "admin"
-      ? {}
-      : { user_id: req.user.id };
+    const { userId, startDate, endDate } = req.query;
+
+    const query = {};
+
+    // Rollen-Check: Wenn kein Admin, nur eigene Daten
+    if (req.user.role !== "admin") {
+      query.user_id = req.user.id;
+    } else if (userId) {
+      query.user_id = userId;
+    }
+
+    // Datums-Filter
+    if (startDate || endDate) {
+      query.start_time = {};
+      if (startDate) query.start_time.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        query.start_time.$lte = end;
+      }
+    }
 
     const sessions = await WorkSession
       .find(query)
@@ -175,24 +193,15 @@ router.get("/", auth(), async (req, res) => {
       const start = s.start_time ? new Date(s.start_time) : null;
       const end = s.end_time ? new Date(s.end_time) : null;
 
-      let duration = "-";
-      if (start && end && end > start) {
-        const diffMin = Math.floor((end - start) / 60000);
-        const h = String(Math.floor(diffMin / 60)).padStart(2, "0");
-        const m = String(diffMin % 60).padStart(2, "0");
-        duration = `${h}:${m}`;
-      }
-
       return {
-  id: s._id,
-  name: s.user_id?.name || "-",
-  department: s.user_id?.department || "-",
-
-  start: start ? start.toISOString() : null,
-  end: end ? end.toISOString() : null,
-  date_today: s.date_today,
-};
-      });
+        id: s._id,
+        name: s.user_id?.name || "-",
+        department: s.user_id?.department || "-",
+        start: start ? start.toISOString() : null,
+        end: end ? end.toISOString() : null,
+        date_today: s.date_today,
+      };
+    });
 
     res.json(result);
   } catch (err) {
@@ -223,6 +232,53 @@ router.get("/summary", auth(), async (req, res) => {
   } catch (err) {
     //console.error(err);
     res.status(500).json({ error: "Fehler beim Laden der Summary" });
+  }
+});
+
+// 🟢 Arbeitszeit löschen
+router.delete("/:id", auth(), async (req, res) => {
+  try {
+    const session = await WorkSession.findById(req.params.id);
+    if (!session) return res.status(404).json({ error: "Sitzung nicht gefunden" });
+
+    // Nur Admin oder der Besitzer darf löschen
+    if (req.user.role !== "admin" && session.user_id.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Keine Berechtigung" });
+    }
+
+    await session.deleteOne();
+    res.json({ message: "Arbeitszeit gelöscht ✅" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Löschen" });
+  }
+});
+
+// 🟢 Arbeitszeit bearbeiten
+router.put("/:id", auth(), async (req, res) => {
+  try {
+    const { start, end } = req.body;
+    const session = await WorkSession.findById(req.params.id);
+    if (!session) return res.status(404).json({ error: "Sitzung nicht gefunden" });
+
+    // Nur Admin oder der Besitzer darf bearbeiten
+    if (req.user.role !== "admin" && session.user_id.toString() !== req.user.id) {
+      return res.status(403).json({ error: "Keine Berechtigung" });
+    }
+
+    if (start) session.start_time = new Date(start);
+    if (end) session.end_time = new Date(end);
+
+    // Check if end is before start
+    if (session.end_time && session.start_time && session.end_time <= session.start_time) {
+      return res.status(400).json({ error: "Endzeit muss nach der Startzeit liegen" });
+    }
+
+    await session.save();
+    res.json({ message: "Arbeitszeit aktualisiert ✅", session });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Aktualisieren" });
   }
 });
 

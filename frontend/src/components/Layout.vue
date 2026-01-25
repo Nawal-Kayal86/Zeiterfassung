@@ -9,14 +9,41 @@
   background: #ffffff;
   border-right: 1px solid #e5e7eb;
   box-shadow: 2px 0 6px rgba(0, 0, 0, 0.05);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  overflow-y: auto;
+  transition: left 0.3s ease;
   z-index: 1020;
+  overflow: visible;
+  /* Important for the toggle button */
 }
 
 .sidebar.collapsed {
-  transform: translateX(-100%);
-  box-shadow: none;
+  left: -250px;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 30%;
+  right: -22px;
+  width: 45px;
+  height: 45px;
+  background: #0d6efd;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1030;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: translateY(-50%);
+  font-size: 1.5rem;
+  /* Larger arrow */
+}
+
+.sidebar-toggle:hover {
+  background: #0b5ed7;
+  right: -30px;
+  transform: translateY(-50%) scale(1.2);
+  box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
 }
 
 /* ====== Inhalt ====== */
@@ -51,7 +78,9 @@
   padding: 0.1rem;
   display: flex;
   flex-direction: column;
-  /* gap: 0.4rem; */
+  height: calc(100vh - 56px);
+  /* Subtract Navbar height */
+  overflow-y: auto;
 }
 
 /* ====== Benutzerinfo ====== */
@@ -135,6 +164,7 @@
 .sidebar::-webkit-scrollbar-thumb:hover {
   background-color: #adb5bd;
 }
+
 /* Nur exakt aktive Links (z. B. Dashboard auf /) */
 .router-link-exact-active {
   background-color: #0d6efd !important;
@@ -157,117 +187,132 @@
     padding: 1rem;
   }
 }
-
 </style>
 
 <template>
   <div>
     <!-- Navbar -->
-    <nav class="navbar navbar-dark bg-dark fixed-top d-flex">
-      <div class="container-fluid">
-        <a class="navbar-brand pe-3" href="/">Zeiterfassung</a>
-        <!-- Burger Button -->
-        <button class="btn btn-outline-light me-3" @click="toggleSidebar">
-          ☰
-        </button>
+    <nav class="navbar navbar-dark bg-dark fixed-top">
+      <div class="container-fluid d-flex align-items-center">
+        <!-- Dashboard / Sidebar Toggle Group -->
+        <div class="d-flex align-items-center" style="width: 250px;">
+          <a class="navbar-brand d-none d-md-block" href="/">Zeiterfassung</a>
+        </div>
+
+        <!-- Centered Page Title -->
+        <div class="flex-grow-1 text-center">
+          <h4 class="text-white mb-0">{{ route.meta.title || 'Zeiterfassung' }}</h4>
+        </div>
+
+        <!-- Right Spacer (to keep title centered) -->
+        <div style="width: 250px;" class="d-none d-md-block"></div>
       </div>
     </nav>
 
     <!-- Sidebar -->
     <div class="sidebar" :class="{ collapsed: isCollapsed }">
-  <ul class="nav-list">
-    <li class="user-info">
-      <p>Willkommen, <strong>{{ currentuser?.name }}</strong></p>
-      <p>Rolle: <strong>{{ currentuser?.role }}</strong></p>
-    </li>
+      <!-- Toggle Button (Chevron) -->
+      <div class="sidebar-toggle shadow-sm" @click="toggleSidebar">
+        <i :class="isCollapsed ? 'bi bi-chevron-right' : 'bi bi-chevron-left'"></i>
+      </div>
 
-    <li>
-<RouterLink 
-  to="/dashboard" 
-  class="nav-item" 
-  exact-active-class="router-link-exact-active"
->
-  <i class="bi bi-speedometer2"></i> Dashboard
-</RouterLink>
-    </li>
-    <li>
-      <RouterLink to="/billing" class="nav-item">
-        <i class="bi bi-receipt"></i> Abrechnungsliste
-      </RouterLink>
-    </li>
-    <li v-if="currentuser?.role === 'admin'">
-      <RouterLink to="/newuser" class="nav-item">
-        <i class="bi bi-person-plus"></i> Neuen User anlegen
-      </RouterLink>
-    </li>
-    <li v-if="currentuser?.role === 'admin'">
-      <RouterLink to="/departments" class="nav-item">
-        <i class="bi bi-building"></i> Abteilungen
-      </RouterLink>
-    </li>
-    <li>
-      <RouterLink to="/kalender" class="nav-item">
-        <i class="bi bi-calendar-event"></i> Kalender
-      </RouterLink>
-    </li>
-    <li v-if="currentuser?.role === 'admin'">
-      <RouterLink to="/config" class="nav-item">
-        <i class="bi bi-gear"></i> Einstellungen
-      </RouterLink>
-    </li>
-    <li>
-      <RouterLink to="/errors" class="nav-item">
-        <i class="bi bi-bug"></i> Fehlerprotokoll
-      </RouterLink>
-    </li>
+      <ul class="nav-list">
+        <li class="user-info">
+          <p>Willkommen, <strong>{{ currentuser?.name }}</strong></p>
+          <p>Rolle: <strong>{{ currentuser?.role }}</strong></p>
+        </li>
 
-    <li>
-      <RouterLink to="/attendance" class="nav-item">
-        <i class="bi bi-people"></i> Anwesenheitsübersicht
-      </RouterLink>
-    </li>
+        <li>
+          <RouterLink to="/dashboard" class="nav-item" exact-active-class="router-link-exact-active">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </RouterLink>
+        </li>
 
-    <li>
-      <RouterLink to="/terminal" class="nav-item">
-        <i class="bi bi-pc-display"></i> Terminal
-      </RouterLink>
-    </li>
+        <li>
+          <RouterLink to="/kalender" class="nav-item">
+            <i class="bi bi-calendar-event"></i> Kalender
+          </RouterLink>
+        </li>
 
-    <li>
-      <RouterLink to="/leave-request" class="nav-item">
-        <i class="bi bi-sun me-2"></i>Urlaubsantrag
-      </RouterLink>
-    </li>
-    
-    <li>
-      <RouterLink to="/leave-approval" class="nav-item">
-        <i class="bi bi-check2-square me-2"></i> Urlaubsfreigabe
-      </RouterLink>
-    </li>
-    
-    <li>
-      <RouterLink to="/workflow" class="nav-item">
-        <i class="bi bi-diagram-3"></i> Workflow
-      </RouterLink>
-    </li>
-    <li>
-      <RouterLink to="/schedule" class="nav-item">
-        <i class="bi bi-calendar-check"></i> Dienstplan
-      </RouterLink>
-    </li>
-    <li>
-      <RouterLink to="/reports" class="nav-item">
-        <i class="bi bi-bar-chart"></i> Berichte
-      </RouterLink>
-    </li>
+        <li v-if="currentuser?.role === 'admin'">
+          <RouterLink to="/departments" class="nav-item">
+            <i class="bi bi-building"></i> Abteilungen
+          </RouterLink>
+        </li>
 
-    <li class="logout">
-      <a @click="logout" class="nav-item logout-link">
-        <i class="bi bi-box-arrow-right"></i> Logout
-      </a>
-    </li>
-  </ul>
-</div>
+        <li v-if="currentuser?.role === 'admin'">
+          <RouterLink to="/newuser" class="nav-item">
+            <i class="bi bi-person-plus"></i> Benutzer
+          </RouterLink>
+        </li>
+
+        <li>
+          <RouterLink to="/leave-request" class="nav-item">
+            <i class="bi bi-sun"></i> Urlaubsantrag
+          </RouterLink>
+        </li>
+
+        <li v-if="currentuser?.role === 'admin'">
+          <RouterLink to="/leave-approval" class="nav-item">
+            <i class="bi bi-check2-square"></i> Urlaubsfreigabe
+          </RouterLink>
+        </li>
+
+        <li>
+          <RouterLink to="/billing" class="nav-item">
+            <i class="bi bi-receipt"></i> Abrechnungsliste
+          </RouterLink>
+        </li>
+
+        <li>
+          <RouterLink to="/errors" class="nav-item">
+            <i class="bi bi-bug"></i> Fehlerprotokoll
+          </RouterLink>
+        </li>
+
+        <li>
+          <RouterLink to="/attendance" class="nav-item">
+            <i class="bi bi-people"></i> Anwesenheitsübersicht
+          </RouterLink>
+        </li>
+
+        <li>
+          <RouterLink to="/terminal" class="nav-item">
+            <i class="bi bi-pc-display"></i> Terminal
+          </RouterLink>
+        </li>
+
+        <li>
+          <RouterLink to="/workflow" class="nav-item">
+            <i class="bi bi-diagram-3"></i> Workflow
+          </RouterLink>
+        </li>
+
+        <li>
+          <RouterLink to="/schedule" class="nav-item">
+            <i class="bi bi-calendar-check"></i> Dienstplan
+          </RouterLink>
+        </li>
+
+        <li>
+          <RouterLink to="/reports" class="nav-item">
+            <i class="bi bi-bar-chart"></i> Berichte
+          </RouterLink>
+        </li>
+
+        <li v-if="currentuser?.role === 'admin'">
+          <RouterLink to="/config" class="nav-item">
+            <i class="bi bi-gear"></i> Hardware / Webserver
+          </RouterLink>
+        </li>
+
+        <li class="logout">
+          <a @click="logout" class="nav-item logout-link">
+            <i class="bi bi-box-arrow-right"></i> Abmelden
+          </a>
+        </li>
+      </ul>
+    </div>
 
     <!-- Content -->
     <div class="content" :class="{ expanded: isCollapsed }">
@@ -278,7 +323,9 @@
 
 <script setup>
 import { ref } from "vue"
+import { useRoute } from "vue-router"
 
+const route = useRoute()
 const isCollapsed = ref(false)
 const currentuser = JSON.parse(localStorage.getItem("user")) || null
 

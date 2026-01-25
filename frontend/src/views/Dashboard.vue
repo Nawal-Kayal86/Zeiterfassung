@@ -1,6 +1,5 @@
 <template>
   <div class="container py-5">
-    <h2 class="mb-4 fw-bold text-primary">📊 Dashboard</h2>
 
     <!-- Arbeitszeit Buttons -->
     <div class="mb-4 d-flex gap-3 flex-wrap">
@@ -13,65 +12,59 @@
     </div>
 
     <!-- Meldungen -->
-    <div
-  v-if="activeSession"
-  class="alert alert-warning mt-3 shadow-sm"
->
-   Findet eine Arbeitssitzung statt  ⏱️.
-  <strong>{{ liveDuration }}</strong>
-</div>
-    <div
-      v-if="message.text"
-      :class="`alert alert-${message.type} mt-3 shadow-sm`"
-    >
+    <div v-if="activeSession" class="alert alert-warning mt-3 shadow-sm">
+      Findet eine Arbeitssitzung statt ⏱️.
+      <strong>{{ liveDuration }}</strong>
+    </div>
+    <div v-if="message.text" :class="`alert alert-${message.type} mt-3 shadow-sm`">
       {{ message.text }}
     </div>
-    
+
 
     <!-- Statuskarten -->
-<div class="row mb-4">
-  <!-- Letzter Beginn -->
-  <div class="col-md-4 mb-3">
-    <div class="card shadow-sm h-100 text-center p-3">
-      <h6 class="text-muted">Letzter Beginn</h6>
-      <p class="fw-bold fs-5">
-        <template v-if="summary.lastStart">
-          {{ formatDate(summary.lastStart) }}<br />
-          {{ formatTime(summary.lastStart) }}
-        </template>
-        <template v-else>
-          -----
-        </template>
-      </p>
-    </div>
-  </div>
+    <div class="row mb-4">
+      <!-- Letzter Beginn -->
+      <div class="col-md-4 mb-3">
+        <div class="card shadow-sm h-100 text-center p-3">
+          <h6 class="text-muted">Letzter Beginn</h6>
+          <p class="fw-bold fs-5">
+            <template v-if="summary.lastStart">
+              {{ formatDate(summary.lastStart) }}<br />
+              {{ formatTime(summary.lastStart) }}
+            </template>
+            <template v-else>
+              -----
+            </template>
+          </p>
+        </div>
+      </div>
 
-  <!-- Letztes Ende -->
-  <div class="col-md-4 mb-3">
-    <div class="card shadow-sm h-100 text-center p-3">
-      <h6 class="text-muted">Letztes Ende</h6>
-      <p class="fw-bold fs-5">
-        <template v-if="!activeSession && summary.lastEnd">
-          {{ formatDate(summary.lastEnd) }}<br />
-          {{ formatTime(summary.lastEnd) }}
-        </template>
-        <template v-else>
-          -----
-        </template>
-      </p>
-    </div>
-  </div>
+      <!-- Letztes Ende -->
+      <div class="col-md-4 mb-3">
+        <div class="card shadow-sm h-100 text-center p-3">
+          <h6 class="text-muted">Letztes Ende</h6>
+          <p class="fw-bold fs-5">
+            <template v-if="!activeSession && summary.lastEnd">
+              {{ formatDate(summary.lastEnd) }}<br />
+              {{ formatTime(summary.lastEnd) }}
+            </template>
+            <template v-else>
+              -----
+            </template>
+          </p>
+        </div>
+      </div>
 
-  <!-- Gesamteinträge -->
-  <div class="col-md-4 mb-3">
-    <div class="card shadow-sm h-100 text-center p-3">
-      <h6 class="text-muted">Gesamteinträge</h6>
-      <p class="fw-bold fs-4 text-primary">
-        {{ summary.totalEntries }}
-      </p>
+      <!-- Gesamteinträge -->
+      <div class="col-md-4 mb-3">
+        <div class="card shadow-sm h-100 text-center p-3">
+          <h6 class="text-muted">Gesamteinträge</h6>
+          <p class="fw-bold fs-4 text-primary">
+            {{ summary.totalEntries }}
+          </p>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
 
     <!-- Manuelle Arbeitszeiterfassung -->
@@ -80,30 +73,17 @@
       <form @submit.prevent="addManualTime">
         <div class="mb-3">
           <label class="form-label">📅 Datum</label>
-          <input
-            type="date"
-            v-model="manual.date"
-            class="form-control shadow-sm"
-            required
-          />
+          <input type="date" v-model="manual.date" class="form-control shadow-sm" required />
         </div>
 
         <div class="mb-3">
           <label class="form-label">🟢 Startzeit</label>
-          <input
-            type="time"
-            v-model="manual.start"
-            class="form-control shadow-sm"
-          />
+          <input type="time" v-model="manual.start" class="form-control shadow-sm" />
         </div>
 
         <div class="mb-3">
           <label class="form-label">🔴 Endzeit</label>
-          <input
-            type="time"
-            v-model="manual.end"
-            class="form-control shadow-sm"
-          />
+          <input type="time" v-model="manual.end" class="form-control shadow-sm" />
         </div>
 
         <button type="submit" class="btn btn-primary w-100 shadow">
@@ -167,7 +147,7 @@ export default {
       message: { text: "", type: "success" },
       summary: { lastStart: null, lastEnd: null, totalEntries: 0 },
       workSessions: [],
-      liveDuration: "00:00:00",   
+      liveDuration: "00:00:00",
       timer: null
     };
   },
@@ -179,19 +159,19 @@ export default {
     await this.loadWorkSessions();
     await this.loadSummary();
   },
- computed: {
-  activeSession() {
-    return this.workSessions.find(s => {
-      if (!s.start) return false
-      if (!s.end) return true
+  computed: {
+    activeSession() {
+      return this.workSessions.find(s => {
+        if (!s.start) return false
+        if (!s.end) return true
 
-      const start = new Date(s.start)
-      const end = new Date(s.end)
+        const start = new Date(s.start)
+        const end = new Date(s.end)
 
-      return end <= start
-    }) || null
-  }
-},
+        return end <= start
+      }) || null
+    }
+  },
   watch: {
     activeSession(newSession, oldSession) {
       if (newSession) {
@@ -216,14 +196,14 @@ export default {
       }
     },
 
-  async loadWorkSessions() {
-  try {
-    const res = await api.get('/workSessions')
-    this.workSessions = res.data
-  } catch {
-    this.workSessions = []
-  }
-},
+    async loadWorkSessions() {
+      try {
+        const res = await api.get('/workSessions')
+        this.workSessions = res.data
+      } catch {
+        this.workSessions = []
+      }
+    },
 
     async start() {
       try {
@@ -264,35 +244,35 @@ export default {
         this.showMessage(text, "danger");
       }
     },
-    
+
     startLiveTimer() {
-  if (!this.activeSession) return;
+      if (!this.activeSession) return;
 
-  // أوقف أي مؤقت قديم
-  if (this.timer) clearInterval(this.timer);
+      // أوقف أي مؤقت قديم
+      if (this.timer) clearInterval(this.timer);
 
-  this.timer = setInterval(() => {
-    const start = new Date(this.activeSession.start);
-    const now = new Date();
+      this.timer = setInterval(() => {
+        const start = new Date(this.activeSession.start);
+        const now = new Date();
 
-    const diffMs = now - start;
-    if (diffMs < 0) return;
+        const diffMs = now - start;
+        if (diffMs < 0) return;
 
-    const totalSeconds = Math.floor(diffMs / 1000);
-    const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
-    const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
-    const s = String(totalSeconds % 60).padStart(2, "0");
+        const totalSeconds = Math.floor(diffMs / 1000);
+        const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+        const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+        const s = String(totalSeconds % 60).padStart(2, "0");
 
-    this.liveDuration = `${h}:${m}:${s}`;
-  }, 1000);
-},
-stopLiveTimer() {
-  if (this.timer) {
-    clearInterval(this.timer);
-    this.timer = null;
-    this.liveDuration = "00:00:00";
-  }
-},
+        this.liveDuration = `${h}:${m}:${s}`;
+      }, 1000);
+    },
+    stopLiveTimer() {
+      if (this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
+        this.liveDuration = "00:00:00";
+      }
+    },
 
 
     showMessage(text, type = "success") {

@@ -1,6 +1,5 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">⚠️ Fehlerprotokoll</h2>
 
     <div v-if="loading" class="alert alert-info">Lade Fehlerprotokoll...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
@@ -19,7 +18,9 @@
           <td>{{ log.id }}</td>
           <td>{{ log.message }}</td>
           <td>
-            <span :class="getLevelClass(log.level)">{{ log.level }}</span>
+            <span :class="getLevelClass(log.level)">
+              {{ log.level === 'ERROR' ? 'FEHLER' : log.level === 'WARN' ? 'WARNUNG' : 'INFO' }}
+            </span>
           </td>
           <td>{{ formatDateTime(log.created_at) }}</td>
         </tr>

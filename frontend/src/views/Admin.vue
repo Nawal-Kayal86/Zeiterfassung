@@ -1,10 +1,9 @@
 <template>
   <div class="container py-5">
-    <h2 class="mb-4 fw-bold text-primary">👨‍💼 Admin-Bereich</h2>
 
     <!-- Zurück zum Dashboard -->
     <router-link class="btn btn-outline-secondary mb-4" to="/">⬅️ Zurück zum Dashboard</router-link>
-    
+
     <!-- Filter -->
     <div class="mb-4">
       <input v-model="filter" type="text" class="form-control shadow-sm" placeholder="🔎 Filtern nach Name oder Datum">
@@ -155,9 +154,11 @@ export default {
 h2 {
   letter-spacing: 1px;
 }
+
 .table-hover tbody tr:hover {
   background-color: #f1f1f1;
 }
+
 .card {
   border-radius: 12px;
 }

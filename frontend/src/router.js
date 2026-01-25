@@ -27,24 +27,22 @@ const routes = [
     component: Layout,
     meta: { requiresAuth: true },
     children: [
-      { path: '', component: Dashboard }, // default: '/' zeigt Dashboard
-      { path: 'dashboard', component: Dashboard }, // auch erreichbar unter '/dashboard'
-      { path: 'admin', component: Admin }, // admin
-      { path: 'billing', component: Billing }, // billing
-      { path: 'newuser', component: NewUser, meta: { requiresAuth: true, requiresAdmin: true } }, // newuser
-      { path: 'kalender', component: Kalender }, // kalender
-      { path: 'attendance', component: Attendance }, // attendance
-      { path: 'errors', component: Errors }, // errors
-      { path: 'terminal', component: Terminal }, // terminal
-      { path: 'workflow', component: Workflow }, // workflow
-      { path: "leave-request", component: LeaveRequest}, // leave request
-      { path: "leave-approval", component: LeaveApproval, meta: { requiresAuth: true, requiresAdmin: true }}, // leave approval
-      { path: 'schedule', component: Schedule }, // dienstplan
-      { path: 'reports', component: Reports }, // berichte
-      { path: 'departments', component: Departments , meta: { requiresAuth: true, requiresAdmin: true } }, // departments admin
-      { path: 'config',component: Config, meta: { requiresAuth: true, requiresAdmin: true } } // config
-      
-      
+      { path: '', component: Dashboard, meta: { title: '📊 Dashboard' } },
+      { path: 'dashboard', component: Dashboard, meta: { title: '📊 Dashboard' } },
+      { path: 'admin', component: Admin, meta: { title: '👨‍💼 Admin' } },
+      { path: 'billing', component: Billing, meta: { title: '🧾 Abrechnungsliste' } },
+      { path: 'newuser', component: NewUser, meta: { requiresAuth: true, requiresAdmin: true, title: '👤 User-Verwaltung' } },
+      { path: 'kalender', component: Kalender, meta: { title: '📅 Kalender' } },
+      { path: 'attendance', component: Attendance, meta: { title: '👥 Anwesenheitsübersicht' } },
+      { path: 'errors', component: Errors, meta: { title: '⚠️ Fehlerprotokoll' } },
+      { path: 'terminal', component: Terminal, meta: { title: '💻 Terminal' } },
+      { path: 'workflow', component: Workflow, meta: { title: '🔄 Workflow' } },
+      { path: "leave-request", component: LeaveRequest, meta: { title: '🌴 Urlaubsantrag' } },
+      { path: "leave-approval", component: LeaveApproval, meta: { requiresAuth: true, requiresAdmin: true, title: '✅ Urlaubsfreigabe' } },
+      { path: 'schedule', component: Schedule, meta: { title: '📅 Dienstplan' } },
+      { path: 'reports', component: Reports, meta: { title: '📈 Berichte' } },
+      { path: 'departments', component: Departments, meta: { requiresAuth: true, requiresAdmin: true, title: '🏢 Abteilungen' } },
+      { path: 'config', component: Config, meta: { requiresAuth: true, requiresAdmin: true, title: '⚙️ Hardware / Webserver' } }
     ]
   }
 ]

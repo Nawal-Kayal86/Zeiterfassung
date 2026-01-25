@@ -2,7 +2,6 @@
   <div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
-        <h2 class="fw-bold text-primary mb-1">📊 Berichte</h2>
         <p class="text-muted mb-0">Übersicht über alle wichtigen Statistiken.</p>
       </div>
       <button v-if="!loading && !error" @click="exportCSV" class="btn btn-outline-success">
@@ -100,7 +99,7 @@ const sortedDepartments = computed(() => {
     let valA = a[sortColumn.value]
     let valB = b[sortColumn.value]
     const modifier = sortDirection.value === 'asc' ? 1 : -1
-    
+
     if (typeof valA === 'string') return valA.localeCompare(valB) * modifier
     return (valA - valB) * modifier
   })
@@ -128,7 +127,7 @@ const exportCSV = () => {
   const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }) // \uFEFF für Excel-Kompatibilität
   const link = document.createElement("a")
   link.href = URL.createObjectURL(blob)
-  link.download = `Bericht_${new Date().toISOString().slice(0,10)}.csv`
+  link.download = `Bericht_${new Date().toISOString().slice(0, 10)}.csv`
   link.click()
 }
 
@@ -149,6 +148,7 @@ onMounted(async () => {
 .table {
   font-size: 0.95rem;
 }
+
 .card h2 {
   font-weight: bold;
 }

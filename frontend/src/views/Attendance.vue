@@ -1,6 +1,5 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">📋 Anwesenheitsübersicht</h2>
 
     <div v-if="loading" class="alert alert-info">Daten werden geladen...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>

@@ -1,6 +1,5 @@
 <template>
   <div class="config">
-    <h2>Kalender-Konfiguration</h2>
 
     <label>
       Jahr:
@@ -14,7 +13,8 @@
     <section>
       <h3>Feiertage</h3>
       <ul>
-        <li v-for="(h, index) in holidays" :key="index" :style="{color: changedHolidays.includes(h.date) ? 'red' : 'black'}">
+        <li v-for="(h, index) in holidays" :key="index"
+          :style="{ color: changedHolidays.includes(h.date) ? 'red' : 'black' }">
           <input v-model="h.name" /> - {{ h.date }}
           <button @click="removeHoliday(index)">✖</button>
           <span v-if="changedHolidays.includes(h.date)"> (neu/geändert)</span>
@@ -27,8 +27,8 @@
       <h3>Ferien</h3>
       <ul>
         <li v-for="(f, index) in ferien" :key="index">
-          <input v-model="f.name" />: 
-          <input type="date" v-model="f.start" /> → 
+          <input v-model="f.name" />:
+          <input type="date" v-model="f.start" /> →
           <input type="date" v-model="f.end" />
           <button @click="removeFerien(index)">✖</button>
         </li>
@@ -133,13 +133,48 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.config { padding: 20px; max-width: 700px; border: 1px solid #ccc; }
-label { display:block; margin-bottom: 12px; font-weight: bold; }
-h3 { margin-top: 16px; }
-ul { list-style:none; padding:0; }
-li { margin-bottom: 6px; }
-input[type="text"], input[type="date"] { margin-right: 6px; }
-button { margin-left: 6px; }
-.save-btn, .fetch-btn { margin-top: 20px; padding: 8px 16px; font-weight: bold; }
-.fetch-btn { background-color:#eef; }
+.config {
+  padding: 20px;
+  max-width: 700px;
+  border: 1px solid #ccc;
+}
+
+label {
+  display: block;
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+h3 {
+  margin-top: 16px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 6px;
+}
+
+input[type="text"],
+input[type="date"] {
+  margin-right: 6px;
+}
+
+button {
+  margin-left: 6px;
+}
+
+.save-btn,
+.fetch-btn {
+  margin-top: 20px;
+  padding: 8px 16px;
+  font-weight: bold;
+}
+
+.fetch-btn {
+  background-color: #eef;
+}
 </style>

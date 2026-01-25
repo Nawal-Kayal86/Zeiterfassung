@@ -1,6 +1,5 @@
 <template>
   <div class="container mt-5">
-    <h2>Abteilungen verwalten</h2>
 
     <!-- Neue Abteilung hinzufügen -->
     <div class="card p-3 mb-4">

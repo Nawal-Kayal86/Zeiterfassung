@@ -1,81 +1,129 @@
 <template>
   <div class="calendar-container">
-    <h2 class="title">📅 Kalender</h2>
 
-    <!-- Header -->
+
+    <!-- Header Navigation -->
     <div class="calendar-header">
-      <button @click="prevMonth">‹</button>
-
-      <select v-model="yearRef" @change="loadData">
+      <button @click="prevMonth" class="nav-btn">‹</button>
+      <select v-model="yearRef" @change="loadData" class="year-select">
         <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
       </select>
-
-      <strong>{{ monthName }}</strong>
-
-      <button @click="nextMonth">›</button>
+      <strong class="month-label">{{ monthName }}</strong>
+      <button @click="nextMonth" class="nav-btn">›</button>
     </div>
 
-    <!-- Calendar Wrapper (scroll on mobile) -->
+    <!-- Calendar Wrapper -->
     <div class="calendar-scroll">
       <div class="grid header">
         <div class="kw-col">KW</div>
         <div v-for="d in days" :key="d">{{ d }}</div>
       </div>
 
-      <div
-        v-for="week in calendar"
-        :key="week.kw"
-        class="grid week"
-      >
+      <div v-for="week in calendar" :key="week.kw" class="grid week">
         <div class="kw-col">{{ week.kw }}</div>
 
-        <div
-          v-for="day in week.days"
-          :key="day.key"
-          class="day"
-          :class="{
-            weekend: day.isWeekend,
-            holiday: day.holiday,
-            open: day.hasOpen,
-            closed: day.hasClosed && !day.hasOpen,
-            selected: selectedDate === day.key
-          }"
-          :title="day.tooltip"
-          @click="selectDay(day)"
-        >
+        <div v-for="day in week.days" :key="day.key" class="day" :class="{
+          today: day.isToday,
+          holiday: day.holiday || day.isFerien || day.isWeekend,
+          leave: day.hasLeave && !day.holiday && !day.isFerien && !day.isWeekend,
+          work: day.hasWork && !day.holiday && !day.isFerien && !day.isWeekend,
+          selected: selectedDate === day.key,
+          'other-month': !day.isCurrentMonth
+        }" :title="day.tooltip" @click="selectDay(day)">
           <div class="day-number">{{ day.day }}</div>
 
-          <div v-if="day.hasOpen" class="dot red"></div>
-          <div v-else-if="day.hasClosed" class="dot green"></div>
+          <div v-if="day.holiday" class="status-label holiday-label">Feiertag</div>
+          <div v-else-if="day.isFerien" class="status-label holiday-label">Ferien</div>
+          <div v-else-if="day.isWeekend" class="status-label holiday-label">Wochenende</div>
+          <div v-else-if="day.hasLeave" class="status-label leave-label">Urlaub</div>
+          <div v-else-if="day.hasWork" class="status-label work-label">Arbeit</div>
 
-          <div v-if="day.holiday" class="label">{{ day.holiday }}</div>
+          <div v-if="day.holiday" class="holiday-name">{{ day.holiday }}</div>
         </div>
       </div>
     </div>
 
-    <!-- Details -->
-    <div v-if="dayDetails.length" class="details">
-      <h4>📌 Details {{ selectedDate }}</h4>
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><span class="box work"></span> Arbeit (Grün)</div>
+      <div class="legend-item"><span class="box leave"></span> Urlaub (Gelb)</div>
+      <div class="legend-item"><span class="box holiday"></span> Feiertag/Ferien/Wochenende (Rot)</div>
+    </div>
 
-      <div class="details-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Mitarbeiter</th>
-              <th>Start</th>
-              <th>Ende</th>
-              <th>Dauer</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="s in dayDetails" :key="s._id">
-              <td>{{ s.name }}</td>
-              <td>{{ formatTime(s.start) }}</td>
-              <td>{{ s.end ? formatTime(s.end) : '-----' }}</td>
-              <td>{{ calcDuration(s.start, s.end) }}</td>
-            </tr>
-          </tbody>
-        </table>
+    <!-- Details Modal -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title" id="detailsModalLabel">📌 Details für {{ selectedDate }}</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div v-if="dayLeaves.length" class="mb-4">
+              <h5 class="border-bottom pb-2 text-dark">Urlaube:</h5>
+              <div class="list-group">
+                <div v-for="l in dayLeaves" :key="l._id"
+                  class="list-group-item list-group-item-warning mb-2 border-0 shadow-sm rounded">
+                  <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1 fw-bold">{{ l.user_id?.name || 'Mitarbeiter' }}</h6>
+                    <small class="badge bg-warning text-dark">{{ l.type }}</small>
+                  </div>
+                  <p class="mb-1 text-muted">{{ l.reason || 'Kein Grund angegeben' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="dayDetails.length">
+              <h5 class="border-bottom pb-2 text-dark">Arbeitszeiten:</h5>
+              <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Mitarbeiter</th>
+                      <th>Start</th>
+                      <th>Ende</th>
+                      <th>Dauer</th>
+                      <th v-if="isAdmin" class="text-end">Aktionen</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="s in dayDetails" :key="s.id">
+                      <td>{{ s.name }}</td>
+                      <td>
+                        <input v-if="editingId === s.id" type="datetime-local" v-model="editForm.start"
+                          class="form-control form-control-sm">
+                        <span v-else>{{ formatTime(s.start) }}</span>
+                      </td>
+                      <td>
+                        <input v-if="editingId === s.id" type="datetime-local" v-model="editForm.end"
+                          class="form-control form-control-sm">
+                        <span v-else>{{ s.end ? formatTime(s.end) : '---' }}</span>
+                      </td>
+                      <td>{{ calcDuration(s.start, s.end) }}</td>
+                      <td v-if="isAdmin" class="text-end">
+                        <template v-if="editingId === s.id">
+                          <button class="btn btn-sm btn-success me-1" @click="saveEdit(s.id)">💾</button>
+                          <button class="btn btn-sm btn-secondary" @click="cancelEdit">✖</button>
+                        </template>
+                        <template v-else>
+                          <button class="btn btn-sm btn-outline-primary me-1" @click="startEdit(s)">✏️</button>
+                          <button class="btn btn-sm btn-outline-danger" @click="deleteSession(s.id)">🗑️</button>
+                        </template>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div v-if="!dayLeaves.length && !dayDetails.length" class="text-center py-4">
+              <p class="text-muted">Keine Einträge für diesen Tag gefunden.</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -86,6 +134,7 @@
 import { ref, computed, onMounted } from "vue"
 import api from "@/api"
 import { formatTime, calcDuration } from "@/utils/time"
+import * as bootstrap from "bootstrap"
 
 /* ------------------ helpers ------------------ */
 function toLocalKey(d) {
@@ -109,17 +158,29 @@ function getKW(d) {
 }
 
 /* ------------------ state ------------------ */
+const currentUser = JSON.parse(localStorage.getItem("user")) || {}
+const isAdmin = currentUser.role === "admin"
+
 const today = new Date()
 const monthRef = ref(today.getMonth())
 const yearRef = ref(today.getFullYear())
-const years = Array.from({ length: 10 }, (_, i) => today.getFullYear() - 5 + i)
+const years = Array.from({ length: 11 }, (_, i) => today.getFullYear() - 5 + i)
 
 const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 
 const workSessions = ref([])
+const leaveRequests = ref([])
 const holidays = ref({})
+const ferienItems = ref([]) // Added for Ferien
+const users = ref([])
+
+
 const selectedDate = ref(null)
 const dayDetails = ref([])
+const dayLeaves = ref([])
+
+const editingId = ref(null)
+const editForm = ref({ start: "", end: "" })
 
 /* ------------------ computed ------------------ */
 const monthName = computed(() =>
@@ -135,31 +196,47 @@ const calendar = computed(() => {
 
   const weeks = []
   let date = new Date(start)
+  const todayKey = toLocalKey(today)
 
   for (let w = 0; w < 6; w++) {
     const week = { kw: getKW(date), days: [] }
 
     for (let i = 0; i < 7; i++) {
       const key = toLocalKey(date)
-      const sessions = workSessions.value.filter(
-        s => toLocalKey(new Date(s.start)) === key
-      )
+
+      const sessions = workSessions.value.filter(s => {
+        const sDate = s.start ? s.start.split('T')[0] : s.date_today
+        return sDate === key
+      })
+
+      const leaves = leaveRequests.value.filter(l => {
+        const from = l.from.split('T')[0]
+        const to = l.to.split('T')[0]
+        return key >= from && key <= to
+      })
+
+      // Check for Ferien (Red)
+      const isFerien = ferienItems.value.some(f => {
+        return key >= f.from && key <= f.to
+      })
+
+      const isWeekend = [0, 6].includes(date.getDay())
 
       week.days.push({
         key,
-        day: date.getMonth() === monthRef.value ? date.getDate() : "",
-        isWeekend: [0, 6].includes(date.getDay()),
-        hasOpen: sessions.some(s => !s.end),
-        hasClosed: sessions.some(s => s.end),
+        day: date.getDate(),
+        isCurrentMonth: date.getMonth() === monthRef.value,
+        isToday: key === todayKey,
+        hasWork: sessions.length > 0,
+        hasLeave: leaves.length > 0,
+        isFerien,
+        isWeekend,
         holiday: holidays.value[key] || null,
-        tooltip: sessions.length
-          ? `${sessions.length} Sitzung(en)`
-          : ""
+        tooltip: `${sessions.length} Arbeit, ${leaves.length} Urlaub, ${isFerien ? 'Ferien' : ''}${isWeekend ? ' Wochenende' : ''}`
       })
 
       date.setDate(date.getDate() + 1)
     }
-
     weeks.push(week)
   }
 
@@ -168,35 +245,113 @@ const calendar = computed(() => {
 
 /* ------------------ actions ------------------ */
 async function loadData() {
-  const res = await api.get("/workSessions")
-  workSessions.value = res.data
+  try {
+    const params = {}
 
-  const h = await api.get(`/calendar?year=${yearRef.value}`)
-  holidays.value = {}
-  h.data?.holidays?.forEach(x => (holidays.value[x.date] = x.name))
+    // Work Sessions
+    const resWork = await api.get("/workSessions", { params })
+    workSessions.value = resWork.data
+
+    // Leave Requests
+    const resLeave = await api.get("/leave-requests/calendar", { params })
+    leaveRequests.value = resLeave.data
+
+    // Holidays
+    const resHolidays = await api.get(`/calendar?year=${yearRef.value}`)
+    holidays.value = {}
+    ferienItems.value = resHolidays.data?.ferien || [] // Store Ferien
+    resHolidays.data?.holidays?.forEach(x => (holidays.value[x.date] = x.name))
+
+    // Users (if admin)
+    if (isAdmin && users.value.length === 0) {
+      const resUsers = await api.get("/users")
+      users.value = resUsers.data
+    }
+  } catch (err) {
+    console.error("Error loading calendar data:", err)
+  }
 }
+
 
 function selectDay(day) {
   selectedDate.value = day.key
-  dayDetails.value = workSessions.value.filter(
-    s => toLocalKey(new Date(s.start)) === day.key
-  )
+
+  dayDetails.value = workSessions.value.filter(s => {
+    const sDate = s.start ? s.start.split('T')[0] : s.date_today
+    return sDate === day.key
+  })
+
+  dayLeaves.value = leaveRequests.value.filter(l => {
+    const from = l.from.split('T')[0]
+    const to = l.to.split('T')[0]
+    return day.key >= from && day.key <= to
+  })
+
+  const modal = new bootstrap.Modal(document.getElementById('detailsModal'))
+  modal.show()
+}
+
+function startEdit(s) {
+  editingId.value = s.id
+  // Convert to local datetime string for input
+  editForm.value = {
+    start: s.start ? new Date(s.start).toISOString().slice(0, 16) : "",
+    end: s.end ? new Date(s.end).toISOString().slice(0, 16) : ""
+  }
+}
+
+function cancelEdit() {
+  editingId.value = null
+}
+
+async function saveEdit(id) {
+  try {
+    await api.put(`/workSessions/${id}`, editForm.value)
+    editingId.value = null
+    await loadData()
+    // Refresh dayDetails
+    dayDetails.value = workSessions.value.filter(s => {
+      const sDate = s.start ? s.start.split('T')[0] : s.date_today
+      return sDate === selectedDate.value
+    })
+  } catch (err) {
+    alert("Fehler beim Speichern: " + (err.response?.data?.error || err.message))
+  }
+}
+
+async function deleteSession(id) {
+  if (!confirm("Möchten Sie diesen Eintrag wirklich löschen?")) return
+  try {
+    await api.delete(`/workSessions/${id}`)
+    await loadData()
+    // Refresh dayDetails
+    dayDetails.value = workSessions.value.filter(s => {
+      const sDate = s.start ? s.start.split('T')[0] : s.date_today
+      return sDate === selectedDate.value
+    })
+  } catch (err) {
+    alert("Fehler beim Löschen: " + (err.response?.data?.error || err.message))
+  }
 }
 
 function prevMonth() {
   if (monthRef.value === 0) {
     monthRef.value = 11
     yearRef.value--
-    loadData()
-  } else monthRef.value--
+  } else {
+    monthRef.value--
+  }
+  loadData()
 }
 
 function nextMonth() {
   if (monthRef.value === 11) {
     monthRef.value = 0
     yearRef.value++
-    loadData()
-  } else monthRef.value++
+  } else {
+    monthRef.value++
+  }
+  loadData()
 }
 
 onMounted(loadData)
@@ -204,154 +359,262 @@ onMounted(loadData)
 
 <style scoped>
 .calendar-container {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: auto;
-  padding: 10px;
+  padding: 20px;
+  background: #fdfdfd;
 }
 
 .title {
   text-align: center;
-  margin-bottom: 15px;
+  margin-bottom: 25px;
+  font-weight: 700;
+  color: #333;
 }
 
-/* Header */
+
+/* Header Navigation */
 .calendar-header {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
-/* Horizontal scroll on small screens */
-.calendar-scroll {
-  overflow-x: auto;
+.nav-btn {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.5rem;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  background: #f0f0f0;
+  border-color: #ccc;
+}
+
+.month-label {
+  font-size: 1.4rem;
+  min-width: 150px;
+  text-align: center;
+}
+
+.year-select {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-weight: 600;
 }
 
 /* Grid */
+.calendar-scroll {
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
 .grid {
   display: grid;
-  grid-template-columns: 50px repeat(7, minmax(80px, 1fr));
-  min-width: 700px;
+  grid-template-columns: 50px repeat(7, minmax(120px, 1fr));
 }
 
 .header {
+  background: #f8f9fa;
+  border-bottom: 2px solid #eee;
   font-weight: bold;
-  background: #f8f8f8;
 }
 
-.week {
-  margin-bottom: 4px;
-}
-
-/* KW column */
-.kw-col {
-  font-weight: bold;
+.header div {
+  padding: 12px;
   text-align: center;
-  padding: 6px;
+  color: #555;
 }
 
-/* Day cell */
+.kw-col {
+  border-right: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f3f5;
+  color: #888;
+  font-size: 0.8rem;
+}
+
 .day {
-  border: 1px solid #ddd;
-  min-height: 70px;
-  position: relative;
+  border: 0.5px solid #f0f0f0;
+  min-height: 100px;
+  padding: 8px;
   cursor: pointer;
-  padding: 4px;
+  transition: background 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-/* Colors */
-.weekend {
-  background: #e7dd1d;
+.day:hover {
+  background: #fcfcfc;
 }
 
-.holiday {
-  background: #d15d5d;
+.day.other-month {
+  color: #ccc;
+  background: #fafafa;
 }
 
-.open {
-  background: #ffe6e6;
+.day.today {
+  box-shadow: inset 0 0 0 2px #0d6efd;
 }
 
-.closed {
-  background: #729772;
+.day.selected {
+  background: #eef4ff;
 }
 
-.selected {
-  outline: 2px solid #007bff;
-}
-
-/* Content */
 .day-number {
-  font-weight: bold;
-  font-size: 14px;
+  font-weight: 600;
+  font-size: 1rem;
 }
 
-.label {
-  font-size: 11px;
-  margin-top: 2px;
+/* Status Labels */
+.status-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-align: center;
+  text-transform: uppercase;
 }
 
-/* Dot */
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  position: absolute;
-  bottom: 6px;
-  right: 6px;
+.work-label {
+  background: #d1e7dd;
+  color: #0f5132;
 }
 
-.red {
-  background: red;
+.leave-label {
+  background: #fff3cd;
+  color: #664d03;
 }
 
-.green {
-  background: green;
+.holiday-label {
+  background: #f8d7da;
+  color: #842029;
+}
+
+/* Day Coloring */
+.day.work {
+  background-color: #f0fff4;
+}
+
+.day.leave {
+  background-color: #fffbef;
+}
+
+.day.holiday {
+  background-color: #fff5f5;
+}
+
+.holiday-name {
+  font-size: 0.7rem;
+  color: #c53030;
+  font-style: italic;
+  margin-top: auto;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 25px;
+  margin-top: 20px;
+  padding: 15px;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.box {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.box.work {
+  background: #d1e7dd;
+  border: 1px solid #0f5132;
+}
+
+.box.leave {
+  background: #fff3cd;
+  border: 1px solid #664d03;
+}
+
+.box.holiday {
+  background: #f8d7da;
+  border: 1px solid #842029;
 }
 
 /* Details */
 .details {
-  margin-top: 20px;
+  margin-top: 30px;
+  padding: 25px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
-.details-scroll {
-  overflow-x: auto;
+.details h4 {
+  margin-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 10px;
 }
 
-/* Table */
+.leaves-info,
+.work-info {
+  margin-bottom: 20px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 400px;
 }
 
-th,
+th {
+  background: #f8f9fa;
+  padding: 12px;
+  text-align: left;
+  font-size: 0.85rem;
+  color: #666;
+}
+
 td {
-  border: 1px solid #ddd;
-  padding: 6px;
-  text-align: center;
-  font-size: 14px;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
 }
 
-/* 📱 Mobile tweaks */
+/* Responsive */
 @media (max-width: 768px) {
+  .filters-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .grid {
-    grid-template-columns: 40px repeat(7, 90px);
-  }
-
-  .day {
-    min-height: 90px;
-  }
-
-  .day-number {
-    font-size: 16px;
-  }
-
-  .label {
-    font-size: 12px;
+    grid-template-columns: 40px repeat(7, 100px);
   }
 }
-
 </style>

@@ -1,6 +1,5 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">🌴 Urlaubsantrag</h2>
 
     <!-- Formular -->
     <div class="card shadow-sm p-3 mb-4">
@@ -58,9 +57,9 @@
             <td>{{ format(r.to) }}</td>
             <td>{{ translateType(r.type) }}</td>
             <td>
-              <span class="badge bg-warning" v-if="r.status==='pending'">In Bearbeitung</span>
-              <span class="badge bg-success" v-if="r.status==='approved'">Genehmigt</span>
-              <span class="badge bg-danger" v-if="r.status==='rejected'">Abgelehnt</span>
+              <span class="badge bg-warning" v-if="r.status === 'pending'">In Bearbeitung</span>
+              <span class="badge bg-success" v-if="r.status === 'approved'">Genehmigt</span>
+              <span class="badge bg-danger" v-if="r.status === 'rejected'">Abgelehnt</span>
             </td>
           </tr>
         </tbody>
@@ -76,7 +75,7 @@ import { ref, onMounted } from "vue"
 import api from "../api"
 
 const requests = ref([])
-const form = ref({ from:"", to:"", type:"vacation", reason:"" })
+const form = ref({ from: "", to: "", type: "vacation", reason: "" })
 
 const load = async () => {
   const res = await api.get("/leave-requests")
@@ -85,7 +84,7 @@ const load = async () => {
 
 const submitRequest = async () => {
   await api.post("/leave-requests", form.value)
-  form.value = { from:"", to:"", type:"vacation", reason:"" }
+  form.value = { from: "", to: "", type: "vacation", reason: "" }
   load()
 }
 

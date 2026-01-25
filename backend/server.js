@@ -81,7 +81,7 @@ app.post("/api/login", async (req, res) => {
     if (!user) return res.status(401).json({ error: "Login fehlgeschlagen" });
 
     const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) return res.status(401).json({ error: "Wrong password" });
+    if (!valid) return res.status(401).json({ error: "Falsches Passwort" });
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -93,7 +93,7 @@ app.post("/api/login", async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Server Error" });
+    res.status(500).json({ error: "Serverfehler" });
   }
 });
 
@@ -120,7 +120,7 @@ app.get("/api/admin/users", auth("admin"), async (req, res) => {
     res.json(list);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "DB Error" });
+    res.status(500).json({ error: "Datenbankfehler" });
   }
 });
 
@@ -209,7 +209,7 @@ app.use(express.static(path.join(__dirname, '../frontend/dist')));
 app.get('*', (req, res) => {
   // Ignoriere API-Pfade, falls sie nicht gefunden wurden (404)
   if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'API endpoint not found' });
+    return res.status(404).json({ error: 'API-Endpunkt nicht gefunden' });
   }
   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });

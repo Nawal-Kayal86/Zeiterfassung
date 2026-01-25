@@ -4,7 +4,7 @@ import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-    // ✅ إنشاء طلب إجازة
+// ✅ إنشاء طلب إجازة
 router.post("/", auth(), async (req, res) => {
   try {
     const { from, to, type, reason } = req.body;
@@ -47,10 +47,16 @@ router.get("/", auth(), async (req, res) => {
 ========================= */
 
 router.get("/calendar", auth(), async (req, res) => {
-  const leaves = await LeaveRequest.find({
-    status: "approved"
-  }).populate("user_id", "name");
+  const { userId } = req.query;
+  const query = { status: "approved" };
 
+  if (req.user.role !== "admin") {
+    query.user_id = req.user.id;
+  } else if (userId) {
+    query.user_id = userId;
+  }
+
+  const leaves = await LeaveRequest.find(query).populate("user_id", "name");
   res.json(leaves);
 });
 

@@ -1,6 +1,5 @@
 <template>
   <div class="container py-4">
-    <h2 class="mb-4 fw-bold text-primary">📅 Dienstplan</h2>
 
     <!-- Formular -->
     <div class="card shadow-sm mb-4">
@@ -48,12 +47,7 @@
             <button class="btn btn-primary">
               💾 Speichern
             </button>
-            <button
-              v-if="editId"
-              type="button"
-              class="btn btn-secondary"
-              @click="reset"
-            >
+            <button v-if="editId" type="button" class="btn btn-secondary" @click="reset">
               Abbrechen
             </button>
           </div>

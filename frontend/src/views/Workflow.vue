@@ -1,6 +1,5 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">⚙️ Workflow</h2>
     <p>Hier können Admins und User ihre Arbeitsabläufe verfolgen.</p>
 
     <!-- Formular -->
@@ -9,13 +8,7 @@
       <form @submit.prevent="addTask">
         <div class="row g-2 align-items-center">
           <div class="col-md-6">
-            <input
-              v-model="newTask"
-              type="text"
-              class="form-control"
-              placeholder="Aufgabe eingeben..."
-              required
-            />
+            <input v-model="newTask" type="text" class="form-control" placeholder="Aufgabe eingeben..." required />
           </div>
           <div class="col-md-3">
             <select v-model="newStatus" class="form-select">
@@ -40,42 +33,35 @@
     <div v-if="tasks.length > 0" class="card shadow-sm p-3">
       <h5 class="mb-3">Aktuelle Aufgaben</h5>
       <table class="table table-striped align-middle">
-  <thead>
-  <tr>
-    <th>Mitarbeiter</th>
-    <th>Aufgabe</th>
-    <th>Status</th>
-    <th>Aktionen</th>
-  </tr>
-</thead>
+        <thead>
+          <tr>
+            <th>Mitarbeiter</th>
+            <th>Aufgabe</th>
+            <th>Status</th>
+            <th>Aktionen</th>
+          </tr>
+        </thead>
 
-<tbody>
-  <tr v-for="t in tasks" :key="t.id">
-    <td>{{ t.user?.name || "-" }}</td>
-    <td>{{ t.task }}</td>
-    <td>
-      <span v-if="t.status === 'done'" class="badge bg-success">✅ Erledigt</span>
-      <span v-else class="badge bg-warning text-dark">⚠️ Offen</span>
-    </td>
-    <td>
-      <button
-        v-if="t.status !== 'done'"
-        class="btn btn-success btn-sm me-2"
-        @click="markDone(t.id)"
-      >
-        ✅ Fertig
-      </button>
-      <button
-        class="btn btn-danger btn-sm"
-        @click="deleteTask(t.id)"
-      >
-        ❌ Löschen
-      </button>
-    </td>
-  </tr>
-</tbody>
+        <tbody>
+          <tr v-for="t in tasks" :key="t.id">
+            <td>{{ t.user?.name || "-" }}</td>
+            <td>{{ t.task }}</td>
+            <td>
+              <span v-if="t.status === 'done'" class="badge bg-success">✅ Erledigt</span>
+              <span v-else class="badge bg-warning text-dark">⚠️ Offen</span>
+            </td>
+            <td>
+              <button v-if="t.status !== 'done'" class="btn btn-success btn-sm me-2" @click="markDone(t.id)">
+                ✅ Fertig
+              </button>
+              <button class="btn btn-danger btn-sm" @click="deleteTask(t.id)">
+                ❌ Löschen
+              </button>
+            </td>
+          </tr>
+        </tbody>
 
-</table>
+      </table>
 
     </div>
     <div v-else-if="!loading" class="alert alert-secondary">
@@ -154,4 +140,3 @@ const deleteTask = async (id) => {
 
 onMounted(loadWorkflow)
 </script>
-

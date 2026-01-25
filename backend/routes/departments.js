@@ -12,7 +12,7 @@ router.get("/", auth(), async (req, res) => {
     res.json(departments.map(d => ({ id: d._id, name: d.name })));
   } catch (err) {
     console.error("Fehler beim Laden der Abteilungen:", err);
-    res.status(500).json({ error: "DB error" });
+    res.status(500).json({ error: "Datenbankfehler" });
   }
 });
 
@@ -29,7 +29,7 @@ router.post("/", auth("admin"), async (req, res) => {
     res.status(201).json({ message: "Abteilung erfolgreich angelegt", department: { id: newDept._id, name: newDept.name } });
   } catch (err) {
     console.error("Fehler beim Hinzufügen:", err);
-    res.status(500).json({ error: "DB error" });
+    res.status(500).json({ error: "Datenbankfehler" });
   }
 });
 
@@ -46,7 +46,7 @@ router.put("/:id", auth("admin"), async (req, res) => {
     res.json({ id: updated._id, name: updated.name });
   } catch (err) {
     console.error("Fehler beim Bearbeiten:", err);
-    res.status(500).json({ error: "DB error" });
+    res.status(500).json({ error: "Datenbankfehler" });
   }
 });
 
@@ -60,7 +60,7 @@ router.delete("/:id", auth("admin"), async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error("Fehler beim Löschen:", err);
-    res.status(500).json({ error: "DB error" });
+    res.status(500).json({ error: "Datenbankfehler" });
   }
 });
 

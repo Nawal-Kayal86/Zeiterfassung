@@ -1,6 +1,5 @@
 <template>
   <div class="container mt-4">
-    <h2 class="mb-4">💻 Terminal</h2>
 
     <!-- Ladeanzeige -->
     <div v-if="loading" class="alert alert-info">Logs werden geladen...</div>
@@ -19,9 +18,9 @@
         <tr v-for="log in logs" :key="log.id">
           <td>{{ formatDateTime(log.created_at) }}</td>
           <td>
-            <span v-if="log.level === 'info'">✅ info</span>
-            <span v-else-if="log.level === 'warn'">⚠️ warn</span>
-            <span v-else-if="log.level === 'error'">❌ error</span>
+            <span v-if="log.level === 'info'">✅ Info</span>
+            <span v-else-if="log.level === 'warn'">⚠️ Warnung</span>
+            <span v-else-if="log.level === 'error'">❌ Fehler</span>
           </td>
           <td>{{ log.message }}</td>
         </tr>
