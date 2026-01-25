@@ -6,8 +6,6 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { initDB } from './db.js';
 import { auth } from "./middleware/auth.js";
-import path from 'path';
-import { fileURLToPath } from 'url';
 
 // Routers
 import usersRouter from './routes/users.js';
@@ -19,19 +17,19 @@ import workflowRoutes from "./routes/workflow.routes.js";
 import leaveRequestsRoutes from "./routes/leaveRequests.js";
 import logsRouter from "./routes/logs.js";
 
-// Models (nur für Login/Auth benötigt hier direkter Zugriff, sonst via Router)
+// Models
 import User from './models/User.js';
 import WorkSession from './models/WorkSession.js';
 import Department from './models/Department.js';
 
 dotenv.config();
-await initDB(); // MongoDB verbinden
+await initDB();
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// --- API Routers ---
+// ================= API ROUTES =================
 app.use("/api/users", usersRouter);
 app.use("/api/departments", departmentsRouter);
 app.use("/api/workSessions", workSessionsRouter);
@@ -41,12 +39,13 @@ app.use("/api/workflow", workflowRoutes);
 app.use("/api/leave-requests", leaveRequestsRoutes);
 app.use("/api/logs", logsRouter);
 
-// --- Auth Routes (bleiben vorerst hier oder könnten in auth.routes.js) ---
+// ================= AUTH =================
 
-// 🟢 Login
+// Login
 app.post("/api/login", async (req, res) => {
   try {
     const { name, password } = req.body;
+
     const user = await User.findOne({ name });
     if (!user) return res.status(401).json({ error: "Login fehlgeschlagen" });
 
@@ -60,20 +59,20 @@ app.post("/api/login", async (req, res) => {
     );
 
     res.json({ token, user: { id: user._id, name: user.name, role: user.role } });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server Error" });
   }
 });
 
-// 🟢 Aktueller User
+// Current user
 app.get("/api/me", auth(), (req, res) => {
   res.json({ user: req.user });
 });
 
-// --- Legacy / Spezielle Routes (sollten idealerweise in Router moved werden) ---
+// ================= ADMIN =================
 
-// 🟢 Admin: alle User + Sessions (Erweiterte User-Info)
 app.get("/api/admin/users", auth("admin"), async (req, res) => {
   try {
     const list = await User.aggregate([
@@ -94,11 +93,14 @@ app.get("/api/admin/users", auth("admin"), async (req, res) => {
   }
 });
 
-// 🟢 Anwesenheit (Dashboard Übersicht)
+// Attendance
 app.get("/api/attendance", auth(), async (req, res) => {
   try {
     const query = req.user.role === "admin" ? {} : { user_id: req.user.id };
-    const sessions = await WorkSession.find(query).populate("user_id", "name role department").sort({ start_time: -1 });
+    const sessions = await WorkSession.find(query)
+      .populate("user_id", "name role department")
+      .sort({ start_time: -1 });
+
     res.json(sessions);
   } catch (err) {
     console.error(err);
@@ -106,7 +108,7 @@ app.get("/api/attendance", auth(), async (req, res) => {
   }
 });
 
-// 🟢 Berichte / Statistiken
+// Reports
 app.get("/api/reports", auth("admin"), async (req, res) => {
   try {
     const userCount = await User.countDocuments();
@@ -147,9 +149,7 @@ app.get("/api/reports", auth("admin"), async (req, res) => {
       const dept = h._id || "Ohne Abteilung";
       const hours = h.totalMillis / (1000 * 60 * 60);
 
-      if (!reportMap[dept]) {
-        reportMap[dept] = { department: dept, count: 0, hours: 0 };
-      }
+      if (!reportMap[dept]) reportMap[dept] = { department: dept, count: 0, hours: 0 };
       reportMap[dept].hours = hours;
       totalHoursAll += hours;
     });
@@ -167,19 +167,11 @@ app.get("/api/reports", auth("admin"), async (req, res) => {
   }
 });
 
-
-// -------------- Vue Frontend serven -----------------
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-// Alle nicht-API-Routen auf index.html umleiten (Vue Router)
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-  }
+// ================= HEALTH CHECK =================
+app.get("/", (req, res) => {
+  res.send("API läuft 🚀");
 });
 
-// Server starten
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Backend läuft auf http://localhost:${PORT}`));
+// ================= START SERVER =================
+const PORT = process.env.PORT;
+app.listen(PORT, () => console.log(`Backend läuft auf Port ${PORT}`));
