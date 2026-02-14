@@ -60,7 +60,9 @@ router.post("/stop", auth(), async (req, res) => {
       });
     }
 
+    const { pause } = req.body;
     openSession.end_time = endTime;
+    if (pause) openSession.pause = pause;
     await openSession.save();
 
     res.json({
@@ -222,6 +224,7 @@ router.get("/", auth(), async (req, res) => {
         start: start ? start.toISOString() : null,
         end: end ? end.toISOString() : null,
         date_today: s.date_today,
+        pause: s.pause || "0:00"
       };
     });
 

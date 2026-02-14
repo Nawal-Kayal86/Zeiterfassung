@@ -5,8 +5,8 @@ import Login from './views/Login.vue'
 import Admin from './views/Admin.vue'
 import Billing from './views/Billing.vue'
 import NewUser from './views/NewUser.vue'
-import Kalender from './views/Kalender.vue'   
-import Attendance from './views/Attendance.vue'   
+import Kalender from './views/Kalender.vue'
+
 import Errors from './views/Errors.vue'
 import Terminal from './views/Terminal.vue'
 import Workflow from './views/Workflow.vue'
@@ -14,7 +14,7 @@ import Schedule from './views/Dienstplan.vue'
 import Reports from './views/Berichte.vue'
 import Departments from './views/DepartmentsAdmin.vue'
 import Config from './views/Config.vue'
-import LeaveRequest  from "./views/LeaveRequest.vue"  
+import LeaveRequest from "./views/LeaveRequest.vue"
 import LeaveApproval from "./views/LeaveApproval.vue"
 
 const routes = [
@@ -27,22 +27,22 @@ const routes = [
     component: Layout,
     meta: { requiresAuth: true },
     children: [
-      { path: '', component: Dashboard, meta: { title: '📊 Dashboard' } },
-      { path: 'dashboard', component: Dashboard, meta: { title: '📊 Dashboard' } },
-      { path: 'admin', component: Admin, meta: { title: '👨‍💼 Admin' } },
-      { path: 'billing', component: Billing, meta: { title: '🧾 Abrechnungsliste' } },
-      { path: 'newuser', component: NewUser, meta: { requiresAuth: true, requiresAdmin: true, title: '👤 User-Verwaltung' } },
-      { path: 'kalender', component: Kalender, meta: { title: '📅 Kalender' } },
-      { path: 'attendance', component: Attendance, meta: { title: '👥 Anwesenheitsübersicht' } },
-      { path: 'errors', component: Errors, meta: { title: '⚠️ Fehlerprotokoll' } },
-      { path: 'terminal', component: Terminal, meta: { title: '💻 Terminal' } },
-      { path: 'workflow', component: Workflow, meta: { title: '🔄 Workflow' } },
-      { path: "leave-request", component: LeaveRequest, meta: { title: '🌴 Urlaubsantrag' } },
-      { path: "leave-approval", component: LeaveApproval, meta: { requiresAuth: true, requiresAdmin: true, title: '✅ Urlaubsfreigabe' } },
-      { path: 'schedule', component: Schedule, meta: { title: '📅 Dienstplan' } },
-      { path: 'reports', component: Reports, meta: { title: '📈 Berichte' } },
-      { path: 'departments', component: Departments, meta: { requiresAuth: true, requiresAdmin: true, title: '🏢 Abteilungen' } },
-      { path: 'config', component: Config, meta: { requiresAuth: true, requiresAdmin: true, title: '⚙️ Hardware / Webserver' } }
+      { path: '', component: Dashboard, meta: { title: 'Dashboard', icon: 'bi-clock-history' } },
+      { path: 'dashboard', component: Dashboard, meta: { title: 'Dashboard', icon: 'bi-clock-history' } },
+      { path: 'admin', component: Admin, meta: { title: 'Admin', icon: 'bi-person-badge-fill' } },
+      { path: 'billing', component: Billing, meta: { title: 'Abrechnungsliste', icon: 'bi-receipt-cutoff' } },
+      { path: 'newuser', component: NewUser, meta: { requiresAuth: true, requiresAdmin: true, title: 'User-Verwaltung', icon: 'bi-people-fill' } },
+      { path: 'kalender', component: Kalender, meta: { title: 'Kalender', icon: 'bi-calendar3-event-fill' } },
+
+      { path: 'errors', component: Errors, meta: { title: 'Fehlerprotokoll', icon: 'bi-exclamation-triangle-fill' } },
+      { path: 'terminal', component: Terminal, meta: { title: 'Terminal', icon: 'bi-pc-display-horizontal' } },
+      { path: 'workflow', component: Workflow, meta: { title: 'Arzttermine', icon: 'bi-hospital' } },
+      { path: "leave-request", component: LeaveRequest, meta: { title: 'Urlaubsantrag', icon: 'bi-sun-fill' } },
+      { path: "leave-approval", component: LeaveApproval, meta: { requiresAuth: true, requiresAdmin: true, title: 'Urlaubsfreigabe', icon: 'bi-clipboard2-check' } },
+      { path: 'schedule', component: Schedule, meta: { title: 'Dienstplan', icon: 'bi-calendar-date-fill' } },
+      { path: 'reports', component: Reports, meta: { title: 'Berichte', icon: 'bi-graph-up-arrow' } },
+      { path: 'departments', component: Departments, meta: { requiresAuth: true, requiresAdmin: true, title: 'Abteilungen', icon: 'bi-building-fill' } },
+      { path: 'config', component: Config, meta: { requiresAuth: true, requiresAdmin: true, title: 'Feiertage & Ferien', icon: 'bi-calendar-range' } }
     ]
   }
 ]

@@ -1,42 +1,94 @@
 <template>
-  <div class="config">
+  <div class="container-fluid py-4 px-md-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="fw-bold text-dark mb-1">Feiertage & Ferien</h2>
+        <p class="text-muted">Verwalten Sie Feiertage und Betriebsferien für das System.</p>
+      </div>
+      <div class="bg-white p-2 rounded-3 shadow-sm d-flex align-items-center gap-3 border">
+        <label class="mb-0 fw-bold small text-muted text-uppercase">Jahr wählen:</label>
+        <select v-model="year" @change="loadData" class="form-select form-select-sm border-0 fw-bold"
+          style="width: 100px; background: #f8fafc;">
+          <option v-for="y in years" :key="y">{{ y }}</option>
+        </select>
+      </div>
+    </div>
 
-    <label>
-      Jahr:
-      <select v-model="year" @change="loadData">
-        <option v-for="y in years" :key="y">{{ y }}</option>
-      </select>
-    </label>
+    <div class="row g-4">
+      <!-- Feiertage Sektion -->
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+          <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-calendar-event text-indigo"></i> Feiertage
+            </h5>
+            <button class="btn btn-sm btn-outline-indigo" @click="fetchFromInternet">
+              <i class="bi bi-globe"></i> Aus Internet laden
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="holiday-list custom-scrollbar pe-2" style="max-height: 500px; overflow-y: auto;">
+              <div v-for="(h, index) in holidays" :key="index"
+                class="holiday-item p-2 mb-2 rounded-3 border d-flex align-items-center gap-2 transition-all"
+                :class="{ 'border-danger bg-danger-soft': changedHolidays.includes(h.date) }">
+                <input v-model="h.date" type="date" class="form-control form-control-sm border-0 bg-light"
+                  style="width: 140px;" />
+                <input v-model="h.name"
+                  class="form-control form-control-sm border-0 bg-transparent flex-grow-1 fw-semibold"
+                  placeholder="Name des Feiertags" />
+                <button class="btn btn-sm text-danger hover-bg-danger-soft border-0" @click="removeHoliday(index)">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </div>
+            <button class="btn btn-indigo-soft w-100 mt-3 fw-bold" @click="addHoliday">
+              <i class="bi bi-plus-lg"></i> Feiertag hinzufügen
+            </button>
+          </div>
+        </div>
+      </div>
 
-    <button class="fetch-btn" @click="fetchFromInternet">🌐 Feiertage vom Internet laden</button>
+      <!-- Ferien Sektion -->
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0 h-100 bg-white">
+          <div class="card-header bg-white py-3 border-0">
+            <h5 class="fw-bold mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-calendar-range text-indigo"></i> Betriebsferien
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="ferien-list custom-scrollbar pe-2" style="max-height: 500px; overflow-y: auto;">
+              <div v-for="(f, index) in ferien" :key="index"
+                class="ferien-item p-3 mb-3 rounded-3 border bg-light-soft transition-all">
+                <div class="d-flex justify-content-between mb-2">
+                  <input v-model="f.name" class="form-control form-control-sm border-0 bg-transparent fw-bold fs-6 p-0"
+                    placeholder="Ferien Bezeichnung" />
+                  <button class="btn btn-sm text-danger border-0 p-0" @click="removeFerien(index)">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <input type="date" v-model="f.start" class="form-control form-control-sm border-0 shadow-sm" />
+                  <i class="bi bi-arrow-right text-muted"></i>
+                  <input type="date" v-model="f.end" class="form-control form-control-sm border-0 shadow-sm" />
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-indigo-soft w-100 mt-3 fw-bold" @click="addFerien">
+              <i class="bi bi-plus-lg"></i> Ferien hinzufügen
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <section>
-      <h3>Feiertage</h3>
-      <ul>
-        <li v-for="(h, index) in holidays" :key="index"
-          :style="{ color: changedHolidays.includes(h.date) ? 'red' : 'black' }">
-          <input v-model="h.name" /> - {{ h.date }}
-          <button @click="removeHoliday(index)">✖</button>
-          <span v-if="changedHolidays.includes(h.date)"> (neu/geändert)</span>
-        </li>
-      </ul>
-      <button @click="addHoliday">+ Feiertag hinzufügen</button>
-    </section>
-
-    <section>
-      <h3>Ferien</h3>
-      <ul>
-        <li v-for="(f, index) in ferien" :key="index">
-          <input v-model="f.name" />:
-          <input type="date" v-model="f.start" /> →
-          <input type="date" v-model="f.end" />
-          <button @click="removeFerien(index)">✖</button>
-        </li>
-      </ul>
-      <button @click="addFerien">+ Ferien hinzufügen</button>
-    </section>
-
-    <button class="save-btn" @click="saveData">Speichern / Updaten</button>
+    <!-- Save Button Floating -->
+    <div class="fixed-bottom p-4 d-flex justify-content-end pointer-events-none">
+      <button class="btn btn-indigo shadow-lg px-5 py-3 rounded-pill fw-bold pointer-events-auto transition-3d"
+        @click="saveData">
+        <i class="bi bi-cloud-check-fill fs-5 me-2"></i> Alles Speichern / Updaten
+      </button>
+    </div>
   </div>
 </template>
 
@@ -133,48 +185,71 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.config {
-  padding: 20px;
-  max-width: 700px;
-  border: 1px solid #ccc;
+.text-indigo {
+  color: #6366f1 !important;
 }
 
-label {
-  display: block;
-  margin-bottom: 12px;
-  font-weight: bold;
+.btn-indigo {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+  border: none;
 }
 
-h3 {
-  margin-top: 16px;
+.btn-indigo-soft {
+  background-color: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  border: 1px dashed rgba(99, 102, 241, 0.4);
 }
 
-ul {
-  list-style: none;
-  padding: 0;
+.btn-indigo-soft:hover {
+  background-color: rgba(99, 102, 241, 0.15);
 }
 
-li {
-  margin-bottom: 6px;
+.bg-light-soft {
+  background-color: #f8fafc;
 }
 
-input[type="text"],
-input[type="date"] {
-  margin-right: 6px;
+.bg-danger-soft {
+  background-color: rgba(220, 53, 69, 0.05);
 }
 
-button {
-  margin-left: 6px;
+.holiday-item:hover,
+.ferien-item:hover {
+  border-color: #6366f1 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.save-btn,
-.fetch-btn {
-  margin-top: 20px;
-  padding: 8px 16px;
-  font-weight: bold;
+.transition-all {
+  transition: all 0.2s ease-in-out;
 }
 
-.fetch-btn {
-  background-color: #eef;
+.transition-3d:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3) !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+.pointer-events-none {
+  pointer-events: none;
+}
+
+.pointer-events-auto {
+  pointer-events: auto;
 }
 </style>

@@ -25,7 +25,8 @@
   right: -22px;
   width: 45px;
   height: 45px;
-  background: #0d6efd;
+  background: #6366f1;
+  /* Indigo */
   color: white;
   border-radius: 50%;
   display: flex;
@@ -40,10 +41,11 @@
 }
 
 .sidebar-toggle:hover {
-  background: #0b5ed7;
+  background: #4f46e5;
+  /* Darker Indigo */
   right: -30px;
-  transform: translateY(-50%) scale(1.2);
-  box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
 }
 
 /* ====== Inhalt ====== */
@@ -95,7 +97,8 @@
 }
 
 .user-info strong {
-  color: #0d6efd;
+  color: #6366f1;
+  /* Indigo */
 }
 
 /* ====== Navigationselemente ====== */
@@ -113,30 +116,35 @@
 }
 
 .nav-item i {
-  font-size: 1.2rem;
-  color: #6c757d;
-  transition: color 0.2s ease;
+  font-size: 1.4rem;
+  color: #495057;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
 }
 
 /* Hover & Active States */
 .nav-item:hover {
-  background-color: #eef4ff;
+  background-color: #f0f7ff;
   color: #0d6efd;
-  transform: translateX(2px);
+  transform: translateX(5px);
 }
 
 .nav-item:hover i {
   color: #0d6efd;
+  transform: scale(1.1);
 }
 
 .router-link-active {
-  background-color: #0d6efd !important;
-  color: #fff !important;
-  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2);
+  background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 .router-link-active i {
-  color: #fff !important;
+  color: #ffffff !important;
 }
 
 /* ====== Logout-Link ====== */
@@ -176,6 +184,39 @@
   color: #fff !important;
 }
 
+/* ====== Page Title Section ====== */
+.page-title-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 4px 12px;
+}
+
+.title-icon-wrapper {
+  background: #6366f1;
+  /* Indigo */
+  color: #ffffff;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 1.3rem;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+}
+
+.title-text-main {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  /* Back to normal case for cleaner look */
+}
+
+
+
 /* ====== Responsive ====== */
 @media (max-width: 768px) {
   .sidebar {
@@ -200,12 +241,17 @@
         </div>
 
         <!-- Centered Page Title -->
-        <div class="flex-grow-1 text-center">
-          <h4 class="text-white mb-0">{{ route.meta.title || 'Zeiterfassung' }}</h4>
+        <div class="flex-grow-1 d-flex justify-content-center">
+          <div class="page-title-container">
+            <div v-if="route.meta.icon" class="title-icon-wrapper">
+              <i :class="route.meta.icon"></i>
+            </div>
+            <span class="title-text-main">{{ route.meta.title || 'Zeiterfassung' }}</span>
+          </div>
         </div>
 
-       
-        
+
+
       </div>
     </nav>
 
@@ -224,7 +270,7 @@
 
         <li>
           <RouterLink to="/dashboard" class="nav-item" exact-active-class="router-link-exact-active">
-            <i class="bi bi-speedometer2"></i> Dashboard
+            <i class="bi bi-clock-history text-indigo"></i> Dashboard
           </RouterLink>
         </li>
 
@@ -260,7 +306,7 @@
 
         <li v-if="currentuser?.role === 'admin'">
           <RouterLink to="/leave-approval" class="nav-item">
-            <i class="bi bi-check2-square"></i> Urlaubsfreigabe
+            <i class="bi bi-clipboard2-check"></i> Urlaubsfreigabe
           </RouterLink>
         </li>
 
@@ -270,11 +316,7 @@
           </RouterLink>
         </li>
 
-        <li>
-          <RouterLink to="/attendance" class="nav-item">
-            <i class="bi bi-people"></i> Anwesenheitsübersicht
-          </RouterLink>
-        </li>
+
 
         <li>
           <RouterLink to="/terminal" class="nav-item">
@@ -284,7 +326,7 @@
 
         <li>
           <RouterLink to="/workflow" class="nav-item">
-            <i class="bi bi-diagram-3"></i> Workflow
+            <i class="bi bi-hospital"></i> Arzttermine
           </RouterLink>
         </li>
 
@@ -296,13 +338,13 @@
 
         <li>
           <RouterLink to="/reports" class="nav-item">
-            <i class="bi bi-bar-chart"></i> Berichte
+            <i class="bi bi-graph-up-arrow"></i> Berichte
           </RouterLink>
         </li>
 
         <li v-if="currentuser?.role === 'admin'">
           <RouterLink to="/config" class="nav-item">
-            <i class="bi bi-gear"></i> Hardware / Webserver
+            <i class="bi bi-calendar-heart"></i> Feiertage & Ferien
           </RouterLink>
         </li>
 
