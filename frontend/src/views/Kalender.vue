@@ -1,9 +1,22 @@
 <template>
   <div class="calendar-container">
-
+    <!-- Page Title -->
+    <div class="page-title-container">
+      <div class="title-icon-wrapper">
+        <i class="bi bi-calendar-check-fill"></i>
+      </div>
+      <span class="title-text-main">Kalender</span>
+    </div>
 
     <!-- Header Navigation -->
     <div class="calendar-header">
+      <!-- Search Input - Stylish -->
+      <div class="position-relative me-3 search-wrapper">
+        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-primary opacity-75"></i>
+        <input type="text" class="form-control rounded-pill ps-5 border-0 shadow-sm bg-white search-input"
+          placeholder="Suchen..." v-model="searchQuery">
+      </div>
+
       <button @click="prevMonth" class="nav-btn">‹</button>
       <select v-model="yearRef" @change="loadData" class="year-select">
         <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
@@ -28,6 +41,7 @@
           leave: day.hasLeave && !day.holiday && !day.isFerien && !day.isWeekend,
           work: day.hasWork && !day.holiday && !day.isFerien && !day.isWeekend,
           selected: selectedDate === day.key,
+          'search-match': day.isMatch,
           'other-month': !day.isCurrentMonth
         }" :title="day.tooltip" @click="selectDay(day)">
           <div class="day-number">{{ day.day }}</div>
@@ -131,7 +145,7 @@
 
 
 <script setup>
-import { ref, computed, onMounted } from "vue"
+import { ref, computed, onMounted, watch } from "vue"
 import api from "@/api"
 import { formatTime, calcDuration } from "@/utils/time"
 import * as bootstrap from "bootstrap"
@@ -178,9 +192,39 @@ const users = ref([])
 const selectedDate = ref(null)
 const dayDetails = ref([])
 const dayLeaves = ref([])
+const searchQuery = ref("")
 
 const editingId = ref(null)
 const editForm = ref({ start: "", end: "" })
+
+// Auto-navigate to date when typing in search
+// Auto-navigate to date when typing in search
+watch(searchQuery, (newVal) => {
+  if (!newVal) return
+
+  // Remove potential day names (e.g. "Di ", "Montag ") to find the date part
+  // Format: (optional text) + D.M.YYYY (or similar separators)
+  const clean = newVal.replace(/^[a-zA-ZäöüÄÖÜß]{2,}\s+/, "").trim()
+
+  // Regex for D.M.YYYY or D/M/YYYY or D-M-YYYY
+  const datePattern = /(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/
+  const match = clean.match(datePattern) || newVal.match(datePattern)
+
+  if (match) {
+    const d = parseInt(match[1])
+    const m = parseInt(match[2])
+    const y = parseInt(match[3])
+
+    if (m >= 1 && m <= 12) {
+      // Only reload if month/year actually changes
+      if (monthRef.value !== m - 1 || yearRef.value !== y) {
+        monthRef.value = m - 1
+        yearRef.value = y
+        loadData()
+      }
+    }
+  }
+})
 
 /* ------------------ computed ------------------ */
 const monthName = computed(() =>
@@ -204,15 +248,30 @@ const calendar = computed(() => {
     for (let i = 0; i < 7; i++) {
       const key = toLocalKey(date)
 
+      // Filter by Search Query first
+      const term = searchQuery.value.toLowerCase()
+
+      // Formatted date strings for search
+      const dateStr = date.toLocaleDateString("de-DE") // e.g. "15.2.2026"
+      const dayName = date.toLocaleDateString("de-DE", { weekday: 'long' }) // e.g. "Montag"
+      const matchDay = !term || dateStr.includes(term) || dayName.toLowerCase().includes(term)
+
       const sessions = workSessions.value.filter(s => {
         const sDate = s.start ? s.start.split('T')[0] : s.date_today
-        return sDate === key
+        if (sDate !== key) return false
+        if (matchDay) return true
+        const name = s.name || s.user_id?.name || ""
+        return name.toLowerCase().includes(term)
       })
 
       const leaves = leaveRequests.value.filter(l => {
         const from = l.from.split('T')[0]
         const to = l.to.split('T')[0]
-        return key >= from && key <= to
+        const inRange = key >= from && key <= to
+        if (!inRange) return false
+        if (matchDay) return true
+        const name = l.user_id?.name || ""
+        return name.toLowerCase().includes(term)
       })
 
       // Check for Ferien (Red)
@@ -222,9 +281,15 @@ const calendar = computed(() => {
 
       const isWeekend = [0, 6].includes(date.getDay())
 
+      // Determine if this day matches the search criteria directly
+      const isMatch = !!term && (dateStr.includes(term) || dayName.toLowerCase().includes(term))
+
       week.days.push({
         key,
         day: date.getDate(),
+        dayName,
+        fullDate: dateStr,
+        isMatch,
         isCurrentMonth: date.getMonth() === monthRef.value,
         isToday: key === todayKey,
         hasWork: sessions.length > 0,
@@ -616,5 +681,50 @@ td {
   .grid {
     grid-template-columns: 40px repeat(7, 100px);
   }
+}
+
+/* Page Title Styles - Copied & Adapted */
+.page-title-container {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+  /* Added spacing */
+}
+
+.title-icon-wrapper {
+  background: #6366f1;
+  color: #ffffff;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 1.3rem;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+}
+
+.title-text-main {
+  font-size: 1.5rem;
+  /* Slightly larger for page heading */
+  font-weight: 800;
+  color: #333;
+  /* Dark color for light background */
+  letter-spacing: 0.5px;
+}
+
+.day.search-match {
+  background-color: #e0e7ff !important;
+  color: #312e81;
+}
+
+.day-match-info {
+  font-size: 0.8rem;
+  text-align: center;
+  color: #4338ca;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 2px;
+  border-radius: 4px;
 }
 </style>

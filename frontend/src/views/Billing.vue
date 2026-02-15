@@ -1,85 +1,102 @@
 <template>
-  <div class="container mt-5">
+  <div class="container py-4">
 
-    <div class="card p-3 mb-4">
-      <div class="row g-3">
-        <div class="col-md-3">
-          <label>Startdatum:</label>
-          <input type="date" class="form-control" v-model="startDate" />
-        </div>
-        <div class="col-md-3">
-          <label>Endedatum:</label>
-          <input type="date" class="form-control" v-model="endDate" />
-        </div>
-        <div v-if="user?.role === 'admin'" class="col-md-3">
-          <label>Mitarbeiter:</label>
-          <select class="form-select" v-model="employee">
-            <option value="">Alle</option>
-            <option v-for="u in usernames" :key="u.id" :value="u.name">{{ u.name }}</option>
-          </select>
-        </div>
-        <div v-if="user?.role === 'admin'" class="col-md-3">
-          <label>Abteilung:</label>
-          <select class="form-select" v-model="department">
-            <option value="">Alle</option>
-            <option v-for="d in departments" :key="d.id" :value="d.name">{{ d.name }}</option>
-          </select>
-        </div>
-        <div class="col-12 d-flex justify-content-end mt-3">
-          <button class="btn btn-primary me-2" @click="fetchData">Abfrage</button>
-          <button class="btn btn-secondary" @click="clearFilters">Zurücksetzen</button>
+    <!-- Filter Card -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h5 class="mb-3">🔎 Filter & Zeitraum</h5>
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Startdatum</label>
+            <input type="date" class="form-control" v-model="startDate" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Endedatum</label>
+            <input type="date" class="form-control" v-model="endDate" />
+          </div>
+          <div v-if="user?.role === 'admin'" class="col-md-3">
+            <label class="form-label">Mitarbeiter</label>
+            <select class="form-select" v-model="employee">
+              <option value="">Alle</option>
+              <option v-for="u in usernames" :key="u.id" :value="u.name">{{ u.name }}</option>
+            </select>
+          </div>
+          <div v-if="user?.role === 'admin'" class="col-md-3">
+            <label class="form-label">Abteilung</label>
+            <select class="form-select" v-model="department">
+              <option value="">Alle</option>
+              <option v-for="d in departments" :key="d.id" :value="d.name">{{ d.name }}</option>
+            </select>
+          </div>
+          <div class="col-12 d-flex justify-content-end mt-3">
+            <button class="btn btn-primary me-2" @click="fetchData">
+              <i class="bi bi-search me-1"></i> Abfrage
+            </button>
+            <button class="btn btn-secondary" @click="clearFilters">
+              <i class="bi bi-arrow-counterclockwise me-1"></i> Zurücksetzen
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <table class="table table-striped table-hover table-bordered shadow-sm">
-      <thead class="table-dark">
-        <tr>
-          <th>Datum, Tag</th>
-          <th>Stempelungen</th>
-          <th>Bewertung (Soll)</th>
-          <th>Tatsächliche Arbeit</th>
-          <th>Erwartete Arbeit</th>
-          <th>1:1 Mehr/Weniger</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(group, key) in groupedData" :key="key" :class="group.rowClass">
-          <td class="fw-bold">
-            {{ group.dateDisplay }}
-            <span v-if="group.infoText" class="badge bg-secondary ms-1">{{ group.infoText }}</span>
-          </td>
-          <td>
-            <span v-if="group.intervals.length">
-              {{ group.intervals.join(', ') }}
-            </span>
-            <span v-else class="text-muted">–</span>
-          </td>
-          <td>
-            <span v-if="group.expectedHours > 0">07:45 - 16:30</span>
-            <span v-else>Frei</span>
-          </td>
-          <td :class="{ 'text-success fw-bold': group.totalHours > 0 }">
-            {{ formatHoursToTime(group.totalHours) }}
-          </td>
-          <td>{{ formatHoursToTime(group.expectedHours) }}</td>
-          <td :class="group.diff >= 0 ? 'text-success' : 'text-danger'">
-            {{ group.diff >= 0 ? '+' : '' }}{{ formatHoursToTime(group.diff) }}
-          </td>
-        </tr>
-      </tbody>
-      <tfoot class="table-group-divider fw-bold">
-        <tr class="table-secondary">
-          <td colspan="2">Gesamt</td>
-          <td>{{ formatHoursToTime(totals.expected) }}</td>
-          <td>{{ formatHoursToTime(totals.actual) }}</td>
-          <td>{{ formatHoursToTime(totals.expected) }}</td>
-          <td :class="totals.diff >= 0 ? 'text-success' : 'text-danger'">
-            {{ totals.diff >= 0 ? '+' : '' }}{{ formatHoursToTime(totals.diff) }}
-          </td>
-        </tr>
-      </tfoot>
-    </table>
+    <!-- Table Card -->
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold">📋 Abrechnungsübersicht</div>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Tag</th>
+              <th>Datum</th>
+              <th>Info</th>
+              <th>Stempelungen</th>
+              <th>Bewertung (Soll)</th>
+              <th>Tatsächliche Arbeit</th>
+              <th>Erwartete Arbeit</th>
+              <th>1:1 Mehr/Weniger</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(group, key) in groupedData" :key="key" :class="group.rowClass">
+              <td class="fw-bold">{{ group.dayDisplay }}</td>
+              <td>{{ group.dateOnlyDisplay }}</td>
+              <td>
+                <span v-if="group.infoText" class="badge bg-secondary">{{ group.infoText }}</span>
+              </td>
+              <td>
+                <span v-if="group.intervals.length">
+                  {{ group.intervals.join(', ') }}
+                </span>
+                <span v-else class="text-muted">–</span>
+              </td>
+              <td>
+                <span v-if="group.expectedHours > 0">07:45 - 16:30</span>
+                <span v-else>Frei</span>
+              </td>
+              <td :class="{ 'text-success fw-bold': group.totalHours > 0 }">
+                {{ formatHoursToTime(group.totalHours) }}
+              </td>
+              <td>{{ formatHoursToTime(group.expectedHours) }}</td>
+              <td :class="group.diff >= 0 ? 'text-success' : 'text-danger'">
+                {{ group.diff >= 0 ? '+' : '' }}{{ formatHoursToTime(group.diff) }}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot class="table-group-divider fw-bold">
+            <tr class="table-primary">
+              <td colspan="4">Gesamt</td>
+              <td>{{ formatHoursToTime(totals.expected) }}</td>
+              <td>{{ formatHoursToTime(totals.actual) }}</td>
+              <td>{{ formatHoursToTime(totals.expected) }}</td>
+              <td :class="totals.diff >= 0 ? 'text-success' : 'text-danger'">
+                {{ totals.diff >= 0 ? '+' : '' }}{{ formatHoursToTime(totals.diff) }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -111,7 +128,8 @@ export default {
       token: localStorage.getItem("token") || "",
       holidays: [],
       ferien: [],
-      leaves: []
+      leaves: [],
+      user: JSON.parse(localStorage.getItem("user")) || {}
     };
   },
 
@@ -131,12 +149,12 @@ export default {
       while (current <= end) {
         const d = new Date(current);
         const key = d.toISOString().split('T')[0]; // YYYY-MM-DD
-        const dateDisplay = d.toLocaleDateString("de-DE", {
+        const dateOnlyDisplay = d.toLocaleDateString("de-DE", {
           day: '2-digit',
           month: '2-digit',
-          year: 'numeric',
-          weekday: 'short'
+          year: 'numeric'
         });
+        const dayDisplay = d.toLocaleDateString("de-DE", { weekday: 'long' });
 
         const dayOfWeek = d.getDay(); // 0=Sun, 6=Sat
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
@@ -176,7 +194,8 @@ export default {
         }
 
         grouped[key] = {
-          dateDisplay,
+          dayDisplay,
+          dateOnlyDisplay,
           intervals: [],
           totalHours: 0,
           expectedHours: expected,
@@ -294,8 +313,4 @@ export default {
     }
   }
 };
-</script>
-
-<script setup>
-const user = JSON.parse(localStorage.getItem("user")) || null;
 </script>

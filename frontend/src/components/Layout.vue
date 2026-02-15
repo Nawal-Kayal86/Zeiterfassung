@@ -264,25 +264,26 @@
 
       <ul class="nav-list">
         <li class="user-info">
-          <p>Willkommen, <strong>{{ currentuser?.name }}</strong></p>
-          <p>Rolle: <strong>{{ currentuser?.role }}</strong></p>
+          <p class="mb-2">Willkommen, <strong>{{ currentuser?.name }}</strong></p>
+
+
         </li>
 
         <li>
           <RouterLink to="/dashboard" class="nav-item" exact-active-class="router-link-exact-active">
-            <i class="bi bi-clock-history text-indigo"></i> Dashboard
+            <i class="bi bi-clock"></i> Dashboard
           </RouterLink>
         </li>
 
         <li>
           <RouterLink to="/kalender" class="nav-item">
-            <i class="bi bi-calendar-event"></i> Kalender
+            <i class="bi bi-calendar"></i> Kalender
           </RouterLink>
         </li>
 
         <li>
           <RouterLink to="/billing" class="nav-item">
-            <i class="bi bi-receipt"></i> Abrechnungsliste
+            <i class="bi bi-file-text"></i> Abrechnungsliste
           </RouterLink>
         </li>
 
@@ -300,7 +301,7 @@
 
         <li>
           <RouterLink to="/leave-request" class="nav-item">
-            <i class="bi bi-sun"></i> Urlaubsantrag
+            <i class="bi bi-sun"></i> Urlaubskonto
           </RouterLink>
         </li>
 

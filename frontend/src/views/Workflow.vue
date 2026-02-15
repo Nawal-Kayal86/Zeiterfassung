@@ -10,21 +10,27 @@
       </h5>
       <form @submit.prevent="addTask">
         <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label small fw-bold text-muted">BEZEICHNUNG / GRUND</label>
-            <input v-model="newTask" type="text" class="form-control" placeholder="z.B. Zahnarzt, Vorsorge..."
-              required />
+          <div class="col-md-3">
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted small fw-bold">GRUND</span>
+              <input v-model="newTask" type="text" class="form-control" placeholder="Termin" required />
+            </div>
           </div>
           <div class="col-md-3">
-            <label class="form-label small fw-bold text-muted">STATUS</label>
-            <select v-model="newStatus" class="form-select">
-              <option value="open">Geplant</option>
-              <option value="done">Wahrgenommen</option>
-            </select>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted small fw-bold">VON</span>
+              <input v-model="startTime" type="time" class="form-control" required />
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted small fw-bold">BIS</span>
+              <input v-model="endTime" type="time" class="form-control" required />
+            </div>
           </div>
           <div class="col-md-3 d-flex align-items-end">
             <button class="btn btn-indigo w-100 py-2 shadow-sm fw-bold" type="submit">
-              <i class="bi bi-calendar-plus"></i> Termin speichern
+              <i class="bi bi-calendar-plus"></i> Speichern
             </button>
           </div>
         </div>
@@ -91,8 +97,10 @@ import api from "../api"
 const tasks = ref([])
 const loading = ref(true)
 const error = ref("")
-const newTask = ref("")
-const newStatus = ref("open")
+const newTask = ref("Termin")
+// Removed newStatus
+const startTime = ref("")
+const endTime = ref("")
 
 // user
 const user = JSON.parse(localStorage.getItem("user"))
@@ -114,13 +122,43 @@ const loadWorkflow = async () => {
 // ➕ Neue Aufgabe hinzufügen
 const addTask = async () => {
   try {
+    if (!startTime.value || !endTime.value) {
+      alert("Bitte Start- und Endzeit angeben!")
+      return
+    }
+
+    // 2-Stunden-Validierung
+    const startParts = startTime.value.split(":").map(Number)
+    const endParts = endTime.value.split(":").map(Number)
+
+    // Convert to minutes since midnight
+    const startMins = startParts[0] * 60 + startParts[1]
+    const endMins = endParts[0] * 60 + endParts[1]
+
+    let duration = endMins - startMins
+    if (duration < 0) duration += 24 * 60 // Handle overnight if needed, though usually same day
+
+    if (duration > 180) {
+      alert("Der Termin darf maximal 3 Stunden dauern!")
+      return
+    }
+
+    if (duration <= 0) {
+      alert("Endzeit muss nach der Startzeit liegen!")
+      return
+    }
+
+    const taskWithTime = `${newTask.value} (${startTime.value} - ${endTime.value})`
+
     await api.post("/workflow", {
-      task: newTask.value,
-      status: newStatus.value
+      task: taskWithTime,
+      status: "open" // Default to open
     })
 
-    newTask.value = ""
-    newStatus.value = "open"
+    newTask.value = "Termin"
+    // Removed newStatus reset
+    startTime.value = ""
+    endTime.value = ""
     await loadWorkflow()
   } catch (err) {
     alert(
@@ -161,6 +199,11 @@ onMounted(loadWorkflow)
   border: none;
 }
 
+.btn-indigo:hover {
+  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
 .bg-success-soft {
   background-color: rgba(112, 174, 145, 0.1);
 }
@@ -175,5 +218,14 @@ onMounted(loadWorkflow)
 
 .border-success-subtle {
   border-color: rgba(112, 174, 145, 0.3) !important;
+}
+
+.btn {
+  transition: all 0.2s ease-in-out;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 </style>

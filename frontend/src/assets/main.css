@@ -1,3 +1,45 @@
+/* Global Color Overrides (Indigo like Toggle) */
+:root {
+  --bs-primary: #6366f1;
+  --bs-primary-rgb: 99, 102, 241;
+  --bs-link-color: #6366f1;
+  --bs-link-hover-color: #4f46e5;
+}
+
+.btn-primary {
+  background-color: #6366f1 !important;
+  border-color: #6366f1 !important;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+  background-color: #4f46e5 !important;
+  border-color: #4f46e5 !important;
+}
+
+.btn-outline-primary {
+  color: #6366f1 !important;
+  border-color: #6366f1 !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: #6366f1 !important;
+  color: #fff !important;
+}
+
+.bg-primary {
+  background-color: #6366f1 !important;
+}
+
+.text-primary {
+  color: #6366f1 !important;
+}
+
+.table-primary {
+  --bs-table-bg: #e0e7ff;
+  --bs-table-border-color: #c7d2fe;
+  color: #312e81;
+}
+
 /* Sidebar */
 .sidebar {
   height: 100vh;
@@ -17,8 +59,8 @@
   width: 100%;
   padding: 12px 14px;          /* mehr Innenabstand */
   margin-bottom: 12px;         /* mehr Abstand zwischen Buttons */
-  border: 2px solid #007bff;
-  color: #007bff;
+  border: 2px solid #6366f1;   /* New Color */
+  color: #6366f1;              /* New Color */
   background-color: white;
   border-radius: 6px;
   font-weight: 500;
@@ -28,7 +70,7 @@
 }
 
 .sidebar-btn:hover {
-  background-color: #007bff;
+  background-color: #6366f1;   /* New Color */
   color: white;
 }
 
