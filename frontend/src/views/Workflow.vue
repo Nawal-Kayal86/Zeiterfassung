@@ -63,15 +63,15 @@
             <td>
               <span v-if="t.status === 'done'"
                 class="badge bg-success-soft text-success border border-success-subtle px-3 rounded-pill">
-                Wahrgenommen
+                Ja
               </span>
               <span v-else class="badge bg-warning-soft text-warning border border-warning-subtle px-3 rounded-pill">
-                Geplant
+                Nein
               </span>
             </td>
             <td class="text-end pe-4">
               <button v-if="t.status !== 'done'" class="btn btn-sm btn-outline-success me-2" @click="markDone(t.id)">
-                Wahrgenommen
+                Ja
               </button>
               <button class="btn btn-sm btn-outline-danger" @click="deleteTask(t.id)">
                 Löschen
