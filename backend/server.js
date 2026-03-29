@@ -14,8 +14,8 @@ import usersRouter from './routes/users.js';
 import departmentsRouter from "./routes/departments.js";
 import workSessionsRouter from './routes/workSessions.js';
 import calendarRoutes from "./routes/calendar.js";
-import scheduleRoutes from "./routes/schedule.routes.js";
-import workflowRoutes from "./routes/workflow.routes.js";
+import scheduleRoutes from "./routes/schedules.js";
+import workflowRoutes from "./routes/workflows.js";
 import leaveRequestsRoutes from "./routes/leaveRequests.js";
 import logsRouter from "./routes/logs.js";
 

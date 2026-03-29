@@ -1,32 +1,31 @@
 # Zeiterfassung Project Wurde von Nawal Kayal & Ahmad Alalan entwickelt 
 
-# Zeiterfassung (Vue + Node/Express + MySQL)
+# Zeiterfassung (Vue + Node/Express + MongoDB)
 
 Dieses Projekt ist eine **Minimale Zeiterfassung**:
 - Frontend: Vue 3 + Vite
 - Backend: Node.js (Express)
-- Datenbank: MySQL (Schema im Ordner `database/`)
+- Datenbank: MongoDB (Mongoose)
 
 ## Struktur
 ```
 zeiterfassung_project/
  ├─ backend/
  ├─ frontend/
- └─ database/
 ```
 
 ## Schnellstart (lokal)
 
-### 1) MySQL
-- Erstelle eine Datenbank `zeiterfassung`.
-- Führe `database/schema.sql` aus, um Tabellen zu erzeugen.
+### 1) Datenbank (MongoDB)
+- Stelle sicher, dass ein lokaler MongoDB Server läuft (z.B. mongodb://127.0.0.1:27017/zeiterfassung)
+- Alternativ kannst du auch eine MongoDB Atlas Cloud-URL verwenden.
 
 ### 2) Backend
 ```bash
 cd backend
 npm install
-# .env anpassen (DB_HOST, DB_USER, DB_PASS, DB_NAME)
-node server.js
+# Erstelle ein .env File (MONGODB_URI, JWT_SECRET etc.)
+npm start
 ```
 
 ### 3) Frontend

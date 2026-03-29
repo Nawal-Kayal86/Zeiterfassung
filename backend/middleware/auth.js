@@ -1,5 +1,13 @@
 import jwt from "jsonwebtoken";
 
+/**
+ * @module AuthMiddleware
+ * @description Zentrale Middleware-Funktion zur Absicherung von API-Endpunkten.
+ * Verifiziert das Vorhandensein und die Gültigkeit eines JWT (JSON Web Token) im Authorization-Header.
+ * 
+ * @param {String|null} requiredRole - (Optional) Definiert die Mindestrolle (z.B. "admin"), die der User aufweisen muss.
+ * @returns {Function} Express Middleware Funktion (req, res, next)
+ */
 export function auth(requiredRole = null) {
   return (req, res, next) => {
     try {

@@ -187,16 +187,24 @@
 import { ref, computed, onMounted } from "vue"
 import api from "../api"
 
+/**
+ * @module LeaveRequest
+ * @description Vue 3 Composition API Komponente für das Einreichen von Abwesenheitsanträgen.
+ */
+
 const requests = ref([])
 const form = ref({ from: "", to: "", type: "vacation", reason: "" })
 
-// Date formatting for info panel
+// Datumsformatierung für das Info-Panel
 const today = new Date()
 const todayFormatted = today.toLocaleDateString("de-DE")
 const currentYear = today.getFullYear()
-// Logic for vacation period (e.g., 01.01 - 31.12 or fiscal)
 const vacationPeriod = `01.01.${currentYear} - 31.12.${currentYear}`
 
+/**
+ * @function load
+ * @description Lädt asynchron alle bisherigen Anträge des Nutzers vom Backend ("/leave-requests").
+ */
 const load = async () => {
   try {
     const res = await api.get("/leave-requests")
@@ -206,6 +214,11 @@ const load = async () => {
   }
 }
 
+/**
+ * @function submitRequest
+ * @description Sendet unser "form"-Objekt an das Backend, um einen neuen Antrag zu erstellen.
+ * Setzt anschließend die Eingabefelder ("form") zurück und triggert `load()`, um die Tabelle zu aktualisieren.
+ */
 const submitRequest = async () => {
   try {
     await api.post("/leave-requests", form.value)

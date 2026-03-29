@@ -5,6 +5,12 @@ import WorkSession from '../models/WorkSession.js';
 import User from '../models/User.js';
 const router = express.Router();
 
+/**
+ * @api {post} /api/workSessions/start Arbeitsbeginn stempeln
+ * @apiDescription Erfasst den Beginn einer neuen Arbeitsschicht für den aktuell eingeloggten Nutzer.
+ * @apiHeader {String} Authorization Bearer Token des Benutzers.
+ * @apiError (400) BadRequest Wenn bereits eine offene Schicht existiert.
+ */
 // 🟢 Arbeitsbeginn
 router.post("/start", auth(), async (req, res) => {
   try {

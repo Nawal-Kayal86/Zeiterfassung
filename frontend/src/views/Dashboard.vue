@@ -254,6 +254,10 @@ export default {
     formatTime,
     calcDuration,
 
+    /**
+     * @method loadSummary
+     * @description Lädt die aggregierten Zusammenfassungsdaten (letzter Start, letztes Ende) für den Dashboard-Header.
+     */
     async loadSummary() {
       try {
         const res = await api.get("/workSessions/summary");
