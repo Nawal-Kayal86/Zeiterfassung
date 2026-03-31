@@ -38,7 +38,7 @@
                   class="badge"
                   :class="u.role === 'admin' ? 'bg-danger' : 'bg-secondary'"
                 >
-                  {{ u.role }}
+                  {{ u.role === 'admin' ? 'Administrator' : 'Mitarbeiter' }}
                 </span>
               </td>
               <td>{{ formatDate(u.start_date) || "-" }}</td>

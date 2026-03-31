@@ -267,9 +267,10 @@
       </div>
 
       <ul class="nav-list">
-        <li class="user-info">
+        <li class="user-info" @click="openProfileModal" style="cursor: pointer;" title="Mein Profil / Passwort ändern">
           <p class="mb-2">
             Willkommen, <strong>{{ currentuser?.name }}</strong>
+            <i class="bi bi-pencil-square ms-2 small text-muted"></i>
           </p>
         </li>
 
@@ -355,6 +356,12 @@
           </RouterLink>
         </li>
 
+        <li v-if="currentuser?.role === 'admin'">
+          <RouterLink to="/work-schedule" class="nav-item">
+            <i class="bi bi-clock-history text-indigo"></i> Sollarbeitszeiten
+          </RouterLink>
+        </li>
+
         <li class="logout">
           <a @click="logout" class="nav-item logout-link">
             <i class="bi bi-box-arrow-right"></i> Abmelden
@@ -367,16 +374,93 @@
     <div class="content" :class="{ expanded: isCollapsed }">
       <RouterView />
     </div>
+
+    <!-- Profile Update Modal -->
+    <div
+      class="modal fade"
+      id="profileModal"
+      tabindex="-1"
+      aria-labelledby="profileModalLabel"
+      aria-hidden="true"
+      ref="profileModalRef"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+          <div class="modal-header bg-indigo text-white" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
+            <h5 class="modal-title" id="profileModalLabel">
+              <i class="bi bi-person-gear"></i> Profileinstellungen
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-4">
+            <form @submit.prevent="updateProfile">
+              <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">NAME</label>
+                <input v-model="profileForm.name" type="text" class="form-control" required />
+              </div>
+              <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">E-MAIL</label>
+                <input v-model="profileForm.email" type="email" class="form-control" required />
+              </div>
+              <hr class="my-4">
+              <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">NEUES PASSWORT (Optional)</label>
+                <input v-model="profileForm.password" type="password" class="form-control" placeholder="Leer lassen um nicht zu ändern" />
+              </div>
+              <button type="submit" class="btn btn-indigo w-100 py-2 mt-2 fw-bold shadow-sm">
+                Speichern
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from "vue";
 import { useRoute } from "vue-router";
+import api from "../api";
+import { toast } from "vue3-toastify";
+import * as bootstrap from "bootstrap";
 
 const route = useRoute();
 const isCollapsed = ref(false);
 const currentuser = JSON.parse(localStorage.getItem("user")) || null;
+
+const profileModalRef = ref(null);
+let modalInstance = null;
+
+const profileForm = ref({
+  name: currentuser?.name || "",
+  email: currentuser?.email || "",
+  password: ""
+});
+
+const openProfileModal = () => {
+    if (!modalInstance) {
+        modalInstance = new bootstrap.Modal(profileModalRef.value);
+    }
+    modalInstance.show();
+};
+
+const updateProfile = async () => {
+    try {
+        await api.put("/users/profile/update", profileForm.value);
+        toast.success("Profil erfolgreich aktualisiert! ✨");
+        
+        // Lokale User-Daten im localStorage updaten
+        const updatedUser = { ...currentuser, name: profileForm.name, email: profileForm.email };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        
+        modalInstance.hide();
+        // Evtl. Reload oder reaktives Update nötig
+        window.location.reload(); 
+    } catch (e) {
+        // Fehler wird global behandelt
+    }
+};
 
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value;

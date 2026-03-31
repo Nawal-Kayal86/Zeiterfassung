@@ -19,10 +19,10 @@
               <select v-model="form.department" class="form-select" required>
                 <option value="">–Abteilung wählen –</option>
                 <option>IT</option>
-                <option>HR</option>
-                <option>Einauf</option>
+                <option>Personal (HR)</option>
+                <option>Einkauf</option>
                 <option>Trainer</option>
-                <option>Öko Bosoter</option>
+                <option>Öko Booster</option>
               </select>
             </div>
 

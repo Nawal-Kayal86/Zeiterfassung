@@ -129,9 +129,9 @@
                     <h6 class="mb-1 fw-bold">
                       {{ l.user_id?.name || "Mitarbeiter" }}
                     </h6>
-                    <small class="badge bg-warning text-dark">{{
-                      l.type
-                    }}</small>
+                    <small class="badge bg-warning text-dark">
+                      {{ l.type === "vacation" ? "Urlaub" : l.type === "sick" ? "Krank" : "Sonstige" }}
+                    </small>
                   </div>
                   <p class="mb-1 text-muted">
                     {{ l.reason || "Kein Grund angegeben" }}
@@ -150,7 +150,7 @@
                       <th>Start</th>
                       <th>Ende</th>
                       <th>Dauer</th>
-                      <th v-if="isAdmin" class="text-end">Aktionen</th>
+                      <th v-if="isAdmin || dayDetails.some(s => s.user_id === currentUser.id)" class="text-end">Aktionen</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -177,7 +177,7 @@
                         }}</span>
                       </td>
                       <td>{{ calcDuration(s.start, s.end) }}</td>
-                      <td v-if="isAdmin" class="text-end">
+                      <td v-if="isAdmin || s.user_id === currentUser.id" class="text-end">
                         <template v-if="editingId === s.id">
                           <button
                             class="btn btn-sm btn-success me-1"

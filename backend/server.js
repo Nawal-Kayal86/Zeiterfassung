@@ -99,7 +99,9 @@ app.post("/api/login", async (req, res) => {
         id: user._id,
         name: user.name,
         role: user.role,
+        department: user.department || "",
         is_active: user.is_active,
+        vacation_days_per_year: user.vacation_days_per_year || 25,
       },
     });
   } catch (err) {
@@ -109,8 +111,23 @@ app.post("/api/login", async (req, res) => {
 });
 
 // Current user
-app.get("/api/me", auth(), (req, res) => {
-  res.json({ user: req.user });
+app.get("/api/me", auth(), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password_hash");
+    if (!user) return res.status(404).json({ error: "Benutzer nicht gefunden" });
+    res.json({
+        user: {
+            id: user._id,
+            name: user.name,
+            role: user.role,
+            department: user.department,
+            vacation_days_per_year: user.vacation_days_per_year || 25,
+            is_active: user.is_active
+        }
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Serverfehler" });
+  }
 });
 
 // ================= ADMIN =================

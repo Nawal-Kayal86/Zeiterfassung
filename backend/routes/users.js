@@ -24,7 +24,7 @@ router.get("/", auth("admin"), async (req, res) => {
   try {
     const users = await User.find(
       {},
-      "name email role department nfc_tag start_date is_active created_at",
+      "name email role department nfc_tag start_date is_active vacation_days_per_year created_at",
     ).sort({ created_at: -1 });
     res.json(
       users.map((u) => ({
@@ -36,6 +36,9 @@ router.get("/", auth("admin"), async (req, res) => {
         nfc_tag: u.nfc_tag,
         start_date: u.start_date,
         is_active: u.is_active !== false, // default true
+        vacation_days_per_year: u.vacation_days_per_year || 25,
+        weekly_hours: u.weekly_hours || 40,
+        work_schedule: u.work_schedule || null,
         created_at: u.created_at,
       })),
     );
@@ -50,7 +53,7 @@ router.get("/:id", auth("admin"), async (req, res) => {
   try {
     const user = await User.findById(
       req.params.id,
-      "name email role department nfc_tag start_date is_active created_at",
+      "name email role department nfc_tag start_date is_active vacation_days_per_year weekly_hours work_schedule created_at",
     );
     if (!user)
       return res.status(404).json({ error: "Benutzer nicht gefunden" });
@@ -63,6 +66,9 @@ router.get("/:id", auth("admin"), async (req, res) => {
       nfc_tag: user.nfc_tag,
       start_date: user.start_date,
       is_active: user.is_active !== false,
+      vacation_days_per_year: user.vacation_days_per_year || 25,
+      weekly_hours: user.weekly_hours || 40,
+      work_schedule: user.work_schedule || null,
       created_at: user.created_at,
     });
   } catch (err) {
@@ -71,7 +77,7 @@ router.get("/:id", auth("admin"), async (req, res) => {
   }
 });
 
-// ✏️ POST: Benutzer anlegen
+// ➕ POST: Neuen Benutzer anlegen
 router.post("/", auth("admin"), async (req, res) => {
   try {
     const {
@@ -83,6 +89,9 @@ router.post("/", auth("admin"), async (req, res) => {
       password,
       start_date,
       is_active,
+      vacation_days_per_year,
+      weekly_hours,
+      work_schedule,
     } = req.body;
     if (!name || !email || !password)
       return res
@@ -104,6 +113,9 @@ router.post("/", auth("admin"), async (req, res) => {
       nfc_tag: nfc_tag || null,
       start_date: start_date || null,
       is_active: is_active !== false,
+      vacation_days_per_year: Number(vacation_days_per_year) || 25,
+      weekly_hours: Number(weekly_hours) || 40,
+      work_schedule: work_schedule || undefined,
       password_hash,
     });
 
@@ -133,26 +145,34 @@ router.put("/:id", auth("admin"), async (req, res) => {
       password,
       start_date,
       is_active,
+      vacation_days_per_year,
+      weekly_hours,
+      work_schedule,
     } = req.body;
-    const updateData = {
-      name,
-      email,
-      role: ["user", "admin"].includes(role) ? role : "user",
-      department: department || null,
-      nfc_tag: nfc_tag || null,
-      start_date: start_date || null,
-      is_active: is_active !== false,
-    };
-    if (password) {
-      updateData.password_hash = await bcrypt.hash(password, 10);
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: "Benutzer nicht gefunden" });
+
+    // Felder aktualisieren
+    user.name = name;
+    user.email = email;
+    user.role = ["user", "admin"].includes(role) ? role : user.role;
+    user.department = department || user.department;
+    user.nfc_tag = nfc_tag || user.nfc_tag;
+    user.start_date = start_date || user.start_date;
+    user.is_active = is_active !== undefined ? is_active : user.is_active;
+    user.vacation_days_per_year = Number(vacation_days_per_year) || user.vacation_days_per_year;
+    user.weekly_hours = Number(weekly_hours) || user.weekly_hours;
+
+    if (work_schedule) {
+      user.work_schedule = work_schedule;
+      user.markModified("work_schedule"); // ⚠️ WICHTIG für Nested Objects!
     }
 
-    const updated = await User.findByIdAndUpdate(req.params.id, updateData, {
-      new: true,
-    });
-    if (!updated)
-      return res.status(404).json({ error: "Benutzer nicht gefunden" });
+    if (password) {
+      user.password_hash = await bcrypt.hash(password, 10);
+    }
 
+    await user.save();
     res.json({ message: "Benutzer erfolgreich aktualisiert" });
   } catch (err) {
     console.error(err);
@@ -170,6 +190,33 @@ router.delete("/:id", auth("admin"), async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Fehler beim Löschen" });
+  }
+});
+
+// ✏️ PUT: Eigenes Profil/Passwort aktualisieren (für alle User)
+router.put("/profile/update", auth(), async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "Benutzer nicht gefunden" });
+
+    if (name) user.name = name;
+    if (email) {
+      const emailExists = await User.findOne({ email, _id: { $ne: userId } });
+      if (emailExists) return res.status(409).json({ error: "E-Mail bereits vergeben" });
+      user.email = email;
+    }
+    if (password) {
+      user.password_hash = await bcrypt.hash(password, 10);
+    }
+
+    await user.save();
+    res.json({ message: "Profil erfolgreich aktualisiert" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Profil-Update" });
   }
 });
 

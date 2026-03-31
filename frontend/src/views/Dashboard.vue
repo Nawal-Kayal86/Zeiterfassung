@@ -158,26 +158,7 @@
           </div>
         </div>
 
-        <div
-          v-if="message.text"
-          :class="`alert alert-${message.type} mx-auto mb-4 shadow-sm d-flex align-items-center justify-content-center gap-2 border-0`"
-          style="max-width: 600px"
-          :style="
-            message.type === 'success'
-              ? 'background: #d4edda; border-left: 5px solid #28a745 !important;'
-              : 'background: #f8d7da; border-left: 5px solid #dc3545 !important;'
-          "
-        >
-          <i
-            :class="[
-              message.type === 'success'
-                ? 'bi bi-check-circle-fill'
-                : 'bi bi-exclamation-circle-fill',
-              `text-${message.type}`,
-            ]"
-          ></i>
-          {{ message.text }}
-        </div>
+        <!-- Toast-Benachrichtigungen ersetzen den manuellen Alert-Block -->
 
         <!-- Statuskarten -->
         <div class="row mb-4">
@@ -258,6 +239,7 @@
               <th>Ende</th>
               <th>Pause</th>
               <th>Dauer</th>
+              <th class="text-end pe-4">Aktion</th>
             </tr>
           </thead>
 
@@ -279,6 +261,22 @@
                 }}</span>
               </td>
               <td>{{ calcDuration(s.start, s.end) }}</td>
+              <td class="text-end pe-4">
+                <button
+                  class="btn btn-sm btn-outline-primary border-0"
+                  @click="startEdit(s)"
+                  title="Eintrag bearbeiten"
+                >
+                  <i class="bi bi-pencil-square"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-danger border-0"
+                  @click="deleteSession(s.id)"
+                  title="Eintrag löschen"
+                >
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -291,6 +289,7 @@
 import api from "../api";
 import router from "../router";
 import { formatDate, formatTime, calcDuration } from "../utils/time";
+import { toast } from "vue3-toastify";
 
 export default {
   name: "Dashboard",
@@ -299,7 +298,6 @@ export default {
     return {
       user: null,
       manual: { date: "", start: "", end: "", pause: "0:00" },
-      message: { text: "", type: "success" },
       summary: { lastStart: null, lastEnd: null, totalEntries: 0 },
       workSessions: [],
       liveDuration: "00:00:00",
@@ -307,6 +305,8 @@ export default {
       isPaused: false,
       pauseTime: 0, // in seconds
       activeView: "terminal", // 'terminal' or 'manual'
+      editingSession: null,
+      editForm: { start: "", end: "", pause: "" }
     };
   },
 
@@ -378,13 +378,11 @@ export default {
         this.isPaused = false;
         this.pauseTime = 0;
         const res = await api.post("/workSessions/start");
-        this.showMessage(res.data.message, "success");
+        toast.success(res.data.message || "Arbeitsbeginn gespeichert! 🚀");
         await this.loadWorkSessions();
         await this.loadSummary();
       } catch (err) {
-        const text =
-          err.response?.data?.error || "Fehler beim Arbeitsbeginn ❌";
-        this.showMessage(text, "danger");
+        // Fehler wird global über api.js Toast gehandelt
       }
     },
 
@@ -395,27 +393,37 @@ export default {
         const pauseStr = `${h}:${String(m).padStart(2, "0")}`;
 
         const res = await api.post("/workSessions/stop", { pause: pauseStr });
-        this.showMessage(res.data.message, "success");
+        toast.success(res.data.message || "Feierabend! Gut gemacht! 🏠");
         this.isPaused = false;
         this.pauseTime = 0;
         await this.loadWorkSessions();
         await this.loadSummary();
       } catch (err) {
-        const text = err.response?.data?.error || "Fehler beim Arbeitsende ❌";
-        this.showMessage(text, "danger");
+        // Fehler wird global über api.js Toast gehandelt
       }
     },
 
     async addManualTime() {
       try {
-        const res = await api.post("/workSessions/manual-time", this.manual);
-        this.showMessage(res.data.message, "success");
-        this.manual = { date: "", start: "", end: "", pause: "0:00" };
+        if (this.manual.id) {
+            // Update existierender Eintrag
+            const payload = {
+                start: `${this.manual.date}T${this.manual.start}:00`,
+                end: this.manual.end ? `${this.manual.date}T${this.manual.end}:00` : null,
+                pause: this.manual.pause
+            };
+            await api.put(`/workSessions/${this.manual.id}`, payload);
+            toast.success("Eintrag erfolgreich aktualisiert! ✅");
+        } else {
+            // Neu anlegen
+            await api.post("/workSessions/manual-time", this.manual);
+            toast.success("Eintrag erfolgreich gespeichert! ✅");
+        }
+        this.manual = { date: "", start: "", end: "", pause: "0:00", id: null };
         await this.loadWorkSessions();
         await this.loadSummary();
       } catch (err) {
-        const text = err.response?.data?.error || "Fehler beim Eintragen ❌";
-        this.showMessage(text, "danger");
+        // Fehler wird global über api.js Toast gehandelt
       }
     },
 
@@ -455,9 +463,9 @@ export default {
     togglePause() {
       this.isPaused = !this.isPaused;
       if (this.isPaused) {
-        this.showMessage("Pause gestartet", "warning");
+        toast.info("Pause gestartet ☕");
       } else {
-        this.showMessage("Pause beendet", "success");
+        toast.success("Pause beendet – Weiter geht's! 💪");
       }
     },
     stopLiveTimer() {
@@ -468,12 +476,36 @@ export default {
       }
     },
 
-    showMessage(text, type = "success") {
-      this.message = { text, type };
-      setTimeout(() => {
-        this.message.text = "";
-      }, 4000);
+    startEdit(s) {
+        this.editingSession = s;
+        this.editForm = {
+            start: s.start ? new Date(s.start).toISOString().slice(0, 16) : "",
+            end: s.end ? new Date(s.end).toISOString().slice(0, 16) : "",
+            pause: s.pause || "0:00"
+        };
+        // Bootstrap Modal programmatisch öffnen falls gewünscht,
+        // oder wir machen ein einfaches Inline-Editing / Redirect.
+        // Hier: Wir nutzen das "Manuelle Erfassung" Formular als Edit-Formular
+        this.manual = {
+            id: s.id,
+            date: s.start ? s.start.split('T')[0] : s.date_today,
+            start: s.start ? new Date(s.start).toTimeString().slice(0, 5) : "",
+            end: s.end ? new Date(s.end).toTimeString().slice(0, 5) : "",
+            pause: s.pause || "0:00"
+        };
+        this.activeView = 'manual';
+        toast.info("Eintrag geladen – Du kannst ihn jetzt korrigieren.");
     },
+
+    async deleteSession(id) {
+        if (!confirm("Diesen Eintrag wirklich löschen?")) return;
+        try {
+            await api.delete(`/workSessions/${id}`);
+            toast.success("Eintrag gelöscht.");
+            await this.loadWorkSessions();
+            await this.loadSummary();
+        } catch (e) {}
+    }
   },
 };
 </script>

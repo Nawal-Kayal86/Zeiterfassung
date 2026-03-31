@@ -30,6 +30,23 @@ const UserSchema = new mongoose.Schema({
   // Status (Soft-Delete Flag, um Nutzer zu deaktivieren statt hart zu löschen)
   is_active: { type: Boolean, default: true },
 
+  // Jährlicher Urlaubsanspruch in Tagen
+  vacation_days_per_year: { type: Number, default: 25 },
+
+  // Wöchentliche Sollarbeitszeit (z.B. 40 oder 38.5)
+  weekly_hours: { type: Number, default: 40 },
+
+  // Detaillierter Arbeitszeitplan pro Tag
+  work_schedule: {
+    mon: { from: { type: String, default: "08:00" }, to: { type: String, default: "16:00" }, active: { type: Boolean, default: true } },
+    tue: { from: { type: String, default: "08:00" }, to: { type: String, default: "16:00" }, active: { type: Boolean, default: true } },
+    wed: { from: { type: String, default: "08:00" }, to: { type: String, default: "16:00" }, active: { type: Boolean, default: true } },
+    thu: { from: { type: String, default: "08:00" }, to: { type: String, default: "16:00" }, active: { type: Boolean, default: true } },
+    fri: { from: { type: String, default: "08:00" }, to: { type: String, default: "16:00" }, active: { type: Boolean, default: true } },
+    sat: { from: { type: String, default: "08:00" }, to: { type: String, default: "16:00" }, active: { type: Boolean, default: false } },
+    sun: { from: { type: String, default: "08:00" }, to: { type: String, default: "16:00" }, active: { type: Boolean, default: false } },
+  },
+
   // Metadaten zur Datensatzerstellung
   created_at: { type: Date, default: Date.now },
 });

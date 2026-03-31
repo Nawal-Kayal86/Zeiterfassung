@@ -14,6 +14,7 @@ import Schedule from "./views/Schedule.vue";
 import Reports from "./views/Reports.vue";
 import Departments from "./views/DepartmentsAdmin.vue";
 import Config from "./views/Config.vue";
+import WorkSchedule from "./views/WorkSchedule.vue";
 import LeaveRequest from "./views/LeaveRequest.vue";
 import LeaveApproval from "./views/LeaveApproval.vue";
 
@@ -124,6 +125,16 @@ const routes = [
           requiresAdmin: true,
           title: "Feiertage & Ferien",
           icon: "bi-calendar-range",
+        },
+      },
+      {
+        path: "work-schedule",
+        component: WorkSchedule,
+        meta: {
+          requiresAuth: true,
+          requiresAdmin: true,
+          title: "Sollarbeitszeiten",
+          icon: "bi-clock-fill",
         },
       },
     ],

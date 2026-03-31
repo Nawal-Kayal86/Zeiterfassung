@@ -11,7 +11,7 @@ const LeaveRequestSchema = new mongoose.Schema({
 
   type: {
     type: String,
-    enum: ["vacation", "sick", "other"], // ✅ Entspricht Vue
+    enum: ["vacation", "sick", "other", "overtime"], // ✅ Entspricht Vue
     required: true,
   },
 

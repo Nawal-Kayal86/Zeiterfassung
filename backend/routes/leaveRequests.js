@@ -90,4 +90,31 @@ router.put("/:id/reject", auth("admin"), async (req, res) => {
   res.json(updated);
 });
 
+// Benutzer/Admin: Antrag löschen
+router.delete("/:id", auth(), async (req, res) => {
+  try {
+    const request = await LeaveRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ error: "Antrag nicht gefunden" });
+
+    // Berechtigungs-Check
+    const isOwner = request.user_id.toString() === req.user.id;
+    const isAdmin = req.user.role === "admin";
+
+    if (!isAdmin && !isOwner) {
+      return res.status(403).json({ error: "Keine Berechtigung zum Löschen dieses Antrags" });
+    }
+
+    // Nutzer dürfen nur "pending" Anträge löschen
+    if (!isAdmin && request.status !== "pending") {
+      return res.status(400).json({ error: "Genehmigte oder abgelehnte Anträge können nicht mehr gelöscht werden. Bitte kontaktiere die IT/HR." });
+    }
+
+    await request.deleteOne();
+    res.json({ message: "Antrag erfolgreich gelöscht ✅" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Löschen des Antrags" });
+  }
+});
+
 export default router;

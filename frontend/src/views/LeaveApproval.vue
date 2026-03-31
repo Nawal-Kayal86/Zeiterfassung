@@ -21,7 +21,7 @@
           <td>{{ r.user_id.department }}</td>
           <td>{{ format(r.from) }}</td>
           <td>{{ format(r.to) }}</td>
-          <td>{{ r.type }}</td>
+          <td>{{ r.type === "vacation" ? "Urlaub" : r.type === "sick" ? "Krank" : "Sonstige" }}</td>
 
           <td>
             <span

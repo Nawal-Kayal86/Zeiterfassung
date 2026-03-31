@@ -1,47 +1,51 @@
 <template>
-  <div class="d-flex justify-content-center align-items-center vh-100 bg-light">
+  <div class="login-wrapper d-flex justify-content-center align-items-center vh-100">
     <div
-      class="card shadow-lg border-0 p-4"
-      style="max-width: 400px; width: 100%"
+      class="card login-card shadow-lg border-0 p-5"
+      style="max-width: 450px; width: 100%; border-radius: 24px;"
     >
-      <!-- Titel -->
+      <!-- Logo/Icon Section -->
       <div class="text-center mb-4">
-        <h3 class="fw-bold text-dark">Benutzeranmeldung</h3>
-      </div>
-      <!-- Meldungen -->
-      <div
-        v-if="message.text"
-        :class="`alert alert-${message.type}`"
-        role="alert"
-      >
-        {{ message.text }}
+        <div class="login-icon-box mx-auto mb-3">
+          <i class="bi bi-clock-history fs-1 text-white"></i>
+        </div>
+        <h2 class="fw-bold text-dark mb-1">Willkommen zurück</h2>
+        <p class="text-muted">Bitte melde dich an, um fortzufahren</p>
       </div>
 
       <!-- Formular -->
       <form @submit.prevent="login">
         <div class="mb-3">
-          <label class="form-label">Benutzername</label>
-          <input
-            v-model="name"
-            type="text"
-            class="form-control"
-            placeholder="z. B. MaxMuster"
-            required
-          />
+          <label class="form-label fw-bold text-muted small ms-1">BENUTZERNAME</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-indigo"></i></span>
+            <input
+              v-model="name"
+              type="text"
+              class="form-control bg-light border-start-0"
+              placeholder="Dein Name"
+              required
+            />
+          </div>
         </div>
 
-        <div class="mb-3">
-          <label class="form-label">Passwort</label>
-          <input
-            v-model="password"
-            type="password"
-            class="form-control"
-            placeholder="••••••••"
-            required
-          />
+        <div class="mb-4">
+          <label class="form-label fw-bold text-muted small ms-1">PASSWORT</label>
+          <div class="input-group">
+            <span class="input-group-text bg-light border-end-0"><i class="bi bi-shield-lock text-indigo"></i></span>
+            <input
+              v-model="password"
+              type="password"
+              class="form-control bg-light border-start-0"
+              placeholder="••••••••"
+              required
+            />
+          </div>
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">Anmelden</button>
+        <button type="submit" class="btn btn-indigo w-100 py-3 fw-bold shadow-sm" style="border-radius: 12px;">
+          Anmelden
+        </button>
 
         <p v-if="error" class="text-danger mt-3 text-center">
           {{ error }}
@@ -64,16 +68,15 @@
 <script>
 import api from "../api";
 import router from "../router";
+import { toast } from "vue3-toastify";
 
 export default {
   data() {
     return {
       name: "",
       password: "",
-      error: null,
       currentTime: "",
       timer: null,
-      message: { text: "", type: "" }, // Bootstrap Alert
     };
   },
   methods: {
@@ -85,16 +88,11 @@ export default {
         });
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
-        router.push("/dashboard");
+        toast.success(`Willkommen zurück, ${res.data.user.name}! 👋`);
+        setTimeout(() => router.push("/dashboard"), 1000);
       } catch (err) {
-        this.message = {
-          text: err.response?.data?.error || "Login fehlgeschlagen",
-          type: "danger",
-        };
+          // Toast wird bereits durch globalen Interceptor in api.js ausgelöst
       }
-      setTimeout(() => {
-        this.message = { text: "", type: "" };
-      }, 3000);
     },
     updateTime() {
       const now = new Date();
@@ -119,3 +117,59 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.login-wrapper {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+}
+
+.login-card {
+  animation: slide-up 0.6s ease-out;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-icon-box {
+  width: 80px;
+  height: 80px;
+  background: #6366f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+}
+
+.text-indigo {
+    color: #6366f1 !important;
+}
+
+.btn-indigo {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: white;
+  border: none;
+  transition: all 0.3s;
+}
+
+.btn-indigo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+}
+
+.input-group-text {
+    border: none;
+}
+
+.form-control {
+    border: none;
+    padding: 12px;
+}
+
+.form-control:focus {
+    box-shadow: none;
+    background-color: #fff !important;
+}
+</style>

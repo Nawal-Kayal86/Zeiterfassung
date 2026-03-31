@@ -5,31 +5,34 @@
       <div class="card-body">
         <h5 class="mb-3">🔎 Filter & Zeitraum</h5>
         <div class="row g-3">
-          <div class="col-md-3">
-            <label class="form-label">Startdatum</label>
-            <input type="date" class="form-control" v-model="startDate" />
+          <div class="col-md-5">
+            <label class="form-label text-muted small fw-bold text-uppercase">Zeitraum wählen</label>
+            <div class="input-group">
+              <button class="btn btn-outline-secondary" @click="prevMonth">
+                <i class="bi bi-chevron-left"></i>
+              </button>
+              <input type="date" class="form-control" v-model="startDate" />
+              <span class="input-group-text bg-white border-start-0 border-end-0">bis</span>
+              <input type="date" class="form-control" v-model="endDate" />
+              <button class="btn btn-outline-secondary" @click="nextMonth">
+                <i class="bi bi-chevron-right"></i>
+              </button>
+            </div>
           </div>
-          <div class="col-md-3">
-            <label class="form-label">Endedatum</label>
-            <input type="date" class="form-control" v-model="endDate" />
-          </div>
-          <div v-if="user?.role === 'admin'" class="col-md-3">
-            <label class="form-label">Mitarbeiter</label>
+          <div v-if="user?.role === 'admin'" class="col-md-4">
+            <label class="form-label text-muted small fw-bold text-uppercase">Mitarbeiter</label>
             <select class="form-select" v-model="employee">
-              <option value="">Alle</option>
               <option v-for="u in usernames" :key="u.id" :value="u.name">
                 {{ u.name }}
               </option>
             </select>
           </div>
           <div v-if="user?.role === 'admin'" class="col-md-3">
-            <label class="form-label">Abteilung</label>
-            <select class="form-select" v-model="department">
-              <option value="">Alle</option>
-              <option v-for="d in departments" :key="d.id" :value="d.name">
-                {{ d.name }}
-              </option>
-            </select>
+            <label class="form-label text-muted small fw-bold text-uppercase">Abteilung</label>
+            <div class="form-control bg-light border-0 fw-bold py-2">
+              <i class="bi bi-diagram-3 me-2 text-primary"></i>
+              {{ currentEmployeeDept || 'Keine Abteilung' }}
+            </div>
           </div>
           <div class="col-12 d-flex justify-content-end mt-3">
             <button class="btn btn-primary me-2" @click="fetchData">
@@ -80,8 +83,8 @@
                 <span v-else class="text-muted">–</span>
               </td>
               <td>
-                <span v-if="group.expectedHours > 0">07:45 - 16:30</span>
-                <span v-else>Frei</span>
+                <span v-if="group.expectedHours > 0">{{ group.sollDisplay }}</span>
+                <span v-else class="text-muted small italic">Frei / Abwesend</span>
               </td>
               <td :class="{ 'text-success fw-bold': group.totalHours > 0 }">
                 {{ formatHoursToTime(group.totalHours) }}
@@ -129,34 +132,43 @@ export default {
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     const fmt = (d) =>
       `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    
+    const loggedUser = JSON.parse(localStorage.getItem("user")) || {};
+
     return {
       startDate: fmt(firstDay),
       endDate: fmt(today),
       usernames: [],
       departments: [],
-      employee: "",
-      department: "",
+      employee: loggedUser.name || "",
+      department: loggedUser.department || "",
       filteredData: [],
       token: localStorage.getItem("token") || "",
       holidays: [],
       ferien: [],
       leaves: [],
-      user: JSON.parse(localStorage.getItem("user")) || {},
+      currentSchedule: null,
+      user: loggedUser,
     };
   },
 
   computed: {
+    currentEmployeeDept() {
+      if (!this.employee) return "";
+      const u = this.usernames.find(x => x.name === this.employee);
+      return u ? u.department : "";
+    },
+
     groupedData() {
       const grouped = {};
-      if (!this.startDate || !this.endDate) return grouped;
+      if (!this.startDate || !this.endDate || !this.employee) return grouped;
 
       const start = new Date(this.startDate);
       const end = new Date(this.endDate);
-
-      // Iterate through each day in range
       let current = new Date(start);
-      // 07:45 to 16:30 = 8h 45m = 8.75 hours
-      const STANDARD_HOURS = 8.75;
+      const schedule = this.currentSchedule?.schedule || null;
+
+      const dayMap = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
       while (current <= end) {
         const d = new Date(current);
@@ -184,24 +196,46 @@ export default {
         });
 
         let rowClass = "";
-        let expected = STANDARD_HOURS;
+        let expected = 0;
+        let sollDisplay = "–";
         let infoText = "";
+
+        // Standard logic from schedule if not weekend/holiday
+        if (!isWeekend && schedule) {
+            const dayKey = dayMap[dayOfWeek];
+            const dayPlan = schedule[dayKey];
+            if (dayPlan && dayPlan.active) {
+                sollDisplay = `${dayPlan.from} - ${dayPlan.to}`;
+                // Calculate hours from HH:mm strings
+                const [fH, fM] = dayPlan.from.split(':').map(Number);
+                const [tH, tM] = dayPlan.to.split(':').map(Number);
+                expected = (tH + tM/60) - (fH + fM/60);
+            }
+        } else if (!isWeekend && !schedule) {
+            // Fallback to 8h if no schedule
+            expected = 8.0;
+            sollDisplay = "08:00 - 16:00";
+        }
 
         if (isWeekend) {
           rowClass = "table-danger";
           expected = 0;
+          sollDisplay = "Wochenende";
           infoText = "Wochenende";
         } else if (isHoliday) {
           rowClass = "table-danger";
           expected = 0;
+          sollDisplay = "Feiertag";
           infoText = "Feiertag";
         } else if (isFerien) {
           rowClass = "table-danger";
           expected = 0;
+          sollDisplay = "Ferien";
           infoText = "Ferien";
         } else if (isLeave) {
           rowClass = "table-warning";
           expected = 0;
+          sollDisplay = "Beurlaubt";
           infoText = "Urlaub";
         }
 
@@ -211,6 +245,7 @@ export default {
           intervals: [],
           totalHours: 0,
           expectedHours: expected,
+          sollDisplay,
           diff: -expected,
           rowClass,
           infoText,
@@ -295,6 +330,25 @@ export default {
             department: u.department || "",
           }));
 
+        // Load Schedule for the correct target user
+        this.currentSchedule = null;
+        let targetId = null;
+
+        if (this.employee) {
+          targetId = this.usernames.find(u => u.name === this.employee)?.id;
+        } else if (this.user?.role !== 'admin') {
+          targetId = this.user.id;
+        }
+
+        if (targetId) {
+          try {
+            const sRes = await api.get(`/schedule/${targetId}`);
+            if (sRes.data) this.currentSchedule = sRes.data;
+          } catch (e) {
+             console.error("Dienstplan laden fehlgeschlagen", e);
+          }
+        }
+
         // Store external data for computation
         this.holidays = [];
         this.ferien = [];
@@ -345,6 +399,36 @@ export default {
       this.department = "";
       this.fetchData();
     },
+
+    prevMonth() {
+      const d = new Date(this.startDate);
+      // Den ersten Tag des VORHERIGEN Monats setzen
+      d.setMonth(d.getMonth() - 1);
+      d.setDate(1);
+
+      const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+
+      this.startDate = this.formatToDateString(d);
+      this.endDate = this.formatToDateString(lastDay);
+      this.fetchData();
+    },
+
+    nextMonth() {
+      const d = new Date(this.startDate);
+      // Den ersten Tag des NÄCHSTEN Monats setzen
+      d.setMonth(d.getMonth() + 1);
+      d.setDate(1);
+
+      const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+
+      this.startDate = this.formatToDateString(d);
+      this.endDate = this.formatToDateString(lastDay);
+      this.fetchData();
+    },
+
+    formatToDateString(d) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
   },
 };
 </script>

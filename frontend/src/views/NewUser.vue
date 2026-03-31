@@ -97,7 +97,7 @@
                 />
               </div>
 
-              <div class="col-12">
+              <div class="col-md-6">
                 <label
                   class="form-label fw-semibold text-muted small text-uppercase"
                   >Passwort</label
@@ -112,6 +112,18 @@
                       ? 'Leer lassen um nicht zu ändern'
                       : 'Passwort festlegen'
                   "
+                />
+              </div>
+              <div class="col-md-12">
+                <label
+                  class="form-label fw-semibold text-muted small text-uppercase"
+                  >Urlaubsanspruch (Tage/Jahr)</label
+                >
+                <input
+                  v-model="user.vacation_days_per_year"
+                  type="number"
+                  class="form-control custom-input"
+                  placeholder="25"
                 />
               </div>
 
@@ -148,26 +160,6 @@
               </div>
             </div>
 
-            <!-- 💬 Dynamische Meldung -->
-            <transition name="fade">
-              <div
-                v-if="message.text"
-                :class="[
-                  'alert mt-4 shadow-sm border-0 d-flex align-items-center gap-2',
-                  message.type,
-                ]"
-                role="alert"
-              >
-                <i
-                  :class="
-                    message.type.includes('success')
-                      ? 'bi bi-check-circle-fill'
-                      : 'bi bi-exclamation-triangle-fill'
-                  "
-                ></i>
-                {{ message.text }}
-              </div>
-            </transition>
           </form>
         </div>
       </div>
@@ -239,6 +231,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import api from "../api";
+import { toast } from "vue3-toastify";
 
 const user = ref({
   id: null,
@@ -250,20 +243,10 @@ const user = ref({
   start_date: "",
   is_active: true,
   password: "",
+  vacation_days_per_year: 25,
 });
 const users = ref([]);
 const departments = ref([]);
-
-// 💬 Nachricht-Objekt (Text + Bootstrap-Klasse)
-const message = ref({ text: "", type: "" });
-
-const showMessage = (text, isSuccess = true, duration = 4000) => {
-  message.value = {
-    text,
-    type: isSuccess ? "alert-success-custom" : "alert-danger",
-  };
-  setTimeout(() => (message.value.text = ""), duration);
-};
 
 // Abteilungen laden
 const loadDepartments = async () => {
@@ -271,7 +254,7 @@ const loadDepartments = async () => {
     const res = await api.get("/departments");
     departments.value = res.data;
   } catch (err) {
-    showMessage("Fehler beim Laden der Abteilungen!", "alert-danger");
+    // Fehler wird global behandelt
   }
 };
 
@@ -280,8 +263,8 @@ const loadUsers = async () => {
   try {
     const res = await api.get("/users");
     users.value = res.data;
-  } catch {
-    showMessage("Fehler beim Laden der User!", "alert-danger");
+  } catch (err) {
+    // Fehler wird global behandelt
   }
 };
 
@@ -291,18 +274,15 @@ const saveUser = async () => {
     const isNew = !user.value.id;
     if (!isNew) {
       await api.put(`/users/${user.value.id}`, user.value);
-      showMessage("Mitarbeiter erfolgreich aktualisiert!", true);
+      toast.success("Mitarbeiter erfolgreich aktualisiert! 📝");
     } else {
       await api.post("/users", user.value);
-      showMessage(
-        "Mitarbeiter erfolgreich angelegt! Willkommen im Team!",
-        true,
-      );
+      toast.success("Mitarbeiter erfolgreich angelegt! Willkommen im Team! 🎉");
     }
     await loadUsers();
     resetForm();
   } catch (err) {
-    showMessage("Fehler: " + (err.response?.data?.error || err.message), false);
+    // Fehler wird global behandelt
   }
 };
 
@@ -320,6 +300,8 @@ const editUser = (u) => {
     start_date: u.start_date ? u.start_date.split("T")[0] : "",
     is_active: u.is_active !== false,
     password: "",
+    vacation_days_per_year: u.vacation_days_per_year || 25,
+    work_schedule: u.work_schedule || null,
   };
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
@@ -330,12 +312,9 @@ const deleteUser = async (id) => {
   try {
     await api.delete(`/users/${id}`);
     await loadUsers();
-    showMessage("User gelöscht!", "alert-secondary");
+    toast.info("Mitarbeiter wurde entfernt. 🗑️");
   } catch (err) {
-    showMessage(
-      "Fehler beim Löschen: " + (err.response?.data?.error || err.message),
-      "alert-danger",
-    );
+    // Fehler wird global behandelt
   }
 };
 
@@ -350,6 +329,7 @@ const resetForm = () => {
     start_date: "",
     is_active: true,
     password: "",
+    vacation_days_per_year: 25,
   };
 };
 

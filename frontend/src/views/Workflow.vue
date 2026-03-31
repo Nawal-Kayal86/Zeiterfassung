@@ -8,7 +8,7 @@
     <div class="card p-4 mb-4 shadow-sm border-0 bg-white">
       <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
         <i class="bi bi-hospital text-danger"></i>
-        Neun Arzttermin / Sondertermin erfassen
+        Neuen Arzttermin / Sondertermin erfassen
       </h5>
       <form @submit.prevent="addTask">
         <div class="row g-3">
@@ -92,13 +92,13 @@
                 v-if="t.status === 'done'"
                 class="badge bg-success-soft text-success border border-success-subtle px-3 rounded-pill"
               >
-                Ja
+                Erledigt
               </span>
               <span
                 v-else
                 class="badge bg-warning-soft text-warning border border-warning-subtle px-3 rounded-pill"
               >
-                Nein
+                Offen
               </span>
             </td>
             <td class="text-end pe-4">
@@ -107,7 +107,7 @@
                 class="btn btn-sm btn-outline-success me-2"
                 @click="markDone(t.id)"
               >
-                Ja
+                Abschließen
               </button>
               <button
                 class="btn btn-sm btn-outline-danger"
