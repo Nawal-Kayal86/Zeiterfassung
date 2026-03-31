@@ -110,7 +110,10 @@
   color: #333;
   text-decoration: none;
   border-radius: 8px;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease;
   font-weight: 500;
   cursor: pointer;
 }
@@ -151,7 +154,9 @@
 .logout-link {
   color: #dc3545;
   font-weight: 600;
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .logout-link:hover {
@@ -215,8 +220,6 @@
   /* Back to normal case for cleaner look */
 }
 
-
-
 /* ====== Responsive ====== */
 @media (max-width: 768px) {
   .sidebar {
@@ -236,7 +239,7 @@
     <nav class="navbar navbar-dark bg-dark fixed-top">
       <div class="container-fluid d-flex align-items-center">
         <!-- Dashboard / Sidebar Toggle Group -->
-        <div class="d-flex align-items-center" style="width: 250px;">
+        <div class="d-flex align-items-center" style="width: 250px">
           <a class="navbar-brand d-none d-md-block" href="/">Zeiterfassung</a>
         </div>
 
@@ -246,12 +249,11 @@
             <div v-if="route.meta.icon" class="title-icon-wrapper">
               <i :class="route.meta.icon"></i>
             </div>
-            <span class="title-text-main">{{ route.meta.title || 'Zeiterfassung' }}</span>
+            <span class="title-text-main">{{
+              route.meta.title || "Zeiterfassung"
+            }}</span>
           </div>
         </div>
-
-
-
       </div>
     </nav>
 
@@ -259,18 +261,24 @@
     <div class="sidebar" :class="{ collapsed: isCollapsed }">
       <!-- Toggle Button (Chevron) -->
       <div class="sidebar-toggle shadow-sm" @click="toggleSidebar">
-        <i :class="isCollapsed ? 'bi bi-chevron-right' : 'bi bi-chevron-left'"></i>
+        <i
+          :class="isCollapsed ? 'bi bi-chevron-right' : 'bi bi-chevron-left'"
+        ></i>
       </div>
 
       <ul class="nav-list">
         <li class="user-info">
-          <p class="mb-2">Willkommen, <strong>{{ currentuser?.name }}</strong></p>
-
-
+          <p class="mb-2">
+            Willkommen, <strong>{{ currentuser?.name }}</strong>
+          </p>
         </li>
 
         <li>
-          <RouterLink to="/dashboard" class="nav-item" exact-active-class="router-link-exact-active">
+          <RouterLink
+            to="/dashboard"
+            class="nav-item"
+            exact-active-class="router-link-exact-active"
+          >
             <i class="bi bi-clock"></i> Dashboard
           </RouterLink>
         </li>
@@ -316,8 +324,6 @@
             <i class="bi bi-bug"></i> Fehlerprotokoll
           </RouterLink>
         </li>
-
-
 
         <li>
           <RouterLink to="/terminal" class="nav-item">
@@ -365,21 +371,20 @@
 </template>
 
 <script setup>
-import { ref } from "vue"
-import { useRoute } from "vue-router"
+import { ref } from "vue";
+import { useRoute } from "vue-router";
 
-const route = useRoute()
-const isCollapsed = ref(false)
-const currentuser = JSON.parse(localStorage.getItem("user")) || null
+const route = useRoute();
+const isCollapsed = ref(false);
+const currentuser = JSON.parse(localStorage.getItem("user")) || null;
 
 const toggleSidebar = () => {
-  isCollapsed.value = !isCollapsed.value
-}
+  isCollapsed.value = !isCollapsed.value;
+};
 
 const logout = () => {
-  localStorage.removeItem("token")
-  localStorage.removeItem("user")
-  window.location.href = "/login"
-}
-
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  window.location.href = "/login";
+};
 </script>

@@ -14,7 +14,7 @@ Ein UX-Problem stellte die Darstellung des "Live-Timers" auf dem Dashboard dar. 
 ## 7.3 Validierung und Benutzerführung bei Urlaubsanträgen
 
 Nutzer machten häufig den Fehler, leere Formulare (z.B. bei der "Manuellen Zeit-Erfassung") wegzuschicken oder widersprüchliche Pausenzeiten (z. B. "2:70") einzutragen.
-**Lösung:** Es wurde ein striktes Client-Side-Validation implementiert. HTML-Felder erfuhren Restriktionen (`required type="time"`). Das Absenden (`submit.prevent`) der Formulare ist unmöglich, solange inkonsistente Zustände vorliegen. 
+**Lösung:** Es wurde ein striktes Client-Side-Validation implementiert. HTML-Felder erfuhren Restriktionen (`required type="time"`). Das Absenden (`submit.prevent`) der Formulare ist unmöglich, solange inkonsistente Zustände vorliegen.
 
 ## 7.4 Datenstruktur und Verschachtelung in MongoDB
 
@@ -23,20 +23,22 @@ Ein weiteres komplexes Problem bei der Berichterstellung (`Billing`) lag in der 
 
 ## 7.5 Integration und Darstellung komplexer Kalender-Daten
 
-Die Visualisierung von hunderten Schichten im `@fullcalendar/vue3` führte zum "Überladen" des Viewports (Monatansicht). 
+Die Visualisierung von hunderten Schichten im `@fullcalendar/vue3` führte zum "Überladen" des Viewports (Monatansicht).
 **Lösung:** Implementierung intelligenter Filterfunktionen (z. B. Abteilungs-Filter in `Kalender.vue`) und dynamischer Farbcodierungen. Der Backend-Endpunkt konvertiert beim Ausliefern ISO-Datumsstrings in lokal-verträgliche Timestamps, was Parsingfehler in Apples iOS-Safari (die oft Date-Probleme haben) unterband.
 
 ## 7.6 Hosting & Deployment-Probleme auf Render
 
 Beim Deployment auf den Cloud-Dienstleister Render (Platform-as-a-Service) kam es beim Neuladen (Page-Refresh) der App zu `404 Not Found`-Fehlern, da der Node-Server versuchte, eine API-Route zu adressieren, die eigentlich dem Vue-Router oblag.
 **Lösung:** Konfiguration des Express-Backends mit einem Catch-All-Handler:
+
 ```javascript
-app.get('*', (req, res) => {
+app.get("*", (req, res) => {
   // Ignoriere API falls nicht da
-  if (req.path.startsWith('/api')) return res.status(404).end();
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  if (req.path.startsWith("/api")) return res.status(404).end();
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
 });
 ```
+
 Damit ist die Single-Page-Application "URL-Deep-Link" fähig und toleriert direkte Link-Aufrufe (z. B. `/dashboard` im URL-Eingabefenster des Chrome-Browsers).
 
 ---

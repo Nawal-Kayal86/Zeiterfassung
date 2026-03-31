@@ -4,7 +4,7 @@ const TIMEZONE = "Europe/Vienna";
 export function formatDate(val) {
   if (!val) return "-";
   return new Date(val).toLocaleDateString("de-DE", {
-    timeZone: TIMEZONE
+    timeZone: TIMEZONE,
   });
 }
 
@@ -14,7 +14,7 @@ export function toViennaTime(val) {
   return new Date(val).toLocaleTimeString("de-DE", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: TIMEZONE
+    timeZone: TIMEZONE,
   });
 }
 
@@ -26,7 +26,7 @@ export function calcHours(start, end) {
   if (!start) return 0;
   const s = new Date(start);
   const e = end ? new Date(end) : new Date(start);
-  
+
   if (e < s) e.setDate(e.getDate() + 1); // Über Mitternacht
   return (e - s) / 3600000;
 }

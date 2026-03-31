@@ -5,7 +5,7 @@ const router = express.Router();
 
 // GET: Kalenderdaten für Jahr
 router.get("/", async (req, res) => {
-  const { year, state="W" } = req.query;
+  const { year, state = "W" } = req.query;
   try {
     const data = await Holiday.findOne({ year, state });
     // Falls noch keine Daten existieren, leeres Gerüst zurückgeben (statt 404 Fehler)
@@ -13,22 +13,22 @@ router.get("/", async (req, res) => {
       return res.json({ year, state, holidays: [], ferien: [] });
     }
     res.json(data);
-  } catch(e) {
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
 // POST/PUT: Feiertage & Ferien speichern/updaten
 router.post("/", async (req, res) => {
-  const { year, state="W", holidays, ferien } = req.body;
+  const { year, state = "W", holidays, ferien } = req.body;
   try {
     const doc = await Holiday.findOneAndUpdate(
       { year, state },
       { holidays, ferien, updatedAt: new Date() },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
     res.json(doc);
-  } catch(e) {
+  } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });

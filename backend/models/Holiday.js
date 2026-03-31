@@ -13,7 +13,7 @@ const HolidaySchema = new mongoose.Schema({
     {
       name: String,
       start: String, // YYYY-MM-DD
-      end: String,   // YYYY-MM-DD
+      end: String, // YYYY-MM-DD
     },
   ],
   updatedAt: { type: Date, default: Date.now },

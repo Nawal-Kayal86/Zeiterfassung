@@ -1,6 +1,5 @@
 <template>
   <div class="container mt-4">
-
     <div v-if="loading" class="alert alert-info">Wird geladen...</div>
 
     <table v-else class="table table-striped">
@@ -25,12 +24,20 @@
           <td>{{ r.type }}</td>
 
           <td>
-            <span :class="{
-              'badge bg-warning': r.status === 'pending',
-              'badge bg-success': r.status === 'approved',
-              'badge bg-danger': r.status === 'rejected'
-            }">
-              {{ r.status === 'pending' ? 'Offen' : r.status === 'approved' ? 'Genehmigt' : 'Abgelehnt' }}
+            <span
+              :class="{
+                'badge bg-warning': r.status === 'pending',
+                'badge bg-success': r.status === 'approved',
+                'badge bg-danger': r.status === 'rejected',
+              }"
+            >
+              {{
+                r.status === "pending"
+                  ? "Offen"
+                  : r.status === "approved"
+                    ? "Genehmigt"
+                    : "Abgelehnt"
+              }}
             </span>
           </td>
 

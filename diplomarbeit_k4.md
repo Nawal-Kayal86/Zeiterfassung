@@ -9,40 +9,44 @@ Das Backend bildet das datentechnische Rückgrat. Die Hauptaufgabe bestand darin
 ### 4.1.1 Praktische Datenbankoperationen
 
 Die Datenbankoperationen wurden mittels Mongoose-Modellen abstrahiert. Ein zentraler Vorgang ist das Einbuchungsszenario (Start Session).
-Wenn ein Nutzer stempelt, muss das System zunächst überprüfen, ob er nicht bereits "eingestempelt" ist. Hierzu wird eine Queries ausgeführt, die nach einem offenen Datensatz (`end_time: null`) für die spezifische `user_id` sucht. 
+Wenn ein Nutzer stempelt, muss das System zunächst überprüfen, ob er nicht bereits "eingestempelt" ist. Hierzu wird eine Queries ausgeführt, die nach einem offenen Datensatz (`end_time: null`) für die spezifische `user_id` sucht.
 Ist kein offener Satz vorhanden, wird ein neues Dokument in der `WorkSessions`-Collection erstellt:
+
 ```javascript
 const session = new WorkSession({
-    user_id: req.user.id,
-    start_time: new Date()
+  user_id: req.user.id,
+  start_time: new Date(),
 });
 await session.save();
 ```
+
 Die Mongoose-Schemas sind streng typisiert und nutzen "default"-Attribute (z.B. `Date.now`), was die Code-Redundanz im Controller drastisch reduziert.
 
 ### 4.1.2 API-Endpunkte
 
-Für den Stempelprozess wurden spezifische Endpunkte unter dem Prefix `/api/workSessions/` deklariert. Ein `POST /start` initiiert die Schicht, ein `POST /stop` finalisiert sie. Beim Beenden (`stop`) wird ein Payload-Parameter für "Pausenzeiten" mitgeschickt. Das Backend rechnet diese vom Gesamtintervall ab. 
+Für den Stempelprozess wurden spezifische Endpunkte unter dem Prefix `/api/workSessions/` deklariert. Ein `POST /start` initiiert die Schicht, ein `POST /stop` finalisiert sie. Beim Beenden (`stop`) wird ein Payload-Parameter für "Pausenzeiten" mitgeschickt. Das Backend rechnet diese vom Gesamtintervall ab.
 Für die Urlaubsanträge (LeaveRequests) wurden CRUD-Routen implementiert. Administratoren nutzten hierbei `PATCH /api/leave-requests/:id/status`, um das `status`-Feld im JSON-Dokument von `pending` auf `approved` oder `rejected` zu mutieren.
 
 ### 4.1.3 Authentifizierungslogik
 
 Die JWT-Generierung erfolgt nach dem Login. Die sensible Umgebungsvariable `process.env.JWT_SECRET` signiert den Token. Für jeden geschützten Endpunkt wurde eine Custom-Middleware `auth.js` deklariert:
+
 ```javascript
 export const auth = (requiredRole) => {
-    return (req, res, next) => {
-        const token = req.header("Authorization");
-        // Token Validierung...
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        if (requiredRole && req.user.role !== requiredRole) {
-             return res.status(403).json({ error: "Access Denied" });
-        }
-        next();
+  return (req, res, next) => {
+    const token = req.header("Authorization");
+    // Token Validierung...
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    if (requiredRole && req.user.role !== requiredRole) {
+      return res.status(403).json({ error: "Access Denied" });
     }
-}
+    next();
+  };
+};
 ```
-Diese Funktion nutzt das Konzept der *Closures* in JavaScript, um Rollenbasierten Zugriff (`RBAC`) dynamisch und elegant direkt in der Routen-Deklaration zu erzwingen (z.B. `router.get('/', auth('admin'), controller)`).
+
+Diese Funktion nutzt das Konzept der _Closures_ in JavaScript, um Rollenbasierten Zugriff (`RBAC`) dynamisch und elegant direkt in der Routen-Deklaration zu erzwingen (z.B. `router.get('/', auth('admin'), controller)`).
 
 ### 4.1.4 Fehlerbehandlung
 
@@ -52,11 +56,11 @@ Um Serverabstürze (Process-Crashes) durch "Unhandled Promise Rejections" zu ver
 
 ## 4.2 Frontend-Implementierung / Nawal /
 
-Das Frontend konsumiert die Backend-Ressourcen und formt aus ihnen ein interaktives Erlebnis für den Mitarbeiter. 
+Das Frontend konsumiert die Backend-Ressourcen und formt aus ihnen ein interaktives Erlebnis für den Mitarbeiter.
 
 ### 4.2.1 Komponenten-Implementierung
 
-Das Projekt ist in modulare *Single File Components (.vue)* gegliedert. Typische Beispiele sind `Dashboard.vue`, `Kalender.vue` und `LeaveRequest.vue`.
+Das Projekt ist in modulare _Single File Components (.vue)_ gegliedert. Typische Beispiele sind `Dashboard.vue`, `Kalender.vue` und `LeaveRequest.vue`.
 Im Skript-Bereich (`<script setup>` oder klassisches Options-API) existiert der lokale Zustand (State). Das `Dashboard` hält beispielsweise Variablen wie `activeSession` oder `liveDuration`. Ist `activeSession` nicht null (also ein offener Zeitstempel vom Server geliefert), blendet die Komponente mittels der Direktive `v-if="activeSession"` den roten "Gehen"-Button ein, andernfalls den grünen "Kommen"-Button.
 
 ### 4.2.2 Formularvalidierung
@@ -80,7 +84,7 @@ Die größte technische Schnittstelle war die fehlerfreie Symbiose der beiden Te
 
 ### 4.3.1 Backend-Frontend-Kommunikation
 
-Zur Kommunikation wurde die asynchrone HTTP-Bibliothek *Axios* als dedizierte Service-Klasse (`api.js`) im Frontend gekapselt.  Um dem Entwickler zu ersparen, manuell bei jeder Anfrage den JWT-Token bereitzuhalten, wurde ein `Axios-Interceptor` geschrieben. Dieser fängt den ausgehenden Request ab, liest den Token aus dem Browser-`localStorage` und injiziert ihn implizit in den HTTP-Header (`Authorization: Bearer <token>`).
+Zur Kommunikation wurde die asynchrone HTTP-Bibliothek _Axios_ als dedizierte Service-Klasse (`api.js`) im Frontend gekapselt. Um dem Entwickler zu ersparen, manuell bei jeder Anfrage den JWT-Token bereitzuhalten, wurde ein `Axios-Interceptor` geschrieben. Dieser fängt den ausgehenden Request ab, liest den Token aus dem Browser-`localStorage` und injiziert ihn implizit in den HTTP-Header (`Authorization: Bearer <token>`).
 
 ### 4.3.2 Datenaustausch
 

@@ -11,7 +11,9 @@
   border-color: #6366f1 !important;
 }
 
-.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
   background-color: #4f46e5 !important;
   border-color: #4f46e5 !important;
 }
@@ -50,17 +52,17 @@
   background-color: #f8f9fa;
   border-right: 1px solid #ddd;
   transition: transform 0.3s ease;
-  padding: 15px;              /* mehr Abstand innen */
+  padding: 15px; /* mehr Abstand innen */
 }
 
 /* Sidebar Buttons */
 .sidebar-btn {
   display: block;
   width: 100%;
-  padding: 12px 14px;          /* mehr Innenabstand */
-  margin-bottom: 12px;         /* mehr Abstand zwischen Buttons */
-  border: 2px solid #6366f1;   /* New Color */
-  color: #6366f1;              /* New Color */
+  padding: 12px 14px; /* mehr Innenabstand */
+  margin-bottom: 12px; /* mehr Abstand zwischen Buttons */
+  border: 2px solid #6366f1; /* New Color */
+  color: #6366f1; /* New Color */
   background-color: white;
   border-radius: 6px;
   font-weight: 500;
@@ -70,7 +72,7 @@
 }
 
 .sidebar-btn:hover {
-  background-color: #6366f1;   /* New Color */
+  background-color: #6366f1; /* New Color */
   color: white;
 }
 
@@ -79,7 +81,7 @@
   display: block;
   width: 100%;
   padding: 12px 14px;
-  margin-top: 20px;           /* extra Abstand nach oben */
+  margin-top: 20px; /* extra Abstand nach oben */
   background-color: #dc3545;
   border: 2px solid #dc3545;
   border-radius: 6px;
@@ -95,7 +97,7 @@
 
 /* Content Bereich */
 .content {
-  margin-left: 270px;         /* etwas mehr Abstand zur Sidebar */
+  margin-left: 270px; /* etwas mehr Abstand zur Sidebar */
   margin-top: 70px;
   padding: 20px;
   transition: margin-left 0.3s ease;

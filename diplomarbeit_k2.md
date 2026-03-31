@@ -9,6 +9,7 @@ Bevor mit der konkreten Implementierung der Vue-Komponenten begonnen wurde, war 
 ### 2.1.1 Identifikation der Nutzergruppen
 
 Das System differenziert strikt zwischen drei iterativen Nutzergruppen, deren Dashboards sich funktional und visuell unterscheiden:
+
 1. **Standard-Benutzer (User):** Mitarbeiter, deren primäre Interaktion aus dem täglichen Ein- und Ausstempeln sowie dem Einreichen von Urlaubsanträgen besteht. Für diese Gruppe muss die primäre Call-to-Action (der Stempel-Button) stets omnipräsent sein.
 2. **Abteilungsleiter (Employee / Manager):** Anwender mit erweiterten Rechten, die Einsicht in die Dienstpläne ihrer spezifischen Abteilung haben und Urlaubsanträge der untergeordneten Mitarbeiter validieren können.
 3. **Administratoren (Admin):** Die höchste Berechtigungsstufe. Administratoren haben Zugriff auf das vollumfängliche Rechtemanagement, die globale Workflow-Kontrolle und die systemweiten Abrechnungsberichte (Billing).
@@ -16,13 +17,14 @@ Das System differenziert strikt zwischen drei iterativen Nutzergruppen, deren Da
 ### 2.1.2 Detaillierte Benutzeranforderungen
 
 Aus der Nutzergruppenanalyse wurden konkrete Anforderungen abgeleitet:
-*   **Minimalistische Interaktion:** Ein Stempelvorgang darf nicht mehr als einen Klick nach dem Login erfordern.
-*   **Visuelles Feedback:** Echtzeit-Rückmeldungen, wie eine animierte Live-Uhr und `Success/Error`-Toasts, sind zwingend erforderlich, um dem Nutzer Systemzustände (z.B. "Live Sitzung läuft") unmissverständlich zu kommunizieren.
-*   **Transparenz:** Jeder Nutzer muss seine eigene Historie (wann wurde gestempelt, wie lange dauerte die Pause) jederzeit einsehen können.
+
+- **Minimalistische Interaktion:** Ein Stempelvorgang darf nicht mehr als einen Klick nach dem Login erfordern.
+- **Visuelles Feedback:** Echtzeit-Rückmeldungen, wie eine animierte Live-Uhr und `Success/Error`-Toasts, sind zwingend erforderlich, um dem Nutzer Systemzustände (z.B. "Live Sitzung läuft") unmissverständlich zu kommunizieren.
+- **Transparenz:** Jeder Nutzer muss seine eigene Historie (wann wurde gestempelt, wie lange dauerte die Pause) jederzeit einsehen können.
 
 ### 2.1.3 Leitende Designprinzipien
 
-Die grafische Umsetzung orientiert sich am modernen *Flat Design* unter Einbeziehung leichter Schatten (Soft-Shadows) und runder Kanten (`border-radius`), was der Applikation eine "weiche" und moderne Anmutung verleiht. Große, farblich abgesetzte Informationskacheln (Cards) strukturieren die Inhalte. Die Primärfarbe ist ein moderner Indigoton (`#6366f1`), der Vertrauen und Professionalität ausstrahlt, akzentuiert durch deutliche Signal-Farben für Aktionen (Grün für "Kommen", Rot für "Gehen"). 
+Die grafische Umsetzung orientiert sich am modernen _Flat Design_ unter Einbeziehung leichter Schatten (Soft-Shadows) und runder Kanten (`border-radius`), was der Applikation eine "weiche" und moderne Anmutung verleiht. Große, farblich abgesetzte Informationskacheln (Cards) strukturieren die Inhalte. Die Primärfarbe ist ein moderner Indigoton (`#6366f1`), der Vertrauen und Professionalität ausstrahlt, akzentuiert durch deutliche Signal-Farben für Aktionen (Grün für "Kommen", Rot für "Gehen").
 
 ### 2.1.4 Technische Design-Grundlagen
 
@@ -40,7 +42,7 @@ Als zentrales Navigationselement fungiert eine dynamische Sidebar (verkörpert i
 
 Das Dashboard ist das Herzstück der Applikation. Es begrüßt den Nutzer mit den relevantesten KPI (Key Performance Indicators) des Tages.
 Die zentralen Elemente sind "Informationskacheln", welche den Status des "Letzten Beginns" und "Letzten Endes" großflächig via Typografie und Icons (Bootstrap Icons) kommunizieren.
-Eine besondere technische und optische Finesse ist das **Live-Stempel-Terminal**. Sobald eine Sitzung aktiv ist, wandelt sich die primäre Ansicht zu einem `Hero-Element` mit einer pulsierenden Live-Uhr (`requestAnimationFrame` oder `setInterval` gesteuert). Diese "Pulse-Animation" signalisiert dem Hirn instinktiv: *Die Uhr läuft*.
+Eine besondere technische und optische Finesse ist das **Live-Stempel-Terminal**. Sobald eine Sitzung aktiv ist, wandelt sich die primäre Ansicht zu einem `Hero-Element` mit einer pulsierenden Live-Uhr (`requestAnimationFrame` oder `setInterval` gesteuert). Diese "Pulse-Animation" signalisiert dem Hirn instinktiv: _Die Uhr läuft_.
 
 ### 2.2.3 Kalender- und Dienstplan-Ansicht
 
@@ -64,7 +66,7 @@ Der Urlaubsantrags-Workflow bedient sich zweier reaktiver Datenströme: Der Nutz
 
 ### 2.3.3 Benutzer- und Abteilungsverwaltung
 
-Das Onboarding neuer Mitarbeitender findet in der `Admin.vue`-Komponente statt. Formulare zur Dateneingabe sind in asynchrone Modals ausgelagert, um den Benutzer nicht von der listenartigen Übersicht wegzuleiten (Context-Switching vermeiden). 
+Das Onboarding neuer Mitarbeitender findet in der `Admin.vue`-Komponente statt. Formulare zur Dateneingabe sind in asynchrone Modals ausgelagert, um den Benutzer nicht von der listenartigen Übersicht wegzuleiten (Context-Switching vermeiden).
 
 ## 2.4 Responsive Design und Zugänglichkeit
 

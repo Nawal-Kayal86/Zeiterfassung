@@ -1,9 +1,14 @@
 <template>
   <div class="container-fluid py-4 px-md-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="fw-bold m-0"><i class="bi bi-sun text-warning me-2"></i>Urlaubsantrag & Konto</h2>
+      <h2 class="fw-bold m-0">
+        <i class="bi bi-sun text-warning me-2"></i>Urlaubsantrag & Konto
+      </h2>
       <div class="d-flex gap-2">
-        <button class="btn btn-outline-secondary" @click="$router.push('/dashboard')">
+        <button
+          class="btn btn-outline-secondary"
+          @click="$router.push('/dashboard')"
+        >
           <i class="bi bi-arrow-left"></i> Zurück
         </button>
       </div>
@@ -15,7 +20,8 @@
         <div class="card shadow-sm border-0 h-100">
           <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
             <h5 class="fw-bold d-flex align-items-center gap-2 text-indigo">
-              <i class="bi bi-info-circle-fill"></i> Informationen / Urlaubskonto
+              <i class="bi bi-info-circle-fill"></i> Informationen /
+              Urlaubskonto
             </h5>
           </div>
           <div class="card-body px-4">
@@ -35,35 +41,19 @@
                   </tr>
                   <tr>
                     <td>Urlaubsanspruch</td>
-                    <td class="text-end fw-bold">25 Tage</td>
-                  </tr>
-                  <tr>
-                    <td>Urlaub Aliquot Gesamt</td>
-                    <td class="text-end fw-bold">12,5 Tage</td>
-                  </tr>
-                  <tr>
-                    <td>Neuer Urlaubsanspruch</td>
-                    <td class="text-end fw-bold">25 Tage</td>
+                    <td class="text-end fw-bold">{{ totalVacation }} Tage</td>
                   </tr>
                   <tr>
                     <td>Urlaub verbraucht Periode</td>
-                    <td class="text-end fw-bold text-danger">5 Tage</td>
+                    <td class="text-end fw-bold text-danger">{{ usedVacation }} Tage</td>
                   </tr>
                   <tr>
                     <td>Urlaub verplant</td>
-                    <td class="text-end fw-bold text-warning">2 Tage</td>
-                  </tr>
-                  <tr>
-                    <td>Urlaub verplant gesamt</td>
-                    <td class="text-end fw-bold">7 Tage</td>
+                    <td class="text-end fw-bold text-warning">{{ plannedVacation }} Tage</td>
                   </tr>
                   <tr class="table-success border-top border-success">
                     <td class="fw-bold text-success">Restl. Urlaubsanspruch</td>
-                    <td class="text-end fw-bold text-success">18 Tage</td>
-                  </tr>
-                  <tr>
-                    <td>Restl. aliquoter Urlaubsanspruch</td>
-                    <td class="text-end fw-bold">5,5 Tage</td>
+                    <td class="text-end fw-bold text-success">{{ remainingVacation }} Tage</td>
                   </tr>
                   <!-- Time Balances (Mock) -->
                   <tr>
@@ -104,16 +94,28 @@
               <div class="row g-3">
                 <div class="col-md-6">
                   <label class="form-label small fw-bold text-muted">VON</label>
-                  <input type="date" v-model="form.from" class="form-control" required />
+                  <input
+                    type="date"
+                    v-model="form.from"
+                    class="form-control"
+                    required
+                  />
                 </div>
 
                 <div class="col-md-6">
                   <label class="form-label small fw-bold text-muted">BIS</label>
-                  <input type="date" v-model="form.to" class="form-control" required />
+                  <input
+                    type="date"
+                    v-model="form.to"
+                    class="form-control"
+                    required
+                  />
                 </div>
 
                 <div class="col-md-12">
-                  <label class="form-label small fw-bold text-muted">URLAUBSART</label>
+                  <label class="form-label small fw-bold text-muted"
+                    >URLAUBSART</label
+                  >
                   <select v-model="form.type" class="form-select">
                     <option value="vacation">Jahresurlaub</option>
                     <option value="sick">Krankheitsurlaub</option>
@@ -122,9 +124,16 @@
                 </div>
 
                 <div class="col-12">
-                  <label class="form-label small fw-bold text-muted">GRUND / BEMERKUNG</label>
-                  <textarea v-model="form.reason" class="form-control" rows="3" placeholder="Grund für den Antrag..."
-                    required></textarea>
+                  <label class="form-label small fw-bold text-muted"
+                    >GRUND / BEMERKUNG</label
+                  >
+                  <textarea
+                    v-model="form.reason"
+                    class="form-control"
+                    rows="3"
+                    placeholder="Grund für den Antrag..."
+                    required
+                  ></textarea>
                 </div>
 
                 <div class="col-12 mt-4">
@@ -140,11 +149,16 @@
         <!-- My Requests List -->
         <div class="card shadow-sm border-0">
           <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-            <h5 class="fw-bold mb-0 text-indigo"><i class="bi bi-clock-history"></i> Meine Anträge</h5>
+            <h5 class="fw-bold mb-0 text-indigo">
+              <i class="bi bi-clock-history"></i> Meine Anträge
+            </h5>
           </div>
           <div class="card-body p-4">
             <div class="table-responsive">
-              <table v-if="requests.length" class="table table-hover align-middle">
+              <table
+                v-if="requests.length"
+                class="table table-hover align-middle"
+              >
                 <thead class="table-light">
                   <tr>
                     <th>Von</th>
@@ -157,21 +171,37 @@
                   <tr v-for="r in requests" :key="r._id">
                     <td>{{ format(r.from) }}</td>
                     <td>{{ format(r.to) }}</td>
-                    <td><small>{{ r.reason }}</small><br><span class="badge bg-light text-dark border">{{
-                        translateType(r.type) }}</span></td>
                     <td>
-                      <span class="badge bg-warning-soft text-warning border border-warning-subtle px-2 rounded-pill"
-                        v-if="r.status === 'pending'">In Bearbeitung</span>
-                      <span class="badge bg-success-soft text-success border border-success-subtle px-2 rounded-pill"
-                        v-if="r.status === 'approved'">Genehmigt</span>
-                      <span class="badge bg-danger-soft text-danger border border-danger-subtle px-2 rounded-pill"
-                        v-if="r.status === 'rejected'">Abgelehnt</span>
+                      <small>{{ r.reason }}</small
+                      ><br /><span class="badge bg-light text-dark border">{{
+                        translateType(r.type)
+                      }}</span>
+                    </td>
+                    <td>
+                      <span
+                        class="badge bg-warning-soft text-warning border border-warning-subtle px-2 rounded-pill"
+                        v-if="r.status === 'pending'"
+                        >In Bearbeitung</span
+                      >
+                      <span
+                        class="badge bg-success-soft text-success border border-success-subtle px-2 rounded-pill"
+                        v-if="r.status === 'approved'"
+                        >Genehmigt</span
+                      >
+                      <span
+                        class="badge bg-danger-soft text-danger border border-danger-subtle px-2 rounded-pill"
+                        v-if="r.status === 'rejected'"
+                        >Abgelehnt</span
+                      >
                     </td>
                   </tr>
                 </tbody>
               </table>
 
-              <div v-else class="text-center py-4 text-muted bg-light rounded-3">
+              <div
+                v-else
+                class="text-center py-4 text-muted bg-light rounded-3"
+              >
                 <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                 Keine Anträge vorhanden
               </div>
@@ -184,22 +214,62 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue"
-import api from "../api"
+import { ref, computed, onMounted } from "vue";
+import api from "../api";
 
 /**
  * @module LeaveRequest
  * @description Vue 3 Composition API Komponente für das Einreichen von Abwesenheitsanträgen.
  */
 
-const requests = ref([])
-const form = ref({ from: "", to: "", type: "vacation", reason: "" })
+const requests = ref([]);
+const form = ref({ from: "", to: "", type: "vacation", reason: "" });
 
 // Datumsformatierung für das Info-Panel
-const today = new Date()
-const todayFormatted = today.toLocaleDateString("de-DE")
-const currentYear = today.getFullYear()
-const vacationPeriod = `01.01.${currentYear} - 31.12.${currentYear}`
+const today = new Date();
+const todayFormatted = today.toLocaleDateString("de-DE");
+const currentYear = today.getFullYear();
+const vacationPeriod = `01.01.${currentYear} - 31.12.${currentYear}`;
+
+const totalVacation = ref(25);
+
+// Berechnet Arbeitstage zwischen zwei Daten (ohne Wochenenden)
+const calculateWorkDays = (startStr, endStr) => {
+  if (!startStr || !endStr) return 0;
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+  let days = 0;
+  let cur = new Date(start);
+  while (cur <= end) {
+    const day = cur.getDay();
+    if (day !== 0 && day !== 6) { // Kein Wochenende
+      days++;
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+  return days;
+};
+
+// Dynamische Berechnung des Urlaubs
+const usedVacation = computed(() => {
+  return requests.value.reduce((sum, r) => {
+    if (r.status === 'approved' && r.type === 'vacation') {
+      return sum + calculateWorkDays(r.from, r.to);
+    }
+    return sum;
+  }, 0);
+});
+
+const plannedVacation = computed(() => {
+  return requests.value.reduce((sum, r) => {
+    if (r.status === 'pending' && r.type === 'vacation') {
+      return sum + calculateWorkDays(r.from, r.to);
+    }
+    return sum;
+  }, 0);
+});
+
+const remainingVacation = computed(() => totalVacation.value - usedVacation.value - plannedVacation.value);
 
 /**
  * @function load
@@ -207,12 +277,12 @@ const vacationPeriod = `01.01.${currentYear} - 31.12.${currentYear}`
  */
 const load = async () => {
   try {
-    const res = await api.get("/leave-requests")
-    requests.value = res.data
+    const res = await api.get("/leave-requests");
+    requests.value = res.data;
   } catch (e) {
-    console.error("Error loading requests", e)
+    console.error("Error loading requests", e);
   }
-}
+};
 
 /**
  * @function submitRequest
@@ -221,20 +291,20 @@ const load = async () => {
  */
 const submitRequest = async () => {
   try {
-    await api.post("/leave-requests", form.value)
-    form.value = { from: "", to: "", type: "vacation", reason: "" }
-    await load()
+    await api.post("/leave-requests", form.value);
+    form.value = { from: "", to: "", type: "vacation", reason: "" };
+    await load();
   } catch (e) {
-    alert("Fehler beim Senden")
+    alert("Fehler beim Senden");
   }
-}
+};
 
-const format = d => new Date(d).toLocaleDateString("de-DE")
+const format = (d) => new Date(d).toLocaleDateString("de-DE");
 
-const translateType = t =>
-  t === "vacation" ? "Jahresurlaub" : t === "sick" ? "Krank" : "Andere"
+const translateType = (t) =>
+  t === "vacation" ? "Jahresurlaub" : t === "sick" ? "Krank" : "Andere";
 
-onMounted(load)
+onMounted(load);
 </script>
 
 <style scoped>
@@ -275,7 +345,7 @@ onMounted(load)
 }
 
 .fw-mono {
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-weight: 600;
 }
 </style>

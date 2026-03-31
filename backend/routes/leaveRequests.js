@@ -4,13 +4,13 @@ import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// ✅ إنشاء طلب إجازة
+// Neuen Urlaubsantrag erstellen
 router.post("/", auth(), async (req, res) => {
   try {
     const { from, to, type, reason } = req.body;
 
     if (!from || !to || !reason) {
-      return res.status(400).json({ error: "بيانات ناقصة" });
+      return res.status(400).json({ error: "Fehlende Daten" });
     }
 
     const request = await LeaveRequest.create({
@@ -19,20 +19,21 @@ router.post("/", auth(), async (req, res) => {
       type,
       reason,
       user_id: req.user.id,
-      status: "pending"
+      status: "pending",
     });
 
     res.status(201).json(request);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Fehler beim Absenden" });
+    res.status(500).json({ error: "Fehler beim Absenden des Antrags" });
   }
 });
-// 🧑‍💼 المستخدم يرى طلباته فقط
+
+// Benutzer sieht nur seine eigenen Anträge
 router.get("/", auth(), async (req, res) => {
   try {
     const requests = await LeaveRequest.find({
-      user_id: req.user.id   // ⭐ الفلترة المهمة
+      user_id: req.user.id, // Wichtige Filterung
     }).sort({ created_at: -1 });
 
     res.json(requests);
@@ -43,7 +44,7 @@ router.get("/", auth(), async (req, res) => {
 });
 
 /* =========================
-        Kalender (ثابت)
+        Kalender
 ========================= */
 
 router.get("/calendar", auth(), async (req, res) => {
@@ -60,7 +61,7 @@ router.get("/calendar", auth(), async (req, res) => {
   res.json(leaves);
 });
 
-// 👨‍💼 المدير يرى جميع الطلبات
+// Admin sieht alle Anträge
 router.get("/admin", auth("admin"), async (req, res) => {
   const requests = await LeaveRequest.find()
     .populate("user_id", "name department")
@@ -69,25 +70,24 @@ router.get("/admin", auth("admin"), async (req, res) => {
   res.json(requests);
 });
 
-// ✅ موافقة
+// Admin: Antrag genehmigen
 router.put("/:id/approve", auth("admin"), async (req, res) => {
   const updated = await LeaveRequest.findByIdAndUpdate(
     req.params.id,
     { status: "approved", decided_by: req.user.id },
-    { new: true }
+    { new: true },
   );
   res.json(updated);
 });
 
-// ❌ رفض
+// Admin: Antrag ablehnen
 router.put("/:id/reject", auth("admin"), async (req, res) => {
   const updated = await LeaveRequest.findByIdAndUpdate(
     req.params.id,
     { status: "rejected", decided_by: req.user.id },
-    { new: true }
+    { new: true },
   );
   res.json(updated);
 });
 
 export default router;
-

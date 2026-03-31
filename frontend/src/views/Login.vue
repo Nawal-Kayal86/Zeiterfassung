@@ -1,12 +1,19 @@
 <template>
   <div class="d-flex justify-content-center align-items-center vh-100 bg-light">
-    <div class="card shadow-lg border-0 p-4" style="max-width: 400px; width: 100%;">
+    <div
+      class="card shadow-lg border-0 p-4"
+      style="max-width: 400px; width: 100%"
+    >
       <!-- Titel -->
       <div class="text-center mb-4">
         <h3 class="fw-bold text-dark">Benutzeranmeldung</h3>
       </div>
       <!-- Meldungen -->
-      <div v-if="message.text" :class="`alert alert-${message.type}`" role="alert">
+      <div
+        v-if="message.text"
+        :class="`alert alert-${message.type}`"
+        role="alert"
+      >
         {{ message.text }}
       </div>
 
@@ -14,23 +21,33 @@
       <form @submit.prevent="login">
         <div class="mb-3">
           <label class="form-label">Benutzername</label>
-          <input v-model="name" type="text" class="form-control" placeholder="z. B. MaxMuster" required />
+          <input
+            v-model="name"
+            type="text"
+            class="form-control"
+            placeholder="z. B. MaxMuster"
+            required
+          />
         </div>
 
         <div class="mb-3">
           <label class="form-label">Passwort</label>
-          <input v-model="password" type="password" class="form-control" placeholder="••••••••" required />
+          <input
+            v-model="password"
+            type="password"
+            class="form-control"
+            placeholder="••••••••"
+            required
+          />
         </div>
 
-        <button type="submit" class="btn btn-primary w-100">
-          Anmelden
-        </button>
+        <button type="submit" class="btn btn-primary w-100">Anmelden</button>
 
         <p v-if="error" class="text-danger mt-3 text-center">
           {{ error }}
         </p>
       </form>
-      <hr>
+      <hr />
       <!-- Uhrzeit -->
       <div class="text-center mb-1 fw-semibold">
         {{ currentTime }}
@@ -45,8 +62,8 @@
 </template>
 
 <script>
-import api from "../api"
-import router from "../router"
+import api from "../api";
+import router from "../router";
 
 export default {
   data() {
@@ -57,7 +74,7 @@ export default {
       currentTime: "",
       timer: null,
       message: { text: "", type: "" }, // Bootstrap Alert
-    }
+    };
   },
   methods: {
     async login() {
@@ -65,22 +82,22 @@ export default {
         const res = await api.post("/login", {
           name: this.name,
           password: this.password,
-        })
-        localStorage.setItem("token", res.data.token)
-        localStorage.setItem("user", JSON.stringify(res.data.user))
-        router.push("/dashboard")
+        });
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+        router.push("/dashboard");
       } catch (err) {
         this.message = {
           text: err.response?.data?.error || "Login fehlgeschlagen",
           type: "danger",
-        }
+        };
       }
       setTimeout(() => {
-        this.message = { text: "", type: "" }
-      }, 3000)
+        this.message = { text: "", type: "" };
+      }, 3000);
     },
     updateTime() {
-      const now = new Date()
+      const now = new Date();
       const options = {
         weekday: "long",
         day: "numeric",
@@ -89,16 +106,16 @@ export default {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit",
-      }
-      this.currentTime = now.toLocaleDateString("de-DE", options)
+      };
+      this.currentTime = now.toLocaleDateString("de-DE", options);
     },
   },
   mounted() {
-    this.updateTime()
-    this.timer = setInterval(this.updateTime, 1000)
+    this.updateTime();
+    this.timer = setInterval(this.updateTime, 1000);
   },
   beforeUnmount() {
-    clearInterval(this.timer)
+    clearInterval(this.timer);
   },
-}
+};
 </script>

@@ -18,7 +18,7 @@
     <div v-if="sessions.length">
       <ul>
         <li v-for="s in sessions" :key="s.id">
-          {{ s.start_time }} - {{ s.end_time ? s.end_time : 'läuft...' }}
+          {{ s.start_time }} - {{ s.end_time ? s.end_time : "läuft..." }}
         </li>
       </ul>
     </div>
@@ -26,31 +26,41 @@
 </template>
 
 <script>
-import api from "../api"
+import api from "../api";
 export default {
-  data() { return { userId: '', tag: '', sessions: [] } },
+  data() {
+    return { userId: "", tag: "", sessions: [] };
+  },
   methods: {
     async start(useTag = false) {
       try {
-        const payload = useTag ? { tag: this.tag } : { userId: Number(this.userId) }
-        await api.post('/start', payload)
-        alert('Start erfasst')
-        this.loadSessions()
-      } catch (e) { alert('Fehler: ' + (e.response?.data?.error || e.message)) }
+        const payload = useTag
+          ? { tag: this.tag }
+          : { userId: Number(this.userId) };
+        await api.post("/start", payload);
+        alert("Start erfasst");
+        this.loadSessions();
+      } catch (e) {
+        alert("Fehler: " + (e.response?.data?.error || e.message));
+      }
     },
     async stop(useTag = false) {
       try {
-        const payload = useTag ? { tag: this.tag } : { userId: Number(this.userId) }
-        await api.post('/stop', payload)
-        alert('Stop erfasst')
-        this.loadSessions()
-      } catch (e) { alert('Fehler: ' + (e.response?.data?.error || e.message)) }
+        const payload = useTag
+          ? { tag: this.tag }
+          : { userId: Number(this.userId) };
+        await api.post("/stop", payload);
+        alert("Stop erfasst");
+        this.loadSessions();
+      } catch (e) {
+        alert("Fehler: " + (e.response?.data?.error || e.message));
+      }
     },
     async loadSessions() {
       if (!this.userId) return;
-      const res = await api.get('/sessions/' + this.userId)
-      this.sessions = res.data
-    }
-  }
-}
+      const res = await api.get("/sessions/" + this.userId);
+      this.sessions = res.data;
+    },
+  },
+};
 </script>

@@ -1,6 +1,8 @@
 <template>
   <div class="container mt-4">
-    <p class="text-muted">Hier können Sie Ihre Arzttermine und Sondertermine erfassen.</p>
+    <p class="text-muted">
+      Hier können Sie Ihre Arzttermine und Sondertermine erfassen.
+    </p>
 
     <!-- Formular -->
     <div class="card p-4 mb-4 shadow-sm border-0 bg-white">
@@ -12,24 +14,49 @@
         <div class="row g-3">
           <div class="col-md-3">
             <div class="input-group">
-              <span class="input-group-text bg-light text-muted small fw-bold">GRUND</span>
-              <input v-model="newTask" type="text" class="form-control" placeholder="Termin" required />
+              <span class="input-group-text bg-light text-muted small fw-bold"
+                >GRUND</span
+              >
+              <input
+                v-model="newTask"
+                type="text"
+                class="form-control"
+                placeholder="Termin"
+                required
+              />
             </div>
           </div>
           <div class="col-md-3">
             <div class="input-group">
-              <span class="input-group-text bg-light text-muted small fw-bold">VON</span>
-              <input v-model="startTime" type="time" class="form-control" required />
+              <span class="input-group-text bg-light text-muted small fw-bold"
+                >VON</span
+              >
+              <input
+                v-model="startTime"
+                type="time"
+                class="form-control"
+                required
+              />
             </div>
           </div>
           <div class="col-md-3">
             <div class="input-group">
-              <span class="input-group-text bg-light text-muted small fw-bold">BIS</span>
-              <input v-model="endTime" type="time" class="form-control" required />
+              <span class="input-group-text bg-light text-muted small fw-bold"
+                >BIS</span
+              >
+              <input
+                v-model="endTime"
+                type="time"
+                class="form-control"
+                required
+              />
             </div>
           </div>
           <div class="col-md-3 d-flex align-items-end">
-            <button class="btn btn-indigo w-100 py-2 shadow-sm fw-bold" type="submit">
+            <button
+              class="btn btn-indigo w-100 py-2 shadow-sm fw-bold"
+              type="submit"
+            >
               <i class="bi bi-calendar-plus"></i> Speichern
             </button>
           </div>
@@ -61,27 +88,37 @@
             <td>{{ t.user?.name || "-" }}</td>
             <td>{{ t.task }}</td>
             <td>
-              <span v-if="t.status === 'done'"
-                class="badge bg-success-soft text-success border border-success-subtle px-3 rounded-pill">
+              <span
+                v-if="t.status === 'done'"
+                class="badge bg-success-soft text-success border border-success-subtle px-3 rounded-pill"
+              >
                 Ja
               </span>
-              <span v-else class="badge bg-warning-soft text-warning border border-warning-subtle px-3 rounded-pill">
+              <span
+                v-else
+                class="badge bg-warning-soft text-warning border border-warning-subtle px-3 rounded-pill"
+              >
                 Nein
               </span>
             </td>
             <td class="text-end pe-4">
-              <button v-if="t.status !== 'done'" class="btn btn-sm btn-outline-success me-2" @click="markDone(t.id)">
+              <button
+                v-if="t.status !== 'done'"
+                class="btn btn-sm btn-outline-success me-2"
+                @click="markDone(t.id)"
+              >
                 Ja
               </button>
-              <button class="btn btn-sm btn-outline-danger" @click="deleteTask(t.id)">
+              <button
+                class="btn btn-sm btn-outline-danger"
+                @click="deleteTask(t.id)"
+              >
                 Löschen
               </button>
             </td>
           </tr>
         </tbody>
-
       </table>
-
     </div>
     <div v-else-if="!loading" class="alert alert-secondary">
       Keine Aufgaben vorhanden. Fügen Sie eine neue Aufgabe hinzu!
@@ -90,106 +127,103 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue"
-import api from "../api"
+import { ref, onMounted } from "vue";
+import api from "../api";
 
 // state
-const tasks = ref([])
-const loading = ref(true)
-const error = ref("")
-const newTask = ref("Termin")
+const tasks = ref([]);
+const loading = ref(true);
+const error = ref("");
+const newTask = ref("Termin");
 // Removed newStatus
-const startTime = ref("")
-const endTime = ref("")
+const startTime = ref("");
+const endTime = ref("");
 
 // user
-const user = JSON.parse(localStorage.getItem("user"))
+const user = JSON.parse(localStorage.getItem("user"));
 
 // 🔄 Aufgaben laden
 const loadWorkflow = async () => {
   try {
-    const res = await api.get("/workflow")
-    tasks.value = res.data
+    const res = await api.get("/workflow");
+    tasks.value = res.data;
   } catch (err) {
     error.value =
-      "Fehler beim Laden: " +
-      (err.response?.data?.error || err.message)
+      "Fehler beim Laden: " + (err.response?.data?.error || err.message);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // ➕ Neue Aufgabe hinzufügen
 const addTask = async () => {
   try {
     if (!startTime.value || !endTime.value) {
-      alert("Bitte Start- und Endzeit angeben!")
-      return
+      alert("Bitte Start- und Endzeit angeben!");
+      return;
     }
 
     // 2-Stunden-Validierung
-    const startParts = startTime.value.split(":").map(Number)
-    const endParts = endTime.value.split(":").map(Number)
+    const startParts = startTime.value.split(":").map(Number);
+    const endParts = endTime.value.split(":").map(Number);
 
     // Convert to minutes since midnight
-    const startMins = startParts[0] * 60 + startParts[1]
-    const endMins = endParts[0] * 60 + endParts[1]
+    const startMins = startParts[0] * 60 + startParts[1];
+    const endMins = endParts[0] * 60 + endParts[1];
 
-    let duration = endMins - startMins
-    if (duration < 0) duration += 24 * 60 // Handle overnight if needed, though usually same day
+    let duration = endMins - startMins;
+    if (duration < 0) duration += 24 * 60; // Handle overnight if needed, though usually same day
 
     if (duration > 180) {
-      alert("Der Termin darf maximal 3 Stunden dauern!")
-      return
+      alert("Der Termin darf maximal 3 Stunden dauern!");
+      return;
     }
 
     if (duration <= 0) {
-      alert("Endzeit muss nach der Startzeit liegen!")
-      return
+      alert("Endzeit muss nach der Startzeit liegen!");
+      return;
     }
 
-    const taskWithTime = `${newTask.value} (${startTime.value} - ${endTime.value})`
+    const taskWithTime = `${newTask.value} (${startTime.value} - ${endTime.value})`;
 
     await api.post("/workflow", {
       task: taskWithTime,
-      status: "open" // Default to open
-    })
+      status: "open", // Default to open
+    });
 
-    newTask.value = "Termin"
+    newTask.value = "Termin";
     // Removed newStatus reset
-    startTime.value = ""
-    endTime.value = ""
-    await loadWorkflow()
+    startTime.value = "";
+    endTime.value = "";
+    await loadWorkflow();
   } catch (err) {
     alert(
-      "Fehler beim Hinzufügen: " +
-      (err.response?.data?.error || err.message)
-    )
+      "Fehler beim Hinzufügen: " + (err.response?.data?.error || err.message),
+    );
   }
-}
-
+};
 
 // ✅ Task als erledigt markieren
 const markDone = async (id) => {
   try {
-    await api.put(`/workflow/${id}/done`)
-    await loadWorkflow()
+    await api.put(`/workflow/${id}/done`);
+    await loadWorkflow();
   } catch (err) {
-    alert("Fehler beim Abschließen")
+    alert("Fehler beim Abschließen");
   }
-}
+};
 
 // ❌ Task löschen
 const deleteTask = async (id) => {
   try {
-    await api.delete(`/workflow/${id}`)
-    await loadWorkflow()
+    await api.delete(`/workflow/${id}`);
+    await loadWorkflow();
   } catch (err) {
-    alert("Fehler beim Löschen")
+    alert("Fehler beim Löschen");
   }
-}
+};
 
-onMounted(loadWorkflow)
+onMounted(loadWorkflow);
 </script>
 
 <style scoped>

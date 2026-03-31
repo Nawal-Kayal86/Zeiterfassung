@@ -1,9 +1,9 @@
 <template>
-  <div style="font-family:system-ui,Arial; ">
+  <div style="font-family: system-ui, Arial">
     <router-view />
   </div>
 </template>
 
 <script>
-export default {}
+export default {};
 </script>

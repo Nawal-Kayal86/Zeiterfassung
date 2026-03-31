@@ -1,45 +1,45 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const scheduleSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true
+      required: true,
     },
 
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: false
+      required: false,
     },
 
     department: {
       type: String,
-      required: true
+      required: true,
     },
 
     date: {
       type: Date,
-      required: true
+      required: true,
     },
 
     shift: {
       type: String,
       enum: ["Frühschicht", "Spätschicht", "Nachtschicht"],
-      required: true
+      required: true,
     },
 
     start_time: {
       type: String, // "06:00"
-      required: false
+      required: false,
     },
 
     end_time: {
       type: String, // "14:00"
-      required: false
-    }
+      required: false,
+    },
   },
-  { timestamps: true }
-)
+  { timestamps: true },
+);
 
-export default mongoose.model("Schedule", scheduleSchema)
+export default mongoose.model("Schedule", scheduleSchema);

@@ -2,13 +2,25 @@
   <div class="container-fluid py-4 px-md-5">
     <!-- Toggle Switch -->
     <div class="d-flex justify-content-center mb-5">
-      <div class="view-toggle-container shadow-sm p-1 rounded-pill bg-light border">
-        <button @click="activeView = 'terminal'"
-          :class="['btn rounded-pill px-4 py-2 transition-all border-0', activeView === 'terminal' ? 'btn-indigo shadow-sm' : 'text-muted']">
+      <div
+        class="view-toggle-container shadow-sm p-1 rounded-pill bg-light border"
+      >
+        <button
+          @click="activeView = 'terminal'"
+          :class="[
+            'btn rounded-pill px-4 py-2 transition-all border-0',
+            activeView === 'terminal' ? 'btn-indigo shadow-sm' : 'text-muted',
+          ]"
+        >
           <i class="bi bi-pc-display-horizontal me-2"></i> Stempel-Terminal
         </button>
-        <button @click="activeView = 'manual'"
-          :class="['btn rounded-pill px-4 py-2 transition-all border-0', activeView === 'manual' ? 'btn-indigo shadow-sm' : 'text-muted']">
+        <button
+          @click="activeView = 'manual'"
+          :class="[
+            'btn rounded-pill px-4 py-2 transition-all border-0',
+            activeView === 'manual' ? 'btn-indigo shadow-sm' : 'text-muted',
+          ]"
+        >
           <i class="bi bi-pencil-square me-2"></i> Manuelle Erfassung
         </button>
       </div>
@@ -24,35 +36,65 @@
           </h5>
           <form @submit.prevent="addManualTime">
             <div class="mb-3">
-              <label class="form-label d-flex align-items-center fw-semibold text-muted small text-uppercase">
+              <label
+                class="form-label d-flex align-items-center fw-semibold text-muted small text-uppercase"
+              >
                 <i class="bi bi-calendar-event me-2 text-indigo"></i> Datum
               </label>
-              <input type="date" v-model="manual.date" class="form-control custom-input" required />
+              <input
+                type="date"
+                v-model="manual.date"
+                class="form-control custom-input"
+                required
+              />
             </div>
 
             <div class="mb-3">
-              <label class="form-label d-flex align-items-center fw-semibold text-muted small text-uppercase">
-                <i class="bi bi-play-circle-fill me-2 text-success-custom"></i> Startzeit
+              <label
+                class="form-label d-flex align-items-center fw-semibold text-muted small text-uppercase"
+              >
+                <i class="bi bi-play-circle-fill me-2 text-success-custom"></i>
+                Startzeit
               </label>
-              <input type="time" v-model="manual.start" class="form-control custom-input" />
+              <input
+                type="time"
+                v-model="manual.start"
+                class="form-control custom-input"
+              />
             </div>
 
             <div class="mb-3">
-              <label class="form-label d-flex align-items-center fw-semibold text-muted small text-uppercase">
+              <label
+                class="form-label d-flex align-items-center fw-semibold text-muted small text-uppercase"
+              >
                 <i class="bi bi-stop-circle-fill me-2 text-danger"></i> Endzeit
               </label>
-              <input type="time" v-model="manual.end" class="form-control custom-input" />
+              <input
+                type="time"
+                v-model="manual.end"
+                class="form-control custom-input"
+              />
             </div>
 
             <div class="mb-4">
-              <label class="form-label d-flex align-items-center fw-semibold text-muted small text-uppercase">
-                <i class="bi bi-coffee-spent me-2 text-warning"></i> Pause (HH:MM)
+              <label
+                class="form-label d-flex align-items-center fw-semibold text-muted small text-uppercase"
+              >
+                <i class="bi bi-coffee-spent me-2 text-warning"></i> Pause
+                (HH:MM)
               </label>
-              <input type="text" v-model="manual.pause" class="form-control custom-input" placeholder="0:30" />
+              <input
+                type="text"
+                v-model="manual.pause"
+                class="form-control custom-input"
+                placeholder="0:30"
+              />
             </div>
 
-            <button type="submit"
-              class="btn btn-indigo w-100 py-2 shadow-sm d-flex align-items-center justify-content-center gap-2 fw-bold">
+            <button
+              type="submit"
+              class="btn btn-indigo w-100 py-2 shadow-sm d-flex align-items-center justify-content-center gap-2 fw-bold"
+            >
               <i class="bi bi-save-fill"></i> Jetzt Speichern
             </button>
           </form>
@@ -63,7 +105,9 @@
       <div v-if="activeView === 'terminal'" class="col-lg-9">
         <!-- Main Action Section (Centered) -->
         <div class="text-center mb-5">
-          <h2 class="fw-bold mb-4 text-dark letter-spacing-1">Digitales Stempel-Terminal</h2>
+          <h2 class="fw-bold mb-4 text-dark letter-spacing-1">
+            Digitales Stempel-Terminal
+          </h2>
 
           <div v-if="activeSession" class="live-session-hero mb-4">
             <div class="live-pulse mb-2">
@@ -72,38 +116,66 @@
             </div>
             <div class="display-time">{{ liveDuration }}</div>
             <div class="text-muted mt-2 fw-semibold">
-              Begonnen am: {{ formatDate(activeSession.start) }} um {{ formatTime(activeSession.start) }}
+              Begonnen am: {{ formatDate(activeSession.start) }} um
+              {{ formatTime(activeSession.start) }}
             </div>
           </div>
 
           <div class="d-flex justify-content-center gap-3 flex-wrap mt-2">
-            <button class="btn btn-success-custom action-btn shadow-lg fw-bold py-3 px-4 transition-3d" @click="start"
-              :disabled="activeSession">
+            <button
+              class="btn btn-success-custom action-btn shadow-lg fw-bold py-3 px-4 transition-3d"
+              @click="start"
+              :disabled="activeSession"
+            >
               <i class="bi bi-play-circle-fill fs-5"></i> Arbeitsbeginn
             </button>
-            <button v-if="activeSession"
-              :class="['btn action-btn shadow-lg fw-bold py-3 px-4 transition-3d', isPaused ? 'btn-warning' : 'btn-outline-warning']"
-              @click="togglePause">
-              <i :class="isPaused ? 'bi bi-pause-btn-fill' : 'bi bi-pause-btn'"></i>
-              {{ isPaused ? 'Pause beenden' : 'Pause machen' }}
+            <button
+              v-if="activeSession"
+              :class="[
+                'btn action-btn shadow-lg fw-bold py-3 px-4 transition-3d',
+                isPaused ? 'btn-warning' : 'btn-outline-warning',
+              ]"
+              @click="togglePause"
+            >
+              <i
+                :class="isPaused ? 'bi bi-pause-btn-fill' : 'bi bi-pause-btn'"
+              ></i>
+              {{ isPaused ? "Pause beenden" : "Pause machen" }}
             </button>
-            <button class="btn btn-outline-indigo action-btn shadow-lg fw-bold py-3 px-4 transition-3d"
-              @click="$router.push('/workflow')">
+            <button
+              class="btn btn-outline-indigo action-btn shadow-lg fw-bold py-3 px-4 transition-3d"
+              @click="$router.push('/workflow')"
+            >
               <i class="bi bi-hospital fs-5"></i> Arzttermin
             </button>
-            <button class="btn btn-danger action-btn shadow-lg fw-bold py-3 px-4 transition-3d" @click="stop"
-              :disabled="!activeSession">
+            <button
+              class="btn btn-danger action-btn shadow-lg fw-bold py-3 px-4 transition-3d"
+              @click="stop"
+              :disabled="!activeSession"
+            >
               <i class="bi bi-stop-circle-fill fs-5"></i> Arbeitsende
             </button>
           </div>
         </div>
 
-        <div v-if="message.text"
+        <div
+          v-if="message.text"
           :class="`alert alert-${message.type} mx-auto mb-4 shadow-sm d-flex align-items-center justify-content-center gap-2 border-0`"
-          style="max-width: 600px;"
-          :style="message.type === 'success' ? 'background: #d4edda; border-left: 5px solid #28a745 !important;' : 'background: #f8d7da; border-left: 5px solid #dc3545 !important;'">
+          style="max-width: 600px"
+          :style="
+            message.type === 'success'
+              ? 'background: #d4edda; border-left: 5px solid #28a745 !important;'
+              : 'background: #f8d7da; border-left: 5px solid #dc3545 !important;'
+          "
+        >
           <i
-            :class="[message.type === 'success' ? 'bi bi-check-circle-fill' : 'bi bi-exclamation-circle-fill', `text-${message.type}`]"></i>
+            :class="[
+              message.type === 'success'
+                ? 'bi bi-check-circle-fill'
+                : 'bi bi-exclamation-circle-fill',
+              `text-${message.type}`,
+            ]"
+          ></i>
           {{ message.text }}
         </div>
 
@@ -111,17 +183,25 @@
         <div class="row mb-4">
           <!-- Letzter Beginn -->
           <div class="col-md-6 mb-3">
-            <div class="card shadow-sm h-100 border-0 bg-white shadow-hover p-4">
+            <div
+              class="card shadow-sm h-100 border-0 bg-white shadow-hover p-4"
+            >
               <div class="d-flex align-items-center gap-4">
                 <div class="stat-icon-box bg-success-soft text-success-custom">
                   <i class="bi bi-box-arrow-in-right fs-2"></i>
                 </div>
                 <div>
-                  <h6 class="text-muted text-uppercase smaller fw-bold mb-1">Letzter Beginn</h6>
+                  <h6 class="text-muted text-uppercase smaller fw-bold mb-1">
+                    Letzter Beginn
+                  </h6>
                   <p class="fw-bold fs-5 mb-0 text-dark">
                     <template v-if="summary.lastStart">
-                      <span class="d-block">{{ formatDate(summary.lastStart) }}</span>
-                      <span class="text-success-custom font-monospace">{{ formatTime(summary.lastStart) }}</span>
+                      <span class="d-block">{{
+                        formatDate(summary.lastStart)
+                      }}</span>
+                      <span class="text-success-custom font-monospace">{{
+                        formatTime(summary.lastStart)
+                      }}</span>
                     </template>
                     <template v-else>-----</template>
                   </p>
@@ -132,17 +212,25 @@
 
           <!-- Letztes Ende -->
           <div class="col-md-6 mb-3">
-            <div class="card shadow-sm h-100 border-0 bg-white shadow-hover p-4">
+            <div
+              class="card shadow-sm h-100 border-0 bg-white shadow-hover p-4"
+            >
               <div class="d-flex align-items-center gap-4">
                 <div class="stat-icon-box bg-danger-soft text-danger">
                   <i class="bi bi-box-arrow-right fs-2"></i>
                 </div>
                 <div>
-                  <h6 class="text-muted text-uppercase smaller fw-bold mb-1">Letztes Ende</h6>
+                  <h6 class="text-muted text-uppercase smaller fw-bold mb-1">
+                    Letztes Ende
+                  </h6>
                   <p class="fw-bold fs-5 mb-0 text-dark">
                     <template v-if="!activeSession && summary.lastEnd">
-                      <span class="d-block">{{ formatDate(summary.lastEnd) }}</span>
-                      <span class="text-danger font-monospace">{{ formatTime(summary.lastEnd) }}</span>
+                      <span class="d-block">{{
+                        formatDate(summary.lastEnd)
+                      }}</span>
+                      <span class="text-danger font-monospace">{{
+                        formatTime(summary.lastEnd)
+                      }}</span>
                     </template>
                     <template v-else>-----</template>
                   </p>
@@ -185,14 +273,17 @@
               <td>{{ formatDate(s.start) }}</td>
               <td>{{ formatTime(s.start) }}</td>
               <td>{{ formatTime(s.end) }}</td>
-              <td><span class="badge bg-light text-dark font-monospace">{{ s.pause || '0:00' }}</span></td>
+              <td>
+                <span class="badge bg-light text-dark font-monospace">{{
+                  s.pause || "0:00"
+                }}</span>
+              </td>
               <td>{{ calcDuration(s.start, s.end) }}</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
-
   </div>
 </template>
 
@@ -215,7 +306,7 @@ export default {
       timer: null,
       isPaused: false,
       pauseTime: 0, // in seconds
-      activeView: 'terminal' // 'terminal' or 'manual'
+      activeView: "terminal", // 'terminal' or 'manual'
     };
   },
 
@@ -228,16 +319,22 @@ export default {
   },
   computed: {
     activeSession() {
-      return this.workSessions.find(s => {
-        if (!s.start) return false
-        if (!s.end) return true
+      if (!this.user) return null;
+      return (
+        this.workSessions.find((s) => {
+          // Verhindern, dass fremde Sessions beim Admin als eigene aktive Session erkannt werden
+          if (s.user_id && s.user_id !== this.user.id) return false;
 
-        const start = new Date(s.start)
-        const end = new Date(s.end)
+          if (!s.start) return false;
+          if (!s.end) return true;
 
-        return end <= start
-      }) || null
-    }
+          const start = new Date(s.start);
+          const end = new Date(s.end);
+
+          return end <= start;
+        }) || null
+      );
+    },
   },
   watch: {
     activeSession(newSession, oldSession) {
@@ -246,7 +343,7 @@ export default {
       } else {
         this.stopLiveTimer();
       }
-    }
+    },
   },
 
   methods: {
@@ -269,10 +366,10 @@ export default {
 
     async loadWorkSessions() {
       try {
-        const res = await api.get('/workSessions')
-        this.workSessions = res.data
+        const res = await api.get("/workSessions");
+        this.workSessions = res.data;
       } catch {
-        this.workSessions = []
+        this.workSessions = [];
       }
     },
 
@@ -295,7 +392,7 @@ export default {
       try {
         const h = Math.floor(this.pauseTime / 3600);
         const m = Math.floor((this.pauseTime % 3600) / 60);
-        const pauseStr = `${h}:${String(m).padStart(2, '0')}`;
+        const pauseStr = `${h}:${String(m).padStart(2, "0")}`;
 
         const res = await api.post("/workSessions/stop", { pause: pauseStr });
         this.showMessage(res.data.message, "success");
@@ -304,8 +401,7 @@ export default {
         await this.loadWorkSessions();
         await this.loadSummary();
       } catch (err) {
-        const text =
-          err.response?.data?.error || "Fehler beim Arbeitsende ❌";
+        const text = err.response?.data?.error || "Fehler beim Arbeitsende ❌";
         this.showMessage(text, "danger");
       }
     },
@@ -318,8 +414,7 @@ export default {
         await this.loadWorkSessions();
         await this.loadSummary();
       } catch (err) {
-        const text =
-          err.response?.data?.error || "Fehler beim Eintragen ❌";
+        const text = err.response?.data?.error || "Fehler beim Eintragen ❌";
         this.showMessage(text, "danger");
       }
     },
@@ -342,13 +437,16 @@ export default {
         if (diffMs < 0) return;
 
         // Subtrahiere die Pausenzeit (in ms)
-        diffMs -= (this.pauseTime * 1000);
+        diffMs -= this.pauseTime * 1000;
 
         if (diffMs < 0) diffMs = 0;
 
         const totalSeconds = Math.floor(diffMs / 1000);
         const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
-        const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+        const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(
+          2,
+          "0",
+        );
         const s = String(totalSeconds % 60).padStart(2, "0");
 
         this.liveDuration = `${h}:${m}:${s}`;
@@ -370,14 +468,13 @@ export default {
       }
     },
 
-
     showMessage(text, type = "success") {
       this.message = { text, type };
       setTimeout(() => {
         this.message.text = "";
       }, 4000);
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -528,7 +625,7 @@ export default {
 }
 
 .display-time {
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-family: "JetBrains Mono", "Courier New", monospace;
   font-size: 4rem;
   font-weight: 800;
   color: #1a1a1a;

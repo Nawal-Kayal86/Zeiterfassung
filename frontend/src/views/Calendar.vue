@@ -12,9 +12,15 @@
     <div class="calendar-header">
       <!-- Search Input - Stylish -->
       <div class="position-relative me-3 search-wrapper">
-        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-primary opacity-75"></i>
-        <input type="text" class="form-control rounded-pill ps-5 border-0 shadow-sm bg-white search-input"
-          placeholder="Suchen..." v-model="searchQuery">
+        <i
+          class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-primary opacity-75"
+        ></i>
+        <input
+          type="text"
+          class="form-control rounded-pill ps-5 border-0 shadow-sm bg-white search-input"
+          placeholder="Suchen..."
+          v-model="searchQuery"
+        />
       </div>
 
       <button @click="prevMonth" class="nav-btn">‹</button>
@@ -35,22 +41,41 @@
       <div v-for="week in calendar" :key="week.kw" class="grid week">
         <div class="kw-col">{{ week.kw }}</div>
 
-        <div v-for="day in week.days" :key="day.key" class="day" :class="{
-          today: day.isToday,
-          holiday: day.holiday || day.isFerien || day.isWeekend,
-          leave: day.hasLeave && !day.holiday && !day.isFerien && !day.isWeekend,
-          work: day.hasWork && !day.holiday && !day.isFerien && !day.isWeekend,
-          selected: selectedDate === day.key,
-          'search-match': day.isMatch,
-          'other-month': !day.isCurrentMonth
-        }" :title="day.tooltip" @click="selectDay(day)">
+        <div
+          v-for="day in week.days"
+          :key="day.key"
+          class="day"
+          :class="{
+            today: day.isToday,
+            holiday: day.holiday || day.isFerien || day.isWeekend,
+            leave:
+              day.hasLeave && !day.holiday && !day.isFerien && !day.isWeekend,
+            work:
+              day.hasWork && !day.holiday && !day.isFerien && !day.isWeekend,
+            selected: selectedDate === day.key,
+            'search-match': day.isMatch,
+            'other-month': !day.isCurrentMonth,
+          }"
+          :title="day.tooltip"
+          @click="selectDay(day)"
+        >
           <div class="day-number">{{ day.day }}</div>
 
-          <div v-if="day.holiday" class="status-label holiday-label">Feiertag</div>
-          <div v-else-if="day.isFerien" class="status-label holiday-label">Ferien</div>
-          <div v-else-if="day.isWeekend" class="status-label holiday-label">Wochenende</div>
-          <div v-else-if="day.hasLeave" class="status-label leave-label">Urlaub</div>
-          <div v-else-if="day.hasWork" class="status-label work-label">Arbeit</div>
+          <div v-if="day.holiday" class="status-label holiday-label">
+            Feiertag
+          </div>
+          <div v-else-if="day.isFerien" class="status-label holiday-label">
+            Ferien
+          </div>
+          <div v-else-if="day.isWeekend" class="status-label holiday-label">
+            Wochenende
+          </div>
+          <div v-else-if="day.hasLeave" class="status-label leave-label">
+            Urlaub
+          </div>
+          <div v-else-if="day.hasWork" class="status-label work-label">
+            Arbeit
+          </div>
 
           <div v-if="day.holiday" class="holiday-name">{{ day.holiday }}</div>
         </div>
@@ -59,30 +84,58 @@
 
     <!-- Legend -->
     <div class="legend">
-      <div class="legend-item"><span class="box work"></span> Arbeit (Grün)</div>
-      <div class="legend-item"><span class="box leave"></span> Urlaub (Gelb)</div>
-      <div class="legend-item"><span class="box holiday"></span> Feiertag/Ferien/Wochenende (Rot)</div>
+      <div class="legend-item">
+        <span class="box work"></span> Arbeit (Grün)
+      </div>
+      <div class="legend-item">
+        <span class="box leave"></span> Urlaub (Gelb)
+      </div>
+      <div class="legend-item">
+        <span class="box holiday"></span> Feiertag/Ferien/Wochenende (Rot)
+      </div>
     </div>
 
     <!-- Details Modal -->
-    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div
+      class="modal fade"
+      id="detailsModal"
+      tabindex="-1"
+      aria-labelledby="detailsModalLabel"
+      aria-hidden="true"
+    >
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content shadow-lg">
           <div class="modal-header bg-primary text-white">
-            <h5 class="modal-title" id="detailsModalLabel">📌 Details für {{ selectedDate }}</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <h5 class="modal-title" id="detailsModalLabel">
+              📌 Details für {{ selectedDate }}
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
           <div class="modal-body">
             <div v-if="dayLeaves.length" class="mb-4">
               <h5 class="border-bottom pb-2 text-dark">Urlaube:</h5>
               <div class="list-group">
-                <div v-for="l in dayLeaves" :key="l._id"
-                  class="list-group-item list-group-item-warning mb-2 border-0 shadow-sm rounded">
+                <div
+                  v-for="l in dayLeaves"
+                  :key="l._id"
+                  class="list-group-item list-group-item-warning mb-2 border-0 shadow-sm rounded"
+                >
                   <div class="d-flex w-100 justify-content-between">
-                    <h6 class="mb-1 fw-bold">{{ l.user_id?.name || 'Mitarbeiter' }}</h6>
-                    <small class="badge bg-warning text-dark">{{ l.type }}</small>
+                    <h6 class="mb-1 fw-bold">
+                      {{ l.user_id?.name || "Mitarbeiter" }}
+                    </h6>
+                    <small class="badge bg-warning text-dark">{{
+                      l.type
+                    }}</small>
                   </div>
-                  <p class="mb-1 text-muted">{{ l.reason || 'Kein Grund angegeben' }}</p>
+                  <p class="mb-1 text-muted">
+                    {{ l.reason || "Kein Grund angegeben" }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -104,24 +157,54 @@
                     <tr v-for="s in dayDetails" :key="s.id">
                       <td>{{ s.name }}</td>
                       <td>
-                        <input v-if="editingId === s.id" type="datetime-local" v-model="editForm.start"
-                          class="form-control form-control-sm">
+                        <input
+                          v-if="editingId === s.id"
+                          type="datetime-local"
+                          v-model="editForm.start"
+                          class="form-control form-control-sm"
+                        />
                         <span v-else>{{ formatTime(s.start) }}</span>
                       </td>
                       <td>
-                        <input v-if="editingId === s.id" type="datetime-local" v-model="editForm.end"
-                          class="form-control form-control-sm">
-                        <span v-else>{{ s.end ? formatTime(s.end) : '---' }}</span>
+                        <input
+                          v-if="editingId === s.id"
+                          type="datetime-local"
+                          v-model="editForm.end"
+                          class="form-control form-control-sm"
+                        />
+                        <span v-else>{{
+                          s.end ? formatTime(s.end) : "---"
+                        }}</span>
                       </td>
                       <td>{{ calcDuration(s.start, s.end) }}</td>
                       <td v-if="isAdmin" class="text-end">
                         <template v-if="editingId === s.id">
-                          <button class="btn btn-sm btn-success me-1" @click="saveEdit(s.id)">💾</button>
-                          <button class="btn btn-sm btn-secondary" @click="cancelEdit">✖</button>
+                          <button
+                            class="btn btn-sm btn-success me-1"
+                            @click="saveEdit(s.id)"
+                          >
+                            💾
+                          </button>
+                          <button
+                            class="btn btn-sm btn-secondary"
+                            @click="cancelEdit"
+                          >
+                            ✖
+                          </button>
                         </template>
                         <template v-else>
-                          <button class="btn btn-sm btn-outline-primary me-1" @click="startEdit(s)">✏️</button>
-                          <button class="btn btn-sm btn-outline-danger" @click="deleteSession(s.id)">🗑️</button>
+                          <button
+                            class="btn btn-sm btn-outline-primary me-1"
+                            @click="startEdit(s)"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            class="btn btn-sm btn-outline-danger"
+                            @click="deleteSession(s.id)"
+                          >
+                            🗑️
+                          </button>
                         </template>
                       </td>
                     </tr>
@@ -130,12 +213,21 @@
               </div>
             </div>
 
-            <div v-if="!dayLeaves.length && !dayDetails.length" class="text-center py-4">
+            <div
+              v-if="!dayLeaves.length && !dayDetails.length"
+              class="text-center py-4"
+            >
               <p class="text-muted">Keine Einträge für diesen Tag gefunden.</p>
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Schließen
+            </button>
           </div>
         </div>
       </div>
@@ -143,146 +235,144 @@
   </div>
 </template>
 
-
 <script setup>
-import { ref, computed, onMounted, watch } from "vue"
-import api from "@/api"
-import { formatTime, calcDuration } from "@/utils/time"
-import * as bootstrap from "bootstrap"
+import { ref, computed, onMounted, watch } from "vue";
+import api from "@/api";
+import { formatTime, calcDuration } from "@/utils/time";
+import * as bootstrap from "bootstrap";
 
 /* ------------------ helpers ------------------ */
 function toLocalKey(d) {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, "0")
-  const day = String(d.getDate()).padStart(2, "0")
-  return `${y}-${m}-${day}`
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function getKW(d) {
-  const date = new Date(d)
-  date.setHours(0, 0, 0)
-  date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7))
-  const kw1 = new Date(date.getFullYear(), 0, 4)
+  const date = new Date(d);
+  date.setHours(0, 0, 0);
+  date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+  const kw1 = new Date(date.getFullYear(), 0, 4);
   return (
-    1 +
-    Math.round(
-      ((date - kw1) / 86400000 - 3 + ((kw1.getDay() + 6) % 7)) / 7
-    )
-  )
+    1 + Math.round(((date - kw1) / 86400000 - 3 + ((kw1.getDay() + 6) % 7)) / 7)
+  );
 }
 
 /* ------------------ state ------------------ */
-const currentUser = JSON.parse(localStorage.getItem("user")) || {}
-const isAdmin = currentUser.role === "admin"
+const currentUser = JSON.parse(localStorage.getItem("user")) || {};
+const isAdmin = currentUser.role === "admin";
 
-const today = new Date()
-const monthRef = ref(today.getMonth())
-const yearRef = ref(today.getFullYear())
-const years = Array.from({ length: 11 }, (_, i) => today.getFullYear() - 5 + i)
+const today = new Date();
+const monthRef = ref(today.getMonth());
+const yearRef = ref(today.getFullYear());
+const years = Array.from({ length: 11 }, (_, i) => today.getFullYear() - 5 + i);
 
-const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+const days = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
-const workSessions = ref([])
-const leaveRequests = ref([])
-const holidays = ref({})
-const ferienItems = ref([]) // Added for Ferien
-const users = ref([])
+const workSessions = ref([]);
+const leaveRequests = ref([]);
+const holidays = ref({});
+const ferienItems = ref([]); // Added for Ferien
+const users = ref([]);
 
+const selectedDate = ref(null);
+const dayDetails = ref([]);
+const dayLeaves = ref([]);
+const searchQuery = ref("");
 
-const selectedDate = ref(null)
-const dayDetails = ref([])
-const dayLeaves = ref([])
-const searchQuery = ref("")
-
-const editingId = ref(null)
-const editForm = ref({ start: "", end: "" })
+const editingId = ref(null);
+const editForm = ref({ start: "", end: "" });
 
 // Auto-navigate to date when typing in search
 // Auto-navigate to date when typing in search
 watch(searchQuery, (newVal) => {
-  if (!newVal) return
+  if (!newVal) return;
 
   // Remove potential day names (e.g. "Di ", "Montag ") to find the date part
   // Format: (optional text) + D.M.YYYY (or similar separators)
-  const clean = newVal.replace(/^[a-zA-ZäöüÄÖÜß]{2,}\s+/, "").trim()
+  const clean = newVal.replace(/^[a-zA-ZäöüÄÖÜß]{2,}\s+/, "").trim();
 
   // Regex for D.M.YYYY or D/M/YYYY or D-M-YYYY
-  const datePattern = /(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/
-  const match = clean.match(datePattern) || newVal.match(datePattern)
+  const datePattern = /(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})/;
+  const match = clean.match(datePattern) || newVal.match(datePattern);
 
   if (match) {
-    const d = parseInt(match[1])
-    const m = parseInt(match[2])
-    const y = parseInt(match[3])
+    const d = parseInt(match[1]);
+    const m = parseInt(match[2]);
+    const y = parseInt(match[3]);
 
     if (m >= 1 && m <= 12) {
       // Only reload if month/year actually changes
       if (monthRef.value !== m - 1 || yearRef.value !== y) {
-        monthRef.value = m - 1
-        yearRef.value = y
-        loadData()
+        monthRef.value = m - 1;
+        yearRef.value = y;
+        loadData();
       }
     }
   }
-})
+});
 
 /* ------------------ computed ------------------ */
 const monthName = computed(() =>
   new Date(yearRef.value, monthRef.value).toLocaleString("de-DE", {
-    month: "long"
-  })
-)
+    month: "long",
+  }),
+);
 
 const calendar = computed(() => {
-  const first = new Date(yearRef.value, monthRef.value, 1)
-  const start = new Date(first)
-  start.setDate(start.getDate() - ((start.getDay() + 6) % 7))
+  const first = new Date(yearRef.value, monthRef.value, 1);
+  const start = new Date(first);
+  start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
 
-  const weeks = []
-  let date = new Date(start)
-  const todayKey = toLocalKey(today)
+  const weeks = [];
+  let date = new Date(start);
+  const todayKey = toLocalKey(today);
 
   for (let w = 0; w < 6; w++) {
-    const week = { kw: getKW(date), days: [] }
+    const week = { kw: getKW(date), days: [] };
 
     for (let i = 0; i < 7; i++) {
-      const key = toLocalKey(date)
+      const key = toLocalKey(date);
 
       // Filter by Search Query first
-      const term = searchQuery.value.toLowerCase()
+      const term = searchQuery.value.toLowerCase();
 
       // Formatted date strings for search
-      const dateStr = date.toLocaleDateString("de-DE") // e.g. "15.2.2026"
-      const dayName = date.toLocaleDateString("de-DE", { weekday: 'long' }) // e.g. "Montag"
-      const matchDay = !term || dateStr.includes(term) || dayName.toLowerCase().includes(term)
+      const dateStr = date.toLocaleDateString("de-DE"); // e.g. "15.2.2026"
+      const dayName = date.toLocaleDateString("de-DE", { weekday: "long" }); // e.g. "Montag"
+      const matchDay =
+        !term || dateStr.includes(term) || dayName.toLowerCase().includes(term);
 
-      const sessions = workSessions.value.filter(s => {
-        const sDate = s.start ? s.start.split('T')[0] : s.date_today
-        if (sDate !== key) return false
-        if (matchDay) return true
-        const name = s.name || s.user_id?.name || ""
-        return name.toLowerCase().includes(term)
-      })
+      const sessions = workSessions.value.filter((s) => {
+        const sDate = s.start ? s.start.split("T")[0] : s.date_today;
+        if (sDate !== key) return false;
+        if (matchDay) return true;
+        const name = s.name || s.user_id?.name || "";
+        return name.toLowerCase().includes(term);
+      });
 
-      const leaves = leaveRequests.value.filter(l => {
-        const from = l.from.split('T')[0]
-        const to = l.to.split('T')[0]
-        const inRange = key >= from && key <= to
-        if (!inRange) return false
-        if (matchDay) return true
-        const name = l.user_id?.name || ""
-        return name.toLowerCase().includes(term)
-      })
+      const leaves = leaveRequests.value.filter((l) => {
+        const from = l.from.split("T")[0];
+        const to = l.to.split("T")[0];
+        const inRange = key >= from && key <= to;
+        if (!inRange) return false;
+        if (matchDay) return true;
+        const name = l.user_id?.name || "";
+        return name.toLowerCase().includes(term);
+      });
 
       // Check for Ferien (Red)
-      const isFerien = ferienItems.value.some(f => {
-        return key >= f.from && key <= f.to
-      })
+      const isFerien = ferienItems.value.some((f) => {
+        return key >= f.from && key <= f.to;
+      });
 
-      const isWeekend = [0, 6].includes(date.getDay())
+      const isWeekend = [0, 6].includes(date.getDay());
 
       // Determine if this day matches the search criteria directly
-      const isMatch = !!term && (dateStr.includes(term) || dayName.toLowerCase().includes(term))
+      const isMatch =
+        !!term &&
+        (dateStr.includes(term) || dayName.toLowerCase().includes(term));
 
       week.days.push({
         key,
@@ -297,129 +387,132 @@ const calendar = computed(() => {
         isFerien,
         isWeekend,
         holiday: holidays.value[key] || null,
-        tooltip: `${sessions.length} Arbeit, ${leaves.length} Urlaub, ${isFerien ? 'Ferien' : ''}${isWeekend ? ' Wochenende' : ''}`
-      })
+        tooltip: `${sessions.length} Arbeit, ${leaves.length} Urlaub, ${isFerien ? "Ferien" : ""}${isWeekend ? " Wochenende" : ""}`,
+      });
 
-      date.setDate(date.getDate() + 1)
+      date.setDate(date.getDate() + 1);
     }
-    weeks.push(week)
+    weeks.push(week);
   }
 
-  return weeks
-})
+  return weeks;
+});
 
 /* ------------------ actions ------------------ */
 async function loadData() {
   try {
-    const params = {}
+    const params = {};
 
     // Work Sessions
-    const resWork = await api.get("/workSessions", { params })
-    workSessions.value = resWork.data
+    const resWork = await api.get("/workSessions", { params });
+    workSessions.value = resWork.data;
 
     // Leave Requests
-    const resLeave = await api.get("/leave-requests/calendar", { params })
-    leaveRequests.value = resLeave.data
+    const resLeave = await api.get("/leave-requests/calendar", { params });
+    leaveRequests.value = resLeave.data;
 
     // Holidays
-    const resHolidays = await api.get(`/calendar?year=${yearRef.value}`)
-    holidays.value = {}
-    ferienItems.value = resHolidays.data?.ferien || [] // Store Ferien
-    resHolidays.data?.holidays?.forEach(x => (holidays.value[x.date] = x.name))
+    const resHolidays = await api.get(`/calendar?year=${yearRef.value}`);
+    holidays.value = {};
+    ferienItems.value = resHolidays.data?.ferien || []; // Store Ferien
+    resHolidays.data?.holidays?.forEach(
+      (x) => (holidays.value[x.date] = x.name),
+    );
 
     // Users (if admin)
     if (isAdmin && users.value.length === 0) {
-      const resUsers = await api.get("/users")
-      users.value = resUsers.data
+      const resUsers = await api.get("/users");
+      users.value = resUsers.data;
     }
   } catch (err) {
-    console.error("Error loading calendar data:", err)
+    console.error("Error loading calendar data:", err);
   }
 }
 
-
 function selectDay(day) {
-  selectedDate.value = day.key
+  selectedDate.value = day.key;
 
-  dayDetails.value = workSessions.value.filter(s => {
-    const sDate = s.start ? s.start.split('T')[0] : s.date_today
-    return sDate === day.key
-  })
+  dayDetails.value = workSessions.value.filter((s) => {
+    const sDate = s.start ? s.start.split("T")[0] : s.date_today;
+    return sDate === day.key;
+  });
 
-  dayLeaves.value = leaveRequests.value.filter(l => {
-    const from = l.from.split('T')[0]
-    const to = l.to.split('T')[0]
-    return day.key >= from && day.key <= to
-  })
+  dayLeaves.value = leaveRequests.value.filter((l) => {
+    const from = l.from.split("T")[0];
+    const to = l.to.split("T")[0];
+    return day.key >= from && day.key <= to;
+  });
 
-  const modal = new bootstrap.Modal(document.getElementById('detailsModal'))
-  modal.show()
+  const modal = new bootstrap.Modal(document.getElementById("detailsModal"));
+  modal.show();
 }
 
 function startEdit(s) {
-  editingId.value = s.id
+  editingId.value = s.id;
   // Convert to local datetime string for input
   editForm.value = {
     start: s.start ? new Date(s.start).toISOString().slice(0, 16) : "",
-    end: s.end ? new Date(s.end).toISOString().slice(0, 16) : ""
-  }
+    end: s.end ? new Date(s.end).toISOString().slice(0, 16) : "",
+  };
 }
 
 function cancelEdit() {
-  editingId.value = null
+  editingId.value = null;
 }
 
 async function saveEdit(id) {
   try {
-    await api.put(`/workSessions/${id}`, editForm.value)
-    editingId.value = null
-    await loadData()
+    await api.put(`/workSessions/${id}`, editForm.value);
+    editingId.value = null;
+    await loadData();
     // Refresh dayDetails
-    dayDetails.value = workSessions.value.filter(s => {
-      const sDate = s.start ? s.start.split('T')[0] : s.date_today
-      return sDate === selectedDate.value
-    })
+    dayDetails.value = workSessions.value.filter((s) => {
+      const sDate = s.start ? s.start.split("T")[0] : s.date_today;
+      return sDate === selectedDate.value;
+    });
   } catch (err) {
-    alert("Fehler beim Speichern: " + (err.response?.data?.error || err.message))
+    alert(
+      "Fehler beim Speichern: " + (err.response?.data?.error || err.message),
+    );
   }
 }
 
 async function deleteSession(id) {
-  if (!confirm("Möchten Sie diesen Eintrag wirklich löschen?")) return
+  if (!confirm("Möchten Sie diesen Eintrag wirklich löschen?")) return;
   try {
-    await api.delete(`/workSessions/${id}`)
-    await loadData()
+    await api.delete(`/workSessions/${id}`);
+    await loadData();
     // Refresh dayDetails
-    dayDetails.value = workSessions.value.filter(s => {
-      const sDate = s.start ? s.start.split('T')[0] : s.date_today
-      return sDate === selectedDate.value
-    })
+    dayDetails.value = workSessions.value.filter((s) => {
+      const sDate = s.start ? s.start.split("T")[0] : s.date_today;
+      return sDate === selectedDate.value;
+    });
   } catch (err) {
-    alert("Fehler beim Löschen: " + (err.response?.data?.error || err.message))
+    alert("Fehler beim Löschen: " + (err.response?.data?.error || err.message));
   }
 }
 
 function prevMonth() {
   if (monthRef.value === 0) {
-    monthRef.value = 11
-    yearRef.value--
+    monthRef.value = 11;
+    yearRef.value--;
   } else {
-    monthRef.value--
+    monthRef.value--;
   }
-  loadData()
+  loadData();
 }
 
 function nextMonth() {
   if (monthRef.value === 11) {
-    monthRef.value = 0
-    yearRef.value++
+    monthRef.value = 0;
+    yearRef.value++;
   } else {
-    monthRef.value++
+    monthRef.value++;
   }
-  loadData()
+  loadData();
 }
 
-onMounted(loadData)
+onMounted(loadData);
 </script>
 
 <style scoped>
@@ -436,7 +529,6 @@ onMounted(loadData)
   font-weight: 700;
   color: #333;
 }
-
 
 /* Header Navigation */
 .calendar-header {

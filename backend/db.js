@@ -18,7 +18,6 @@ export async function initDB() {
       console.warn("MongoDB getrennt. Versuche erneut zu verbinden...");
       isConnected = false;
     });
-
   } catch (err) {
     console.error("MongoDB Fehler:", err);
     throw err;

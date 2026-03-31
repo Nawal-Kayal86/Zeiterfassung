@@ -1,6 +1,5 @@
 <template>
   <div class="container mt-4">
-
     <!-- Ladeanzeige -->
     <div v-if="loading" class="alert alert-info">Logs werden geladen...</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
@@ -25,7 +24,6 @@
           <td>{{ log.message }}</td>
         </tr>
       </tbody>
-
     </table>
 
     <!-- Keine Daten -->
@@ -36,41 +34,44 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue"
-import api from "../api"
+import { ref, onMounted, onUnmounted } from "vue";
+import api from "../api";
 
-const logs = ref([])
-const loading = ref(true)
-const error = ref("")
-let intervalId = null
+const logs = ref([]);
+const loading = ref(true);
+const error = ref("");
+let intervalId = null;
 
 // Zeitstempel formatieren
 const formatDateTime = (dt) => {
-  if (!dt) return "-"
-  return new Date(dt).toLocaleString("de-DE")
-}
+  if (!dt) return "-";
+  return new Date(dt).toLocaleString("de-DE");
+};
 
 // Logs laden
 const loadLogs = async () => {
   try {
-    const res = await api.get("/logs")
+    const res = await api.get("/logs");
     // Neueste zuerst, aber mit created_at statt timestamp
-    logs.value = res.data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    logs.value = res.data.sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at),
+    );
   } catch (err) {
-    error.value = "Fehler beim Laden: " + (err.response?.data?.error || err.message)
+    error.value =
+      "Fehler beim Laden: " + (err.response?.data?.error || err.message);
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 onMounted(() => {
-  loadLogs()
-  intervalId = setInterval(loadLogs, 5000) // alle 5 Sek. aktualisieren
-})
+  loadLogs();
+  intervalId = setInterval(loadLogs, 5000); // alle 5 Sek. aktualisieren
+});
 
 onUnmounted(() => {
-  clearInterval(intervalId)
-})
+  clearInterval(intervalId);
+});
 </script>
 
 <style scoped>

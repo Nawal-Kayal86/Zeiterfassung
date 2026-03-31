@@ -1,6 +1,5 @@
 <template>
   <div class="container py-4">
-
     <!-- Formular -->
     <div class="card shadow-sm mb-4">
       <div class="card-body">
@@ -29,7 +28,12 @@
 
             <div class="col-md-3">
               <label class="form-label">Datum</label>
-              <input type="date" v-model="form.date" class="form-control" required />
+              <input
+                type="date"
+                v-model="form.date"
+                class="form-control"
+                required
+              />
             </div>
 
             <div class="col-md-3">
@@ -44,10 +48,13 @@
           </div>
 
           <div class="mt-3 d-flex gap-2">
-            <button class="btn btn-primary">
-              💾 Speichern
-            </button>
-            <button v-if="editId" type="button" class="btn btn-secondary" @click="reset">
+            <button class="btn btn-primary">💾 Speichern</button>
+            <button
+              v-if="editId"
+              type="button"
+              class="btn btn-secondary"
+              @click="reset"
+            >
               Abbrechen
             </button>
           </div>
@@ -86,10 +93,16 @@
                 </span>
               </td>
               <td class="text-end">
-                <button class="btn btn-sm btn-outline-primary me-2" @click="edit(s)">
+                <button
+                  class="btn btn-sm btn-outline-primary me-2"
+                  @click="edit(s)"
+                >
                   ✏️
                 </button>
-                <button class="btn btn-sm btn-outline-danger" @click="remove(s._id)">
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  @click="remove(s._id)"
+                >
                   🗑
                 </button>
               </td>
@@ -102,66 +115,66 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue"
-import api from "@/api"
+import { ref, onMounted } from "vue";
+import api from "@/api";
 
-const schedules = ref([])
-const editId = ref(null)
+const schedules = ref([]);
+const editId = ref(null);
 
 const form = ref({
   name: "",
   department: "",
   date: "",
-  shift: ""
-})
+  shift: "",
+});
 
 async function load() {
-  const res = await api.get("/schedule")
-  schedules.value = res.data
+  const res = await api.get("/schedule");
+  schedules.value = res.data;
 }
 
 async function save() {
   if (editId.value) {
-    await api.put(`/schedule/${editId.value}`, form.value)
+    await api.put(`/schedule/${editId.value}`, form.value);
   } else {
-    await api.post("/schedule", form.value)
+    await api.post("/schedule", form.value);
   }
-  reset()
-  load()
+  reset();
+  load();
 }
 
 function edit(s) {
-  editId.value = s._id
+  editId.value = s._id;
   form.value = {
     name: s.name,
     department: s.department,
     date: s.date.slice(0, 10),
-    shift: s.shift
-  }
+    shift: s.shift,
+  };
 }
 
 async function remove(id) {
-  if (!confirm("Eintrag löschen?")) return
-  await api.delete(`/schedule/${id}`)
-  load()
+  if (!confirm("Eintrag löschen?")) return;
+  await api.delete(`/schedule/${id}`);
+  load();
 }
 
 function reset() {
-  editId.value = null
-  form.value = { name: "", department: "", date: "", shift: "" }
+  editId.value = null;
+  form.value = { name: "", department: "", date: "", shift: "" };
 }
 
 function formatDate(d) {
-  return new Date(d).toLocaleDateString("de-DE")
+  return new Date(d).toLocaleDateString("de-DE");
 }
 
 function badgeClass(shift) {
   return {
     "badge bg-success": shift === "Frühschicht",
     "badge bg-warning text-dark": shift === "Spätschicht",
-    "badge bg-dark": shift === "Nachtschicht"
-  }
+    "badge bg-dark": shift === "Nachtschicht",
+  };
 }
 
-onMounted(load)
+onMounted(load);
 </script>
