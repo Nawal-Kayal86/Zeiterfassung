@@ -13,7 +13,7 @@ Als Datenbanktechnologie wurde MongoDB gewählt. Im Gegensatz zu relationalen Sy
 Die Modellierung der Datenschemata (Schemas) erfolgt über den Object Data Modeling (ODM) Layer _Mongoose_. Sechs primäre Collections bilden den logischen Kern:
 
 1. **Users:** Speichert Stammdaten, kryptografisch gehashte Passwörter (via `bcrypt`) sowie Berechtigungsrollen und Abteilungskürzel.
-2. **WorkSessions (Stempelzeiten):** Die kritischste Entität. Jedes Dokument referenziert via `ObjectId` den zugehörigen Mitarbeiter und besitzt persistierte Arrays für `start_time` und `end_time` sowie addierte Dauer der absolvierten Pausen.
+2. **WorkSessions (Stempelzeiten):** Die kritischste Entität. Jedes Dokument referenziert via `ObjectId` den zugehörigen Mitarbeiter und besitzt persistierte Zeitstempel für `start_time` und `end_time` sowie die Dauer der absolvierten Pausen.
 3. **LeaveRequests (Urlaube):** Entitäten für beantragte Urlaubstage oder sonstige Abwesenheiten, untergliedert durch State-Status-Strings (`pending`, `approved`, `rejected`).
 4. **Departments:** Eine Referenztabelle der Abteilungen eines Unternehmens.
 5. **Logs & Workflow:** Speichern Fehler, Server-Ereignisse und asynchrone Prozesszyklen, was die Nachverfolgbarkeit (Audit Trail) durch den Administrator ermöglicht.

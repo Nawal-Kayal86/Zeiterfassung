@@ -62,7 +62,7 @@ Der primäre Workflow ist das Stempeln. Um die Robustheit zu erhöhen, existiert
 
 ### 2.3.2 Urlaubs- und Abwesenheitsverwaltung
 
-Der Urlaubsantrags-Workflow bedient sich zweier reaktiver Datenströme: Der Nutzer trägt den gewünschten Zeitraum (Start Date -> End Date) ein. Das System validiert bereits via Vuelidate/Vue-Ref, ob Startdatum chronologisch vor dem Enddatum liegt. Erst dann wird der Submit-Button aktiviert. Dieses Client-Side-Validation-Paradigma reduziert unnötige Netzwerklastanfragen drastisch.
+Der Urlaubsantrags-Workflow bedient sich zweier reaktiver Datenströme: Der Nutzer trägt den gewünschten Zeitraum (Start Date -> End Date) ein. Das System validiert bereits via reaktiver Vue-Zustände (Refs) und Computed-Properties, ob das Startdatum chronologisch vor dem Enddatum liegt. Erst dann wird der Submit-Button aktiviert. Dieses Client-Side-Validation-Paradigma reduziert unnötige Netzwerklastanfragen drastisch.
 
 ### 2.3.3 Benutzer- und Abteilungsverwaltung
 
