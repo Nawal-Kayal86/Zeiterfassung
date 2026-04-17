@@ -100,6 +100,18 @@
               <div class="col-md-6">
                 <label
                   class="form-label fw-semibold text-muted small text-uppercase"
+                  >Austrittsdatum</label
+                >
+                <input
+                  v-model="user.end_date"
+                  type="date"
+                  class="form-control custom-input"
+                />
+              </div>
+
+              <div class="col-md-6">
+                <label
+                  class="form-label fw-semibold text-muted small text-uppercase"
                   >Passwort</label
                 >
                 <input
@@ -117,13 +129,13 @@
               <div class="col-md-12">
                 <label
                   class="form-label fw-semibold text-muted small text-uppercase"
-                  >Urlaubsanspruch (Tage/Jahr)</label
+                  >Urlaubsanspruch (automatisch berechnet)</label
                 >
                 <input
-                  v-model="user.vacation_days_per_year"
-                  type="number"
+                  :value="calculatedVacationDays"
+                  type="text"
                   class="form-control custom-input"
-                  placeholder="25"
+                  readonly
                 />
               </div>
 
@@ -229,9 +241,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { computed, ref, onMounted } from "vue";
 import api from "../api";
 import { toast } from "vue3-toastify";
+
+const FULL_YEAR_VACATION_DAYS = 25;
+const showSparkles = ref(false);
 
 const user = ref({
   id: null,
@@ -241,12 +256,44 @@ const user = ref({
   department: "",
   nfc_tag: "",
   start_date: "",
+  end_date: "",
   is_active: true,
   password: "",
   vacation_days_per_year: 25,
 });
 const users = ref([]);
 const departments = ref([]);
+
+const calculateVacationDaysForCurrentYear = (startDate, endDate = "") => {
+  if (!startDate) return FULL_YEAR_VACATION_DAYS.toFixed(2);
+
+  const today = new Date();
+  const year = today.getFullYear();
+  const yearStart = new Date(year, 0, 1);
+  const yearEnd = new Date(year, 11, 31);
+  const employmentStart = new Date(startDate);
+  const employmentEnd = endDate ? new Date(endDate) : yearEnd;
+
+  if (Number.isNaN(employmentStart.getTime()) || Number.isNaN(employmentEnd.getTime())) {
+    return FULL_YEAR_VACATION_DAYS.toFixed(2);
+  }
+
+  const activeStart = employmentStart > yearStart ? employmentStart : yearStart;
+  const activeEnd = employmentEnd < yearEnd ? employmentEnd : yearEnd;
+
+  if (activeEnd < activeStart) return "0.00";
+
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const activeDays = Math.floor((activeEnd - activeStart) / msPerDay) + 1;
+  const totalDaysInYear = Math.floor((yearEnd - yearStart) / msPerDay) + 1;
+  const days = (activeDays / totalDaysInYear) * FULL_YEAR_VACATION_DAYS;
+
+  return days.toFixed(2);
+};
+
+const calculatedVacationDays = computed(() =>
+  calculateVacationDaysForCurrentYear(user.value.start_date, user.value.end_date),
+);
 
 // Abteilungen laden
 const loadDepartments = async () => {
@@ -273,13 +320,20 @@ const saveUser = async () => {
   try {
     const isNew = !user.value.id;
     if (!isNew) {
+      showSparkles.value = false;
       await api.put(`/users/${user.value.id}`, user.value);
       toast.success("Mitarbeiter erfolgreich aktualisiert! 📝");
     } else {
       await api.post("/users", user.value);
+      showSparkles.value = true;
       toast.success("Mitarbeiter erfolgreich angelegt! Willkommen im Team! 🎉");
     }
     await loadUsers();
+    if (isNew) {
+      setTimeout(() => {
+        showSparkles.value = false;
+      }, 1800);
+    }
     resetForm();
   } catch (err) {
     // Fehler wird global behandelt
@@ -290,6 +344,8 @@ const editUser = (u) => {
   // Nur wenn u ein Objekt ist
   if (!u || typeof u !== "object") return;
 
+  showSparkles.value = false;
+
   user.value = {
     id: u.id,
     name: u.name || "",
@@ -298,6 +354,7 @@ const editUser = (u) => {
     department: u.department || "",
     nfc_tag: u.nfc_tag || "",
     start_date: u.start_date ? u.start_date.split("T")[0] : "",
+    end_date: u.end_date ? u.end_date.split("T")[0] : "",
     is_active: u.is_active !== false,
     password: "",
     vacation_days_per_year: u.vacation_days_per_year || 25,
@@ -319,6 +376,7 @@ const deleteUser = async (id) => {
 };
 
 const resetForm = () => {
+  showSparkles.value = false;
   user.value = {
     id: null,
     name: "",
@@ -327,6 +385,7 @@ const resetForm = () => {
     department: "",
     nfc_tag: "",
     start_date: "",
+    end_date: "",
     is_active: true,
     password: "",
     vacation_days_per_year: 25,

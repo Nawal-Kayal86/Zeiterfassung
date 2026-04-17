@@ -100,6 +100,8 @@ app.post("/api/login", async (req, res) => {
         name: user.name,
         role: user.role,
         department: user.department || "",
+        start_date: user.start_date || null,
+        end_date: user.end_date || null,
         is_active: user.is_active,
         vacation_days_per_year: user.vacation_days_per_year || 25,
       },
@@ -121,6 +123,8 @@ app.get("/api/me", auth(), async (req, res) => {
             name: user.name,
             role: user.role,
             department: user.department,
+            start_date: user.start_date || null,
+            end_date: user.end_date || null,
             vacation_days_per_year: user.vacation_days_per_year || 25,
             is_active: user.is_active
         }

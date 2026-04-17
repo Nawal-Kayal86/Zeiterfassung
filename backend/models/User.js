@@ -27,6 +27,9 @@ const UserSchema = new mongoose.Schema({
   // Eintrittsdatum ins Unternehmen
   start_date: { type: Date, default: null },
 
+  // Austrittsdatum aus dem Unternehmen
+  end_date: { type: Date, default: null },
+
   // Status (Soft-Delete Flag, um Nutzer zu deaktivieren statt hart zu löschen)
   is_active: { type: Boolean, default: true },
 

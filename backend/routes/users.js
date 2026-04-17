@@ -5,6 +5,34 @@ import { auth } from "../middleware/auth.js";
 import User from "../models/User.js";
 
 const router = express.Router();
+const FULL_YEAR_VACATION_DAYS = 25;
+
+function calculateVacationDaysForCurrentYear(startDateValue, endDateValue = null) {
+  if (!startDateValue) return FULL_YEAR_VACATION_DAYS;
+
+  const today = new Date();
+  const year = today.getFullYear();
+  const yearStart = new Date(year, 0, 1);
+  const yearEnd = new Date(year, 11, 31);
+
+  const employmentStart = new Date(startDateValue);
+  const employmentEnd = endDateValue ? new Date(endDateValue) : yearEnd;
+
+  if (Number.isNaN(employmentStart.getTime())) return FULL_YEAR_VACATION_DAYS;
+  if (Number.isNaN(employmentEnd.getTime())) return FULL_YEAR_VACATION_DAYS;
+
+  const activeStart = employmentStart > yearStart ? employmentStart : yearStart;
+  const activeEnd = employmentEnd < yearEnd ? employmentEnd : yearEnd;
+
+  if (activeEnd < activeStart) return 0;
+
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const activeDays = Math.floor((activeEnd - activeStart) / msPerDay) + 1;
+  const totalDaysInYear = Math.floor((yearEnd - yearStart) / msPerDay) + 1;
+  const calculatedDays = (activeDays / totalDaysInYear) * FULL_YEAR_VACATION_DAYS;
+
+  return Math.round(calculatedDays * 100) / 100;
+}
 
 // 📄 GET: Nur Namen und Abteilungen aller User
 router.get("/names", auth("admin"), async (req, res) => {
@@ -24,7 +52,7 @@ router.get("/", auth("admin"), async (req, res) => {
   try {
     const users = await User.find(
       {},
-      "name email role department nfc_tag start_date is_active vacation_days_per_year weekly_hours work_schedule created_at",
+      "name email role department nfc_tag start_date end_date is_active vacation_days_per_year weekly_hours work_schedule created_at",
     ).sort({ created_at: -1 });
     res.json(
       users.map((u) => ({
@@ -35,6 +63,7 @@ router.get("/", auth("admin"), async (req, res) => {
         department: u.department,
         nfc_tag: u.nfc_tag,
         start_date: u.start_date,
+        end_date: u.end_date,
         is_active: u.is_active !== false, // default true
         vacation_days_per_year: u.vacation_days_per_year || 25,
         weekly_hours: u.weekly_hours || 40,
@@ -79,7 +108,7 @@ router.get("/:id", auth("admin"), async (req, res) => {
   try {
     const user = await User.findById(
       req.params.id,
-      "name email role department nfc_tag start_date is_active vacation_days_per_year weekly_hours work_schedule created_at",
+      "name email role department nfc_tag start_date end_date is_active vacation_days_per_year weekly_hours work_schedule created_at",
     );
     if (!user)
       return res.status(404).json({ error: "Benutzer nicht gefunden" });
@@ -91,6 +120,7 @@ router.get("/:id", auth("admin"), async (req, res) => {
       department: user.department,
       nfc_tag: user.nfc_tag,
       start_date: user.start_date,
+      end_date: user.end_date,
       is_active: user.is_active !== false,
       vacation_days_per_year: user.vacation_days_per_year || 25,
       weekly_hours: user.weekly_hours || 40,
@@ -114,8 +144,8 @@ router.post("/", auth("admin"), async (req, res) => {
       nfc_tag,
       password,
       start_date,
+      end_date,
       is_active,
-      vacation_days_per_year,
       weekly_hours,
       work_schedule,
     } = req.body;
@@ -131,6 +161,10 @@ router.post("/", auth("admin"), async (req, res) => {
         .json({ error: "E-Mail oder NFC-Tag bereits vergeben" });
 
     const password_hash = await bcrypt.hash(password, 10);
+    const calculatedVacationDays = calculateVacationDaysForCurrentYear(
+      start_date,
+      end_date,
+    );
     const newUser = await User.create({
       name,
       email,
@@ -138,8 +172,9 @@ router.post("/", auth("admin"), async (req, res) => {
       department: department || null,
       nfc_tag: nfc_tag || null,
       start_date: start_date || null,
+      end_date: end_date || null,
       is_active: is_active !== false,
-      vacation_days_per_year: Number(vacation_days_per_year) || 25,
+      vacation_days_per_year: calculatedVacationDays,
       weekly_hours: Number(weekly_hours) || 40,
       work_schedule: work_schedule || undefined,
       password_hash,
@@ -152,6 +187,9 @@ router.post("/", auth("admin"), async (req, res) => {
       role: newUser.role,
       department: newUser.department,
       nfc_tag: newUser.nfc_tag,
+      start_date: newUser.start_date,
+      end_date: newUser.end_date,
+      vacation_days_per_year: newUser.vacation_days_per_year,
     });
   } catch (err) {
     console.error(err);
@@ -170,8 +208,8 @@ router.put("/:id", auth("admin"), async (req, res) => {
       nfc_tag,
       password,
       start_date,
+      end_date,
       is_active,
-      vacation_days_per_year,
       weekly_hours,
       work_schedule,
     } = req.body;
@@ -205,8 +243,12 @@ router.put("/:id", auth("admin"), async (req, res) => {
     user.department = department || user.department;
     user.nfc_tag = nfc_tag || user.nfc_tag;
     user.start_date = start_date || user.start_date;
+    user.end_date = end_date !== undefined ? (end_date || null) : user.end_date;
     user.is_active = is_active !== undefined ? is_active : user.is_active;
-    user.vacation_days_per_year = Number(vacation_days_per_year) || user.vacation_days_per_year;
+    user.vacation_days_per_year = calculateVacationDaysForCurrentYear(
+      user.start_date,
+      user.end_date,
+    );
     user.weekly_hours = Number(weekly_hours) || user.weekly_hours;
 
     if (work_schedule) {

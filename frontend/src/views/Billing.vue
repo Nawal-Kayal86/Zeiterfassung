@@ -315,13 +315,25 @@ export default {
             (u) => u.name === this.employee,
           )?.id;
 
+        const requests = [
+          this.user?.role === "admin"
+            ? api.get("/users")
+            : Promise.resolve({
+                data: [
+                  {
+                    id: this.user.id,
+                    name: this.user.name,
+                    department: this.user.department || "",
+                  },
+                ],
+              }),
+          api.get("/workSessions", { params: queryParams }),
+          api.get(`/calendar?year=${new Date(this.startDate).getFullYear()}`),
+          api.get("/leave-requests/calendar", { params: queryParams }),
+        ];
+
         const [usersRes, sessionsRes, calendarRes, leavesRes] =
-          await Promise.allSettled([
-            api.get("/users"),
-            api.get("/workSessions", { params: queryParams }),
-            api.get(`/calendar?year=${new Date(this.startDate).getFullYear()}`),
-            api.get("/leave-requests/calendar", { params: queryParams }), // Using calendar endpoint as it seems available or similar
-          ]);
+          await Promise.allSettled(requests);
 
         if (usersRes.status === "fulfilled")
           this.usernames = usersRes.value.data.map((u) => ({
@@ -329,12 +341,14 @@ export default {
             name: u.name,
             department: u.department || "",
           }));
+        else
+          this.usernames = [];
 
         // Load Schedule for the correct target user
         this.currentSchedule = null;
         let targetId = null;
 
-        if (this.employee) {
+        if (this.user?.role === "admin" && this.employee) {
           targetId = this.usernames.find(u => u.name === this.employee)?.id;
         } else if (this.user?.role !== 'admin') {
           targetId = this.user.id;
@@ -359,11 +373,8 @@ export default {
 
         this.leaves = [];
         if (leavesRes.status === "fulfilled") {
-          // Filter only approved leaves for the selected user if filtering is active
           let allLeaves = leavesRes.value.data;
-          // Simple client side filter if needed, though backend filter is better
-          if (this.employee) {
-            // Assuming leaves structure has user name or id
+          if (this.user?.role === "admin" && this.employee) {
             allLeaves = allLeaves.filter(
               (l) => l.user_id?.name === this.employee,
             );
@@ -377,11 +388,13 @@ export default {
             name: s.name || "–",
             department: s.department || "–",
           }));
-          if (this.employee)
+          if (this.user?.role === "admin" && this.employee)
             sessions = sessions.filter((s) => s.name === this.employee);
-          if (this.department)
+          if (this.user?.role === "admin" && this.department)
             sessions = sessions.filter((s) => s.department === this.department);
           this.filteredData = sessions;
+        } else {
+          this.filteredData = [];
         }
       } catch (err) {
         console.error(err);
