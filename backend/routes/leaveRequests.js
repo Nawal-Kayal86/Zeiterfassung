@@ -48,46 +48,69 @@ router.get("/", auth(), async (req, res) => {
 ========================= */
 
 router.get("/calendar", auth(), async (req, res) => {
-  const { userId } = req.query;
-  const query = { status: "approved" };
+  try {
+    const { userId } = req.query;
+    const query = { status: "approved" };
 
-  if (req.user.role !== "admin") {
-    query.user_id = req.user.id;
-  } else if (userId) {
-    query.user_id = userId;
+    if (req.user.role !== "admin") {
+      query.user_id = req.user.id;
+    } else if (userId) {
+      query.user_id = userId;
+    }
+
+    const leaves = await LeaveRequest.find(query).populate("user_id", "name");
+    res.json(leaves);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Laden des Urlaubskalenders" });
   }
-
-  const leaves = await LeaveRequest.find(query).populate("user_id", "name");
-  res.json(leaves);
 });
 
 // Admin sieht alle Anträge
 router.get("/admin", auth("admin"), async (req, res) => {
-  const requests = await LeaveRequest.find()
-    .populate("user_id", "name department")
-    .sort({ createdAt: -1 });
+  try {
+    const requests = await LeaveRequest.find()
+      .populate("user_id", "name department")
+      .populate("decided_by", "name")
+      .sort({ created_at: -1 });
 
-  res.json(requests);
+    res.json(requests);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Laden der Anträge" });
+  }
 });
 
 // Admin: Antrag genehmigen
 router.put("/:id/approve", auth("admin"), async (req, res) => {
-  const updated = await LeaveRequest.findByIdAndUpdate(
-    req.params.id,
-    { status: "approved", decided_by: req.user.id },
-    { new: true },
-  );
-  res.json(updated);
+  try {
+    const updated = await LeaveRequest.findByIdAndUpdate(
+      req.params.id,
+      { status: "approved", decided_by: req.user.id },
+      { new: true },
+    );
+    if (!updated) return res.status(404).json({ error: "Antrag nicht gefunden" });
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Genehmigen des Antrags" });
+  }
 });
 
 // Admin: Antrag ablehnen
 router.put("/:id/reject", auth("admin"), async (req, res) => {
-  const updated = await LeaveRequest.findByIdAndUpdate(
-    req.params.id,
-    { status: "rejected", decided_by: req.user.id },
-    { new: true },
-  );
-  res.json(updated);
+  try {
+    const updated = await LeaveRequest.findByIdAndUpdate(
+      req.params.id,
+      { status: "rejected", decided_by: req.user.id },
+      { new: true },
+    );
+    if (!updated) return res.status(404).json({ error: "Antrag nicht gefunden" });
+    res.json(updated);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Ablehnen des Antrags" });
+  }
 });
 
 // Benutzer/Admin: Antrag löschen

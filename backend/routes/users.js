@@ -24,7 +24,7 @@ router.get("/", auth("admin"), async (req, res) => {
   try {
     const users = await User.find(
       {},
-      "name email role department nfc_tag start_date is_active vacation_days_per_year created_at",
+      "name email role department nfc_tag start_date is_active vacation_days_per_year weekly_hours work_schedule created_at",
     ).sort({ created_at: -1 });
     res.json(
       users.map((u) => ({
@@ -49,6 +49,32 @@ router.get("/", auth("admin"), async (req, res) => {
 });
 
 // 📄 GET: Einzelner Benutzer
+router.put("/profile/update", auth(), async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "Benutzer nicht gefunden" });
+
+    if (name) user.name = name;
+    if (email) {
+      const emailExists = await User.findOne({ email, _id: { $ne: userId } });
+      if (emailExists) return res.status(409).json({ error: "E-Mail bereits vergeben" });
+      user.email = email;
+    }
+    if (password) {
+      user.password_hash = await bcrypt.hash(password, 10);
+    }
+
+    await user.save();
+    res.json({ message: "Profil erfolgreich aktualisiert" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Profil-Update" });
+  }
+});
+
 router.get("/:id", auth("admin"), async (req, res) => {
   try {
     const user = await User.findById(
@@ -152,6 +178,26 @@ router.put("/:id", auth("admin"), async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ error: "Benutzer nicht gefunden" });
 
+    if (email) {
+      const emailExists = await User.findOne({
+        email,
+        _id: { $ne: req.params.id },
+      });
+      if (emailExists) {
+        return res.status(409).json({ error: "E-Mail bereits vergeben" });
+      }
+    }
+
+    if (nfc_tag) {
+      const nfcExists = await User.findOne({
+        nfc_tag,
+        _id: { $ne: req.params.id },
+      });
+      if (nfcExists) {
+        return res.status(409).json({ error: "NFC-Tag bereits vergeben" });
+      }
+    }
+
     // Felder aktualisieren
     user.name = name;
     user.email = email;
@@ -194,30 +240,4 @@ router.delete("/:id", auth("admin"), async (req, res) => {
 });
 
 // ✏️ PUT: Eigenes Profil/Passwort aktualisieren (für alle User)
-router.put("/profile/update", auth(), async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
-    const userId = req.user.id;
-
-    const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ error: "Benutzer nicht gefunden" });
-
-    if (name) user.name = name;
-    if (email) {
-      const emailExists = await User.findOne({ email, _id: { $ne: userId } });
-      if (emailExists) return res.status(409).json({ error: "E-Mail bereits vergeben" });
-      user.email = email;
-    }
-    if (password) {
-      user.password_hash = await bcrypt.hash(password, 10);
-    }
-
-    await user.save();
-    res.json({ message: "Profil erfolgreich aktualisiert" });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Fehler beim Profil-Update" });
-  }
-});
-
 export default router;

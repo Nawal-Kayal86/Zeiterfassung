@@ -300,7 +300,7 @@ router.delete("/:id", auth(), async (req, res) => {
 // 🟢 Arbeitszeit bearbeiten
 router.put("/:id", auth(), async (req, res) => {
   try {
-    const { start, end } = req.body;
+    const { start, end, pause } = req.body;
     const session = await WorkSession.findById(req.params.id);
     if (!session)
       return res.status(404).json({ error: "Sitzung nicht gefunden" });
@@ -315,6 +315,7 @@ router.put("/:id", auth(), async (req, res) => {
 
     if (start) session.start_time = new Date(start);
     if (end) session.end_time = new Date(end);
+    if (pause !== undefined) session.pause = pause;
 
     // Check if end is before start
     if (

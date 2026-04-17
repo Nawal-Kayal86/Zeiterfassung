@@ -18,7 +18,7 @@
     <div v-if="sessions.length">
       <ul>
         <li v-for="s in sessions" :key="s.id">
-          {{ s.start_time }} - {{ s.end_time ? s.end_time : "läuft..." }}
+          {{ s.start }} - {{ s.end ? s.end : "laeuft..." }}
         </li>
       </ul>
     </div>
@@ -27,6 +27,7 @@
 
 <script>
 import api from "../api";
+
 export default {
   data() {
     return { userId: "", tag: "", sessions: [] };
@@ -37,7 +38,7 @@ export default {
         const payload = useTag
           ? { tag: this.tag }
           : { userId: Number(this.userId) };
-        await api.post("/start", payload);
+        await api.post("/workSessions/start", payload);
         alert("Start erfasst");
         this.loadSessions();
       } catch (e) {
@@ -49,7 +50,7 @@ export default {
         const payload = useTag
           ? { tag: this.tag }
           : { userId: Number(this.userId) };
-        await api.post("/stop", payload);
+        await api.post("/workSessions/stop", payload);
         alert("Stop erfasst");
         this.loadSessions();
       } catch (e) {
@@ -58,7 +59,9 @@ export default {
     },
     async loadSessions() {
       if (!this.userId) return;
-      const res = await api.get("/sessions/" + this.userId);
+      const res = await api.get("/workSessions", {
+        params: { userId: this.userId },
+      });
       this.sessions = res.data;
     },
   },

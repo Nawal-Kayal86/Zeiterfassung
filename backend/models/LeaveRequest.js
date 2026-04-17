@@ -23,6 +23,12 @@ const LeaveRequestSchema = new mongoose.Schema({
     default: "pending",
   },
 
+  decided_by: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    default: null,
+  },
+
   created_at: {
     type: Date,
     default: Date.now,
