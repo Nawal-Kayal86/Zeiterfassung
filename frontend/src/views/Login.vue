@@ -52,6 +52,12 @@
         </p>
       </form>
       <hr />
+      <div class="d-grid gap-2">
+        <RouterLink to="/" class="btn btn-outline-indigo w-100 py-2 fw-semibold">
+          Projektpraesentation ansehen
+        </RouterLink>
+      </div>
+
       <!-- Uhrzeit -->
       <div class="text-center mb-1 fw-semibold">
         {{ currentTime }}
@@ -68,6 +74,7 @@
 <script>
 import api from "../api";
 import router from "../router";
+import { RouterLink } from "vue-router";
 import { toast } from "vue3-toastify";
 
 export default {
@@ -157,6 +164,17 @@ export default {
 .btn-indigo:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-outline-indigo {
+  border: 1px solid rgba(79, 70, 229, 0.18);
+  color: #4f46e5;
+  background: rgba(99, 102, 241, 0.06);
+}
+
+.btn-outline-indigo:hover {
+  background: rgba(99, 102, 241, 0.12);
+  color: #3730a3;
 }
 
 .input-group-text {

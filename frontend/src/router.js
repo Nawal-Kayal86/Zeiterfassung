@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Layout from "./components/Layout.vue";
+import Presentation from "./views/Presentation.vue";
 import Dashboard from "./views/Dashboard.vue";
 import Login from "./views/Login.vue";
 import Admin from "./views/Admin.vue";
 import Billing from "./views/Billing.vue";
 import NewUser from "./views/NewUser.vue";
 import Kalender from "./views/Calendar.vue";
-
 import Errors from "./views/Errors.vue";
 import Terminal from "./views/Terminal.vue";
 import Workflow from "./views/Workflow.vue";
@@ -20,6 +20,11 @@ import LeaveApproval from "./views/LeaveApproval.vue";
 
 const routes = [
   {
+    path: "/",
+    component: Presentation,
+    meta: { title: "Projektpraesentation" },
+  },
+  {
     path: "/login",
     component: Login,
   },
@@ -28,11 +33,6 @@ const routes = [
     component: Layout,
     meta: { requiresAuth: true },
     children: [
-      {
-        path: "",
-        component: Dashboard,
-        meta: { title: "Dashboard", icon: "bi-clock-history" },
-      },
       {
         path: "dashboard",
         component: Dashboard,
@@ -63,7 +63,6 @@ const routes = [
         component: Kalender,
         meta: { title: "Kalender", icon: "bi-calendar3-event-fill" },
       },
-
       {
         path: "errors",
         component: Errors,
@@ -146,8 +145,11 @@ const router = createRouter({
   routes,
 });
 
-// Auth-Check
 router.beforeEach((to, from, next) => {
+  if (to.path === "/login" && localStorage.getItem("token")) {
+    return next("/dashboard");
+  }
+
   if (to.meta.requiresAuth) {
     const token = localStorage.getItem("token");
     const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -162,16 +164,16 @@ router.beforeEach((to, from, next) => {
         return next("/login");
       }
 
-      // Admin-Check
       if (to.meta.requiresAdmin && user?.role !== "admin") {
-        return next("/"); // kein Zugriff → zurück zum Dashboard
+        return next("/dashboard");
       }
-    } catch (e) {
+    } catch (error) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       return next("/login");
     }
   }
+
   next();
 });
 

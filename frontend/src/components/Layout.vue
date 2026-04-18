@@ -240,7 +240,7 @@
       <div class="container-fluid d-flex align-items-center">
         <!-- Dashboard / Sidebar Toggle Group -->
         <div class="d-flex align-items-center" style="width: 250px">
-          <a class="navbar-brand d-none d-md-block" href="/">Zeiterfassung</a>
+          <a class="navbar-brand d-none d-md-block" href="/dashboard">Zeiterfassung</a>
         </div>
 
         <!-- Centered Page Title -->
