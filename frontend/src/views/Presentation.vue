@@ -1,264 +1,468 @@
 <template>
   <div class="presentation-page">
-    <header class="hero-section">
-      <nav class="topbar">
-        <div class="brand">
-          <div class="brand-mark">
-            <i class="bi bi-clock-history"></i>
-          </div>
-          <div>
-            <p class="brand-kicker">Projektvorstellung</p>
-            <h1>Zeiterfassung</h1>
-          </div>
-        </div>
+    <main class="presentation-stage">
+      <section class="slide-shell">
+        <button
+          class="nav-arrow left"
+          type="button"
+          aria-label="Vorherige Folie"
+          @click="prevSlide"
+        >
+          <i class="bi bi-arrow-left"></i>
+        </button>
 
-        <div class="hero-actions">
-          <RouterLink class="ghost-button" to="/login">Login</RouterLink>
-          <RouterLink class="primary-button" :to="ctaTarget">
-            {{ ctaLabel }}
-          </RouterLink>
-        </div>
-      </nav>
+        <div class="slide-surface" :class="activeSlide.theme">
+          <div class="slide-overlay overlay-top">
+            <span class="slide-count">Folie {{ currentSlideNumber }} / {{ slides.length }}</span>
 
-      <div class="hero-grid">
-        <section class="hero-copy">
-          <p class="eyebrow">Digitale Arbeitszeiterfassung fuer moderne Teams</p>
-          <h2>
-            Ein Frontend, das Stempeln, Planung und Verwaltung in einer klaren
-            Oberflaeche zusammenbringt.
-          </h2>
-          <p class="hero-text">
-            Das Projekt verbindet Zeiterfassung, Urlaubsprozesse, Dienstplanung
-            und Auswertung in einer zentralen Web-Anwendung. Die Oberflaeche ist
-            auf schnelle Bedienung im Alltag ausgelegt und unterstuetzt sowohl
-            Mitarbeitende als auch Admins.
-          </p>
-
-          <div class="cta-row">
-            <RouterLink class="primary-button large" :to="ctaTarget">
+            <RouterLink class="primary-button overlay-cta" :to="ctaTarget">
               {{ ctaLabel }}
             </RouterLink>
-            <a class="ghost-button large" href="#module">Module ansehen</a>
           </div>
 
-          <div class="hero-metrics">
-            <article v-for="stat in stats" :key="stat.label" class="metric-card">
-              <strong>{{ stat.value }}</strong>
-              <span>{{ stat.label }}</span>
-            </article>
+          <div class="slide-chrome">
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
-        </section>
 
-        <section class="showcase-card">
-          <div class="screen-window">
-            <div class="window-dots">
-              <span></span>
-              <span></span>
-              <span></span>
+          <article class="slide-content">
+            <div class="slide-copy">
+              <p class="slide-kicker">{{ activeSlide.kicker }}</p>
+              <h2>{{ activeSlide.title }}</h2>
+              <p class="slide-text">{{ activeSlide.text }}</p>
+
+              <div v-if="activeSlide.stats?.length" class="stat-grid">
+                <article v-for="stat in activeSlide.stats" :key="stat.label" class="stat-card">
+                  <strong>{{ stat.value }}</strong>
+                  <span>{{ stat.label }}</span>
+                </article>
+              </div>
+
+              <div v-if="activeSlide.points?.length" class="point-list">
+                <article
+                  v-for="point in activeSlide.points"
+                  :key="point.title"
+                  class="point-card"
+                >
+                  <div class="point-icon">
+                    <i :class="point.icon"></i>
+                  </div>
+                  <div>
+                    <h3>{{ point.title }}</h3>
+                    <p>{{ point.text }}</p>
+                  </div>
+                </article>
+              </div>
             </div>
 
-            <div class="screen-layout">
-              <aside class="mock-sidebar">
-                <p>Dashboard</p>
-                <p>Kalender</p>
-                <p>Urlaub</p>
-                <p>Berichte</p>
-              </aside>
+            <div class="slide-visual">
+              <div
+                v-if="activeSlide.visual === 'dashboard'"
+                class="visual-card dashboard-visual"
+              >
+                <div class="dashboard-grid">
+                  <aside class="mock-sidebar">
+                    <p v-for="item in mockSidebar" :key="item">{{ item }}</p>
+                  </aside>
 
-              <div class="mock-content">
-                <div class="mock-live-card">
-                  <span class="live-pill">Live Sitzung</span>
-                  <strong>07:42:18</strong>
-                  <p>Arbeitsbeginn registriert, Pause und Arbeitsende direkt steuerbar.</p>
+                  <div class="mock-main">
+                    <article class="mock-hero">
+                      <span class="visual-pill">Live Sitzung</span>
+                      <strong>07:42:18</strong>
+                      <p>Arbeitsbeginn aktiv, Pause und Arbeitsende direkt erreichbar.</p>
+                    </article>
+
+                    <div class="mock-panels">
+                      <article
+                        v-for="panel in dashboardPanels"
+                        :key="panel.title"
+                        class="mini-panel"
+                      >
+                        <span>{{ panel.kicker }}</span>
+                        <strong>{{ panel.title }}</strong>
+                        <p>{{ panel.text }}</p>
+                      </article>
+                    </div>
+                  </div>
                 </div>
+              </div>
 
-                <div class="mock-grid">
-                  <article v-for="panel in mockPanels" :key="panel.title" class="mini-panel">
-                    <span>{{ panel.kicker }}</span>
-                    <strong>{{ panel.title }}</strong>
-                    <p>{{ panel.text }}</p>
-                  </article>
+              <div
+                v-else-if="activeSlide.visual === 'timeline'"
+                class="visual-card timeline-visual"
+              >
+                <article
+                  v-for="step in processSteps"
+                  :key="step.step"
+                  class="timeline-step"
+                >
+                  <span>{{ step.step }}</span>
+                  <strong>{{ step.title }}</strong>
+                  <p>{{ step.text }}</p>
+                </article>
+              </div>
+
+              <div
+                v-else-if="activeSlide.visual === 'stack'"
+                class="visual-card stack-visual"
+              >
+                <span v-for="item in stack" :key="item">{{ item }}</span>
+              </div>
+
+              <div
+                v-else-if="activeSlide.visual === 'roles'"
+                class="visual-card role-visual"
+              >
+                <article v-for="role in roles" :key="role.title" class="role-card">
+                  <span>{{ role.kicker }}</span>
+                  <strong>{{ role.title }}</strong>
+                  <p>{{ role.text }}</p>
+                </article>
+              </div>
+
+              <div
+                v-else-if="activeSlide.visual === 'closing'"
+                class="visual-card closing-visual"
+              >
+                <div class="closing-box">
+                  <span class="visual-pill">Naechster Schritt</span>
+                  <strong>Demo starten</strong>
+                  <p>Von der Praesentation direkt in die Anwendung wechseln.</p>
+                  <div class="slide-actions">
+                    <RouterLink class="ghost-button" to="/login">Zum Login</RouterLink>
+                    <RouterLink class="primary-button" :to="ctaTarget">
+                      {{ ctaLabel }}
+                    </RouterLink>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="visual-card abstract-visual">
+                <div
+                  v-for="badge in activeSlide.badges || []"
+                  :key="badge"
+                  class="visual-badge"
+                >
+                  {{ badge }}
                 </div>
               </div>
             </div>
+          </article>
+
+          <div class="slide-overlay overlay-bottom">
+            <nav class="slide-picker" aria-label="Folienauswahl">
+              <button
+                v-for="(slide, index) in slides"
+                :key="slide.title"
+                type="button"
+                class="slide-dot"
+                :class="{ active: index === currentSlide }"
+                @click="goToSlide(index)"
+              >
+                <span>{{ String(index + 1).padStart(2, '0') }}</span>
+              </button>
+            </nav>
           </div>
-        </section>
-      </div>
-    </header>
-
-    <main>
-      <section class="info-section">
-        <div class="section-heading">
-          <p class="eyebrow">Projektidee</p>
-          <h3>Warum dieses System sinnvoll ist</h3>
-          <p>
-            Die Anwendung reduziert manuelle Listen, vereinfacht Freigaben und
-            buendelt zeitkritische Prozesse an einem Ort.
-          </p>
         </div>
 
-        <div class="benefit-grid">
-          <article v-for="benefit in benefits" :key="benefit.title" class="benefit-card">
-            <div class="icon-wrap">
-              <i :class="benefit.icon"></i>
-            </div>
-            <h4>{{ benefit.title }}</h4>
-            <p>{{ benefit.text }}</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="module" class="info-section alt-section">
-        <div class="section-heading">
-          <p class="eyebrow">Module</p>
-          <h3>Diese Bereiche deckt das Frontend bereits ab</h3>
-          <p>
-            Die Praesentation basiert auf den vorhandenen Ansichten im Projekt
-            und zeigt die Staerke des bestehenden Funktionsumfangs.
-          </p>
-        </div>
-
-        <div class="module-grid">
-          <article v-for="feature in features" :key="feature.title" class="module-card">
-            <div class="module-head">
-              <i :class="feature.icon"></i>
-              <span>{{ feature.category }}</span>
-            </div>
-            <h4>{{ feature.title }}</h4>
-            <p>{{ feature.text }}</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="info-section process-section">
-        <div class="section-heading narrow">
-          <p class="eyebrow">Ablauf</p>
-          <h3>So laeuft ein typischer Arbeitstag im System</h3>
-        </div>
-
-        <div class="timeline">
-          <article v-for="step in processSteps" :key="step.step" class="timeline-card">
-            <span>{{ step.step }}</span>
-            <h4>{{ step.title }}</h4>
-            <p>{{ step.text }}</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="info-section stack-section">
-        <div class="section-heading">
-          <p class="eyebrow">Technik</p>
-          <h3>Technologie-Stack des Projekts</h3>
-        </div>
-
-        <div class="stack-list">
-          <span v-for="item in stack" :key="item">{{ item }}</span>
-        </div>
-      </section>
-
-      <section class="closing-banner">
-        <div>
-          <p class="eyebrow">Bereit fuer die Demo</p>
-          <h3>Die Praesentationsseite fuehrt direkt in die bestehende Anwendung.</h3>
-        </div>
-
-        <div class="hero-actions">
-          <RouterLink class="ghost-button" to="/login">Zum Login</RouterLink>
-          <RouterLink class="primary-button" :to="ctaTarget">
-            {{ ctaLabel }}
-          </RouterLink>
-        </div>
+        <button
+          class="nav-arrow right"
+          type="button"
+          aria-label="Naechste Folie"
+          @click="nextSlide"
+        >
+          <i class="bi bi-arrow-right"></i>
+        </button>
       </section>
     </main>
   </div>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
-const stats = [
-  { value: "10+", label: "App-Module im Frontend" },
-  { value: "2 Rollen", label: "Mitarbeitende und Admin" },
-  { value: "1 Plattform", label: "Zeiten, Urlaub und Planung" },
-];
+const currentSlide = ref(0);
 
-const benefits = [
+const slides = [
   {
-    icon: "bi bi-lightning-charge-fill",
-    title: "Schnelle Bedienung",
-    text: "Wichtige Aktionen wie Arbeitsbeginn, Pause und Arbeitsende sind direkt erreichbar.",
+    shortTitle: "Start",
+    kicker: "Folie 01",
+    title: "Zeiterfassung als digitale Arbeitsplattform",
+    text: "Das Projekt verbindet Zeiterfassung, Planung, Urlaubsprozesse und Verwaltung in einer modernen Web-Anwendung.",
+    theme: "theme-warm",
+    visual: "dashboard",
+    stats: [
+      { value: "14", label: "Folien in dieser Praesentation" },
+      { value: "2", label: "Rollen im System" },
+      { value: "1", label: "Plattform fuer zentrale Prozesse" },
+    ],
   },
   {
-    icon: "bi bi-shield-check",
-    title: "Klare Rollenlogik",
-    text: "Admin-Funktionen wie Benutzerverwaltung, Abteilungen und Freigaben bleiben sauber getrennt.",
+    shortTitle: "Ziel",
+    kicker: "Folie 02",
+    title: "Projektziel",
+    text: "Ziel ist eine Anwendung, die den Arbeitsalltag vereinfacht und manuelle Listen oder verteilte Prozesse ersetzt.",
+    theme: "theme-ocean",
+    visual: "abstract",
+    badges: ["Arbeitszeit", "Urlaub", "Planung", "Admin"],
+    points: [
+      {
+        icon: "bi bi-bullseye",
+        title: "Zentrale Bedienung",
+        text: "Alle wichtigen Funktionen liegen an einem Ort und sind schnell erreichbar.",
+      },
+      {
+        icon: "bi bi-check2-square",
+        title: "Weniger Medienbrueche",
+        text: "Informationen muessen nicht in mehreren Systemen gepflegt werden.",
+      },
+    ],
   },
   {
-    icon: "bi bi-bar-chart-line-fill",
-    title: "Mehr Uebersicht",
-    text: "Berichte, Kalender, Fehlerprotokoll und Abrechnung helfen bei Kontrolle und Nachvollziehbarkeit.",
+    shortTitle: "Nutzen",
+    kicker: "Folie 03",
+    title: "Welchen Nutzen bietet das System?",
+    text: "Die Anwendung spart Zeit, schafft Transparenz und verbessert die Zusammenarbeit zwischen Mitarbeitenden und Verwaltung.",
+    theme: "theme-amber",
+    visual: "abstract",
+    badges: ["Schnell", "Klar", "Nachvollziehbar"],
+    points: [
+      {
+        icon: "bi bi-lightning-charge-fill",
+        title: "Schnelle Bedienung",
+        text: "Arbeitsbeginn, Pause und Arbeitsende sind ohne Umwege verfuegbar.",
+      },
+      {
+        icon: "bi bi-bar-chart-line-fill",
+        title: "Klare Auswertung",
+        text: "Berichte und Monatsdaten schaffen Transparenz fuer Team und Administration.",
+      },
+      {
+        icon: "bi bi-shield-check",
+        title: "Saubere Rollenlogik",
+        text: "Mitarbeitende und Admins sehen genau die Funktionen, die sie benoetigen.",
+      },
+    ],
   },
-];
-
-const features = [
   {
-    icon: "bi bi-clock-fill",
-    category: "Zeiterfassung",
-    title: "Dashboard mit Live-Stempelung",
-    text: "Erfasst Arbeitsbeginn, Pausen und Arbeitsende und zeigt aktuelle Sitzungen sichtbar an.",
+    shortTitle: "Dashboard",
+    kicker: "Folie 04",
+    title: "Dashboard und Live-Zeiterfassung",
+    text: "Das Dashboard ist der Startpunkt der Anwendung und zeigt aktive Zeiten, offene Aufgaben und wichtige Informationen direkt an.",
+    theme: "theme-sky",
+    visual: "dashboard",
+    points: [
+      {
+        icon: "bi bi-play-circle-fill",
+        title: "Starten und beenden",
+        text: "Zeiten koennen sofort gestartet, pausiert und beendet werden.",
+      },
+      {
+        icon: "bi bi-eye-fill",
+        title: "Alles im Blick",
+        text: "Offene Antraege, Statusmeldungen und Tagesdaten bleiben sichtbar.",
+      },
+    ],
   },
   {
-    icon: "bi bi-calendar3",
-    category: "Planung",
-    title: "Kalender und Dienstplan",
-    text: "Arbeitszeiten, Termine und Schichten werden strukturiert in eigenen Ansichten dargestellt.",
+    shortTitle: "Kalender",
+    kicker: "Folie 05",
+    title: "Kalender und Dienstplanung",
+    text: "Planung wird durch eigene Ansichten fuer Termine, Schichten und Verfuegbarkeiten strukturierter und einfacher.",
+    theme: "theme-forest",
+    visual: "abstract",
+    badges: ["Kalender", "Schichten", "Verfuegbarkeit"],
+    points: [
+      {
+        icon: "bi bi-calendar3",
+        title: "Uebersichtliche Planung",
+        text: "Arbeitszeiten und Schichten lassen sich in klaren Ansichten organisieren.",
+      },
+      {
+        icon: "bi bi-people-fill",
+        title: "Teamorientiert",
+        text: "Dienstplaene bleiben fuer das Team sichtbar und besser abstimmbar.",
+      },
+    ],
   },
   {
-    icon: "bi bi-sun-fill",
-    category: "Personal",
+    shortTitle: "Urlaub",
+    kicker: "Folie 06",
     title: "Urlaubsantrag und Freigabe",
-    text: "Mitarbeitende stellen Antraege, Admins pruefen und bestaetigen diese im gleichen System.",
+    text: "Urlaub wird digital beantragt, geprueft und freigegeben. Dadurch entstehen transparente und nachvollziehbare Prozesse.",
+    theme: "theme-lilac",
+    visual: "abstract",
+    badges: ["Antrag", "Pruefung", "Freigabe"],
+    points: [
+      {
+        icon: "bi bi-send-check-fill",
+        title: "Digitaler Antrag",
+        text: "Mitarbeitende stellen Antraege direkt in der Anwendung.",
+      },
+      {
+        icon: "bi bi-person-check-fill",
+        title: "Schnelle Entscheidung",
+        text: "Freigaben werden zentral von zustaendigen Personen bearbeitet.",
+      },
+    ],
   },
   {
-    icon: "bi bi-people-fill",
-    category: "Administration",
+    shortTitle: "Admin",
+    kicker: "Folie 07",
     title: "Benutzer- und Abteilungsverwaltung",
-    text: "Verwaltet Benutzerrollen, organisatorische Bereiche und zentrale Stammdaten.",
+    text: "Admins pflegen Rollen, Stammdaten und organisatorische Strukturen zentral im System.",
+    theme: "theme-slate",
+    visual: "abstract",
+    badges: ["Benutzer", "Rollen", "Abteilungen"],
+    points: [
+      {
+        icon: "bi bi-person-badge-fill",
+        title: "Rollen steuern",
+        text: "Zugriffe und Verantwortlichkeiten koennen sauber abgebildet werden.",
+      },
+      {
+        icon: "bi bi-diagram-3-fill",
+        title: "Organisation strukturieren",
+        text: "Abteilungen und Stammdaten bleiben konsistent an einem Ort.",
+      },
+    ],
   },
   {
-    icon: "bi bi-graph-up-arrow",
-    category: "Reporting",
-    title: "Berichte und Abrechnung",
-    text: "Auswertungen und Abrechnungslisten unterstuetzen die spaetere Weiterverarbeitung.",
+    shortTitle: "Berichte",
+    kicker: "Folie 08",
+    title: "Berichte und Monatsdaten",
+    text: "Das Projekt erzeugt auswertbare Daten fuer Kontrolle, Nachvollziehbarkeit und spaetere Abrechnung.",
+    theme: "theme-copper",
+    visual: "abstract",
+    badges: ["Reporting", "Monat", "Abrechnung"],
+    points: [
+      {
+        icon: "bi bi-graph-up-arrow",
+        title: "Auswertungen",
+        text: "Monatsansichten und Berichte helfen bei der Analyse der Arbeitsdaten.",
+      },
+      {
+        icon: "bi bi-receipt-cutoff",
+        title: "Weiterverarbeitung",
+        text: "Die Datenbasis eignet sich fuer spaetere Abrechnung und Dokumentation.",
+      },
+    ],
   },
   {
-    icon: "bi bi-hospital-fill",
-    category: "Spezialprozesse",
-    title: "Workflow fuer Arzttermine",
-    text: "Auch Sonderfaelle im Arbeitsalltag sind als eigener Frontend-Prozess vorgesehen.",
+    shortTitle: "Rollen",
+    kicker: "Folie 09",
+    title: "Zwei Rollen, eine Plattform",
+    text: "Die Anwendung unterscheidet klar zwischen Mitarbeitenden und Admins, bleibt aber in einer gemeinsamen Oberflaeche konsistent.",
+    theme: "theme-indigo",
+    visual: "roles",
+  },
+  {
+    shortTitle: "Ablauf",
+    kicker: "Folie 10",
+    title: "Typischer Ablauf im Alltag",
+    text: "Vom Login ueber die Zeiterfassung bis zur Auswertung bildet das System einen kompletten Arbeitstag digital ab.",
+    theme: "theme-mint",
+    visual: "timeline",
+  },
+  {
+    shortTitle: "Sonderfaelle",
+    kicker: "Folie 11",
+    title: "Auch Sonderfaelle sind abbildbar",
+    text: "Neben Standardablaeufen koennen auch besondere Prozesse wie Korrekturen oder Arzttermine systematisch umgesetzt werden.",
+    theme: "theme-rose",
+    visual: "abstract",
+    badges: ["Korrekturen", "Ausnahmen", "Spezialprozesse"],
+    points: [
+      {
+        icon: "bi bi-heart-pulse-fill",
+        title: "Flexible Prozesse",
+        text: "Die Anwendung ist nicht nur fuer Standardfaelle gedacht, sondern auch fuer reale Alltagssituationen.",
+      },
+      {
+        icon: "bi bi-arrow-repeat",
+        title: "Korrekturen moeglich",
+        text: "Abweichungen koennen nachvollziehbar dokumentiert und bearbeitet werden.",
+      },
+    ],
+  },
+  {
+    shortTitle: "Design",
+    kicker: "Folie 12",
+    title: "Warum das Frontend wichtig ist",
+    text: "Die Oberflaeche entscheidet darueber, wie schnell ein Team das System annimmt und im Alltag nutzt.",
+    theme: "theme-night",
+    visual: "abstract",
+    badges: ["Klar", "Modern", "Direkt"],
+    points: [
+      {
+        icon: "bi bi-window-stack",
+        title: "Uebersichtliche Struktur",
+        text: "Wichtige Funktionen muessen ohne langes Suchen erreichbar sein.",
+      },
+      {
+        icon: "bi bi-stars",
+        title: "Professioneller Eindruck",
+        text: "Eine gute Praesentation der Anwendung staerkt auch die Wirkung des Projekts.",
+      },
+    ],
+  },
+  {
+    shortTitle: "Tech",
+    kicker: "Folie 13",
+    title: "Technologie-Stack",
+    text: "Das Projekt basiert auf einem modernen Web-Stack mit Frontend, Routing, Backend und Datenbank.",
+    theme: "theme-graphite",
+    visual: "stack",
+  },
+  {
+    shortTitle: "Ende",
+    kicker: "Folie 14",
+    title: "Bereit fuer Demo und Anwendung",
+    text: "Die Praesentation fuehrt direkt in die bestehende Anwendung und eignet sich fuer Schule, Projektvorstellung oder Demo.",
+    theme: "theme-gold",
+    visual: "closing",
+    stats: [
+      { value: "Vue 3", label: "Frontend" },
+      { value: "Express", label: "Backend" },
+      { value: "MongoDB", label: "Datenbasis" },
+    ],
+  },
+];
+
+const roles = [
+  {
+    kicker: "Mitarbeitende",
+    title: "Zeiten erfassen und Antraege stellen",
+    text: "Persoenliche Arbeitszeiten, Urlaub und Uebersichten stehen im Mittelpunkt.",
+  },
+  {
+    kicker: "Admin",
+    title: "Freigeben, pflegen und auswerten",
+    text: "Verwaltung, Kontrolle und organisatorische Funktionen werden zentral gebuendelt.",
   },
 ];
 
 const processSteps = [
   {
     step: "01",
-    title: "Anmelden",
-    text: "Mitarbeitende melden sich an und gelangen direkt auf das persoenliche Dashboard.",
+    title: "Login",
+    text: "Nutzer melden sich an und gelangen direkt zum Dashboard.",
   },
   {
     step: "02",
-    title: "Zeiten erfassen",
-    text: "Arbeitsbeginn, Pause und Arbeitsende werden digital dokumentiert oder manuell korrigiert.",
+    title: "Zeiten",
+    text: "Arbeitsbeginn, Pause und Arbeitsende werden digital erfasst.",
   },
   {
     step: "03",
     title: "Verwalten",
-    text: "Kalender, Urlaubsantraege und Dienstplaene werden zentral gepflegt und geprueft.",
+    text: "Urlaub, Kalender und Dienstplaene werden gepflegt.",
   },
   {
     step: "04",
     title: "Auswerten",
-    text: "Berichte, Fehlerprotokolle und Abrechnungsdaten schaffen Transparenz fuer das Team.",
+    text: "Berichte und Monatsdaten schaffen Transparenz.",
   },
 ];
 
@@ -272,23 +476,60 @@ const stack = [
   "MongoDB",
 ];
 
-const mockPanels = [
+const mockSidebar = ["Dashboard", "Kalender", "Urlaub", "Dienstplan", "Berichte"];
+
+const dashboardPanels = [
   {
     kicker: "Heute",
     title: "Dienstplan aktiv",
-    text: "Schichten und Verfuegbarkeiten bleiben fuer das Team sichtbar.",
+    text: "Schichten und Verfuegbarkeiten bleiben sichtbar.",
   },
   {
-    kicker: "Admin",
+    kicker: "Antraege",
     title: "Freigaben offen",
-    text: "Urlaubsantraege und Stammdatenaenderungen sind an einem Ort gebuendelt.",
+    text: "Urlaubsantraege koennen direkt geprueft werden.",
   },
   {
-    kicker: "Berichte",
+    kicker: "Reporting",
     title: "Monatsuebersicht",
-    text: "Die Datenbasis steht fuer Auswertungen und Abrechnung bereit.",
+    text: "Zeiten und Berichte sind strukturiert verfuegbar.",
   },
 ];
+
+const activeSlide = computed(() => slides[currentSlide.value]);
+const currentSlideNumber = computed(() => currentSlide.value + 1);
+
+const goToSlide = (index) => {
+  currentSlide.value = index;
+};
+
+const nextSlide = () => {
+  currentSlide.value = (currentSlide.value + 1) % slides.length;
+};
+
+const prevSlide = () => {
+  currentSlide.value = (currentSlide.value - 1 + slides.length) % slides.length;
+};
+
+const onKeydown = (event) => {
+  if (event.key === "ArrowRight" || event.key === " ") {
+    event.preventDefault();
+    nextSlide();
+  }
+
+  if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    prevSlide();
+  }
+};
+
+onMounted(() => {
+  window.addEventListener("keydown", onKeydown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onKeydown);
+});
 
 const ctaTarget = computed(() =>
   localStorage.getItem("token") ? "/dashboard" : "/login",
@@ -302,129 +543,61 @@ const ctaLabel = computed(() =>
 <style scoped>
 .presentation-page {
   min-height: 100vh;
+  padding: 0;
   color: #10233d;
   background:
-    radial-gradient(circle at top left, rgba(255, 166, 114, 0.24), transparent 28%),
-    radial-gradient(circle at top right, rgba(39, 130, 255, 0.18), transparent 24%),
-    linear-gradient(180deg, #f7f5ef 0%, #eef4ff 45%, #ffffff 100%);
+    radial-gradient(circle at top left, rgba(255, 167, 112, 0.18), transparent 24%),
+    radial-gradient(circle at top right, rgba(57, 124, 255, 0.16), transparent 20%),
+    linear-gradient(180deg, #f5efe5 0%, #edf4ff 45%, #f8fbff 100%);
 }
 
-.hero-section,
-.info-section,
-.closing-banner {
-  width: min(1180px, calc(100% - 2rem));
-  margin: 0 auto;
+.presentation-stage {
+  width: 100%;
+  min-height: 100vh;
 }
 
-.hero-section {
-  padding: 2rem 0 4rem;
-}
-
-.topbar,
-.hero-actions,
-.brand,
-.cta-row,
-.hero-metrics,
-.section-heading,
-.module-head,
-.stack-list {
+.slide-content,
+.stat-grid,
+.point-card,
+.slide-actions,
+.dashboard-grid,
+.mock-panels {
   display: flex;
 }
 
-.topbar {
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  margin-bottom: 3.5rem;
-}
-
-.brand {
-  align-items: center;
-  gap: 1rem;
-}
-
-.brand-mark,
-.icon-wrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.brand-mark {
-  width: 3.25rem;
-  height: 3.25rem;
-  border-radius: 1rem;
-  color: #fff;
-  font-size: 1.35rem;
-  background: linear-gradient(135deg, #1747a6, #2f81ff);
-  box-shadow: 0 18px 40px rgba(23, 71, 166, 0.28);
-}
-
-.brand-kicker,
-.eyebrow,
-.module-head span,
-.timeline-card span,
-.live-pill,
-.mini-panel span {
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  font-size: 0.74rem;
+.slide-kicker,
+.visual-pill,
+.mini-panel span,
+.timeline-step span,
+.role-card span {
+  margin: 0 0 0.35rem;
+  font-size: 0.76rem;
   font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
-.brand h1,
-.hero-copy h2,
-.section-heading h3,
-.closing-banner h3,
-.metric-card strong,
-.mock-live-card strong,
-.module-card h4,
-.benefit-card h4,
-.timeline-card h4,
-.mini-panel strong {
+.slide-copy h2,
+.point-card h3,
+.stat-card strong,
+.mock-hero strong,
+.mini-panel strong,
+.timeline-step strong,
+.role-card strong,
+.closing-box strong {
   margin: 0;
 }
 
-.hero-grid {
-  align-items: center;
-  gap: 1.5rem;
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-}
-
-.hero-copy h2 {
-  font-size: clamp(2.5rem, 4vw, 4.4rem);
-  line-height: 0.98;
-  max-width: 10ch;
-}
-
-.hero-text,
-.section-heading p,
-.benefit-card p,
-.module-card p,
-.timeline-card p,
-.mock-live-card p,
-.mini-panel p {
-  color: #516076;
-  line-height: 1.65;
-}
-
-.hero-actions,
-.cta-row,
-.hero-metrics,
-.benefit-grid,
-.module-grid,
-.timeline,
-.stack-list,
-.mock-grid {
-  gap: 1rem;
-}
-
-.hero-actions,
-.cta-row,
-.hero-metrics,
-.stack-list {
-  flex-wrap: wrap;
+.primary-button,
+.ghost-button,
+.nav-arrow,
+.slide-dot {
+  transition:
+    transform 0.22s ease,
+    background 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease,
+    opacity 0.22s ease;
 }
 
 .primary-button,
@@ -433,97 +606,259 @@ const ctaLabel = computed(() =>
   padding: 0.9rem 1.35rem;
   text-decoration: none;
   font-weight: 700;
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    background 0.25s ease;
 }
 
 .primary-button {
   color: #fff;
   background: linear-gradient(135deg, #ef6c2f, #ff9d5c);
-  box-shadow: 0 14px 30px rgba(239, 108, 47, 0.28);
+  box-shadow: 0 14px 28px rgba(239, 108, 47, 0.22);
 }
 
 .ghost-button {
   color: #16315e;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(22, 49, 94, 0.1);
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(22, 49, 94, 0.12);
 }
 
 .primary-button:hover,
-.ghost-button:hover {
+.ghost-button:hover,
+.nav-arrow:hover,
+.slide-dot:hover {
   transform: translateY(-2px);
 }
 
-.large {
-  padding-inline: 1.6rem;
+.slide-shell {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
 }
 
-.metric-card,
-.benefit-card,
-.module-card,
-.timeline-card,
-.mini-panel,
-.mock-live-card,
-.showcase-card {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(33, 66, 119, 0.08);
-  box-shadow: 0 24px 60px rgba(27, 53, 99, 0.08);
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  width: 64px;
+  height: 64px;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #16315e;
+  font-size: 1.4rem;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 18px 36px rgba(17, 44, 84, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
 }
 
-.metric-card {
-  min-width: 10rem;
-  padding: 1rem 1.1rem;
-  border-radius: 1.25rem;
+.nav-arrow.left {
+  left: 1.25rem;
 }
 
-.metric-card strong,
-.mock-live-card strong {
-  display: block;
-  font-size: 1.8rem;
-  color: #0f274f;
+.nav-arrow.right {
+  right: 1.25rem;
 }
 
-.metric-card span {
-  color: #64748b;
-}
-
-.showcase-card {
-  padding: 1rem;
-  border-radius: 2rem;
-  transform: rotate(2deg);
-}
-
-.screen-window {
-  border-radius: 1.5rem;
+.slide-surface {
+  position: relative;
+  min-height: 100vh;
   overflow: hidden;
-  background: linear-gradient(180deg, #f5f9ff, #eef3fb);
 }
 
-.window-dots {
+.slide-shell:hover .nav-arrow,
+.slide-shell:focus-within .nav-arrow,
+.slide-shell:hover .slide-overlay,
+.slide-shell:focus-within .slide-overlay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.slide-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem 1.5rem;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.overlay-top {
+  top: 0;
+}
+
+.overlay-bottom {
+  bottom: 0;
+  justify-content: center;
+}
+
+.slide-count {
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+  border: 1px solid rgba(17, 44, 84, 0.08);
+  color: #18335d;
+  font-weight: 700;
+  box-shadow: 0 14px 30px rgba(17, 44, 84, 0.08);
+}
+
+.overlay-cta {
+  box-shadow: 0 14px 30px rgba(239, 108, 47, 0.24);
+}
+
+.slide-chrome {
   display: flex;
   gap: 0.45rem;
-  padding: 0.9rem 1rem;
-  background: rgba(10, 28, 56, 0.06);
+  padding: 1rem 1.2rem;
+  background: rgba(255, 255, 255, 0.16);
 }
 
-.window-dots span {
-  width: 0.7rem;
-  height: 0.7rem;
+.slide-chrome span {
+  width: 0.78rem;
+  height: 0.78rem;
   border-radius: 50%;
-  background: #d0d8e5;
+  background: rgba(255, 255, 255, 0.55);
 }
 
-.screen-layout {
+.slide-content {
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-height: calc(100vh - 56px);
+  padding: 2rem 2rem 5.5rem;
+}
+
+.slide-copy,
+.slide-visual {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.slide-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.slide-copy h2 {
+  font-size: clamp(2.3rem, 3.6vw, 4.8rem);
+  line-height: 0.98;
+  max-width: 12ch;
+}
+
+.slide-text,
+.point-card p,
+.stat-card span,
+.mock-hero p,
+.mini-panel p,
+.timeline-step p,
+.role-card p,
+.closing-box p {
+  color: rgba(15, 34, 63, 0.76);
+  line-height: 1.65;
+}
+
+.stat-grid {
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.stat-card,
+.point-card,
+.visual-card,
+.mini-panel,
+.timeline-step,
+.role-card,
+.mock-hero {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(18, 50, 103, 0.08);
+  box-shadow: 0 18px 40px rgba(22, 44, 86, 0.08);
+  backdrop-filter: blur(12px);
+}
+
+.stat-card {
+  min-width: 10rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1.2rem;
+}
+
+.stat-card strong,
+.mock-hero strong,
+.closing-box strong {
+  display: block;
+  font-size: 1.8rem;
+  color: #102544;
+}
+
+.point-list {
   display: grid;
-  grid-template-columns: 140px 1fr;
-  min-height: 430px;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.point-card {
+  gap: 1rem;
+  padding: 1.1rem 1.15rem;
+  border-radius: 1.3rem;
+}
+
+.point-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  flex: 0 0 3rem;
+  border-radius: 1rem;
+  font-size: 1.1rem;
+  color: #fff;
+  background: linear-gradient(135deg, #1949aa, #3182ff);
+}
+
+.slide-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.visual-card {
+  width: 100%;
+  min-height: 100%;
+  border-radius: 1.6rem;
+  padding: 1.25rem;
+}
+
+.abstract-visual {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-content: center;
+}
+
+.visual-badge {
+  padding: 1.2rem;
+  border-radius: 1.4rem;
+  font-weight: 800;
+  font-size: clamp(1rem, 1.8vw, 1.6rem);
+  color: #16315e;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(22, 49, 94, 0.1);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  min-height: 420px;
+  overflow: hidden;
+  border-radius: 1.4rem;
 }
 
 .mock-sidebar {
-  padding: 1.25rem;
+  padding: 1.2rem;
   background: linear-gradient(180deg, #123267, #1f4d96);
   color: rgba(255, 255, 255, 0.92);
 }
@@ -533,31 +868,25 @@ const ctaLabel = computed(() =>
   font-weight: 600;
 }
 
-.mock-content {
-  padding: 1.25rem;
+.mock-main {
+  padding: 1.2rem;
 }
 
-.live-pill {
-  display: inline-block;
-  color: #2f81ff;
-  margin-bottom: 0.5rem;
-}
-
-.mock-live-card {
-  padding: 1.4rem;
-  border-radius: 1.4rem;
+.mock-hero {
+  padding: 1.3rem;
+  border-radius: 1.3rem;
   margin-bottom: 1rem;
 }
 
-.mock-grid,
-.benefit-grid,
-.module-grid,
-.timeline {
-  display: grid;
+.visual-pill {
+  display: inline-block;
+  color: #1d67d7;
 }
 
-.mock-grid {
+.mock-panels {
+  display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
 }
 
 .mini-panel {
@@ -565,128 +894,190 @@ const ctaLabel = computed(() =>
   border-radius: 1.2rem;
 }
 
-.info-section {
-  padding: 1.5rem 0 4rem;
+.timeline-visual,
+.role-visual {
+  display: grid;
+  gap: 1rem;
+  align-content: center;
 }
 
-.alt-section {
-  padding-top: 3.5rem;
+.timeline-step,
+.role-card {
+  padding: 1.2rem;
+  border-radius: 1.35rem;
 }
 
-.section-heading {
-  flex-direction: column;
-  gap: 0.75rem;
-  max-width: 42rem;
-  margin-bottom: 2rem;
+.stack-visual {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-content: center;
 }
 
-.section-heading.narrow {
-  max-width: 30rem;
-}
-
-.section-heading h3,
-.closing-banner h3 {
-  font-size: clamp(1.8rem, 2.5vw, 3rem);
-}
-
-.benefit-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.module-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.timeline {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.benefit-card,
-.module-card,
-.timeline-card {
-  border-radius: 1.5rem;
-  padding: 1.4rem;
-}
-
-.icon-wrap {
-  width: 3rem;
-  height: 3rem;
-  margin-bottom: 1rem;
-  border-radius: 1rem;
-  color: #fff;
-  background: linear-gradient(135deg, #1747a6, #2f81ff);
-}
-
-.module-head {
-  align-items: center;
-  gap: 0.75rem;
-  color: #1c4fa6;
-  margin-bottom: 1rem;
-}
-
-.module-head i {
-  font-size: 1.25rem;
-}
-
-.stack-list span {
-  padding: 0.8rem 1rem;
+.stack-visual span {
+  padding: 0.95rem 1.1rem;
   border-radius: 999px;
-  background: rgba(18, 50, 103, 0.08);
-  color: #123267;
   font-weight: 700;
+  color: #123267;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(22, 49, 94, 0.1);
 }
 
-.closing-banner {
-  margin-top: 1rem;
-  margin-bottom: 3rem;
-  padding: 2rem;
-  border-radius: 2rem;
-  background: linear-gradient(135deg, #123267, #2155a1);
-  color: #fff;
+.closing-visual {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: center;
 }
 
-.closing-banner .eyebrow,
-.closing-banner h3 {
+.closing-box {
+  max-width: 30rem;
+  padding: 1.8rem;
+  border-radius: 1.5rem;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(18, 50, 103, 0.1);
+  box-shadow: 0 24px 50px rgba(22, 44, 86, 0.1);
+}
+
+.slide-actions {
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+}
+
+.slide-picker {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+  max-width: min(920px, calc(100% - 2rem));
+}
+
+.slide-dot {
+  width: 2.9rem;
+  height: 2.9rem;
+  padding: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  border: 1px solid rgba(17, 44, 84, 0.08);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 14px 30px rgba(17, 44, 84, 0.08);
+}
+
+.slide-dot span {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #16315e;
+}
+
+.slide-dot.active {
+  color: #fff;
+  background: linear-gradient(135deg, #123267, #255daa);
+  border-color: transparent;
+}
+
+.slide-dot.active span {
   color: #fff;
 }
 
-@media (max-width: 1024px) {
-  .hero-grid,
-  .benefit-grid,
-  .module-grid,
-  .timeline,
-  .mock-grid {
+.theme-warm {
+  background: linear-gradient(135deg, #fff1dc 0%, #ffe4d1 34%, #fff8f1 100%);
+}
+
+.theme-ocean {
+  background: linear-gradient(135deg, #e4f1ff 0%, #d3ebff 46%, #f6fbff 100%);
+}
+
+.theme-amber {
+  background: linear-gradient(135deg, #fff2dd 0%, #ffe8bf 50%, #fff9ed 100%);
+}
+
+.theme-sky {
+  background: linear-gradient(135deg, #e7f4ff 0%, #d7eaff 40%, #f7fbff 100%);
+}
+
+.theme-forest {
+  background: linear-gradient(135deg, #e8f7ee 0%, #d9f0df 42%, #f5fcf7 100%);
+}
+
+.theme-lilac {
+  background: linear-gradient(135deg, #f0e9ff 0%, #e7ddff 44%, #faf7ff 100%);
+}
+
+.theme-slate {
+  background: linear-gradient(135deg, #e9eef6 0%, #dce5f2 44%, #f8fbff 100%);
+}
+
+.theme-copper {
+  background: linear-gradient(135deg, #fff0e4 0%, #fbe0cf 46%, #fff8f2 100%);
+}
+
+.theme-indigo {
+  background: linear-gradient(135deg, #e8ebff 0%, #dde1ff 46%, #f8f9ff 100%);
+}
+
+.theme-mint {
+  background: linear-gradient(135deg, #e6fbf5 0%, #d6f4eb 45%, #f6fffb 100%);
+}
+
+.theme-rose {
+  background: linear-gradient(135deg, #fff0f2 0%, #ffe0e7 46%, #fff8f9 100%);
+}
+
+.theme-night {
+  background: linear-gradient(135deg, #dfe8fb 0%, #d3dbf4 45%, #f3f6ff 100%);
+}
+
+.theme-graphite {
+  background: linear-gradient(135deg, #edf0f6 0%, #dfe5f0 42%, #fafcff 100%);
+}
+
+.theme-gold {
+  background: linear-gradient(135deg, #fff4dd 0%, #ffe5b3 45%, #fffaf1 100%);
+}
+
+@media (max-width: 1100px) {
+  .slide-content {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .slide-copy h2 {
+    max-width: none;
+  }
+}
+
+@media (max-width: 820px) {
+  .slide-overlay {
+    padding: 1rem;
+  }
+
+  .dashboard-grid,
+  .mock-panels,
+  .abstract-visual {
     grid-template-columns: 1fr;
   }
 
-  .showcase-card {
-    transform: none;
+  .dashboard-grid {
+    grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 768px) {
-  .topbar,
-  .closing-banner {
+  .slide-content {
+    padding: 1.2rem 1.2rem 5rem;
+  }
+
+  .nav-arrow {
+    display: none;
+  }
+
+  .overlay-top {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .hero-copy h2 {
-    max-width: 100%;
-  }
-
-  .screen-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .mock-sidebar {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
+  .slide-dot {
+    width: 2.55rem;
+    height: 2.55rem;
   }
 }
 </style>
