@@ -57,94 +57,21 @@
             </div>
 
             <div class="slide-visual">
-              <div
-                v-if="activeSlide.visual === 'dashboard'"
-                class="visual-card dashboard-visual"
-              >
-                <div class="dashboard-grid">
-                  <aside class="mock-sidebar">
-                    <p v-for="item in mockSidebar" :key="item">{{ item }}</p>
-                  </aside>
-
-                  <div class="mock-main">
-                    <article class="mock-hero">
-                      <span class="visual-pill">Live Sitzung</span>
-                      <strong>07:42:18</strong>
-                      <p>Arbeitsbeginn aktiv, Pause und Arbeitsende direkt erreichbar.</p>
-                    </article>
-
-                    <div class="mock-panels">
-                      <article
-                        v-for="panel in dashboardPanels"
-                        :key="panel.title"
-                        class="mini-panel"
-                      >
-                        <span>{{ panel.kicker }}</span>
-                        <strong>{{ panel.title }}</strong>
-                        <p>{{ panel.text }}</p>
-                      </article>
-                    </div>
+              <div class="visual-card dashboard-visual">
+                <div class="frame-head">
+                  <div class="frame-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                   </div>
+                  <div class="frame-url">{{ demoFrameUrl }}</div>
                 </div>
-              </div>
-
-              <div
-                v-else-if="activeSlide.visual === 'timeline'"
-                class="visual-card timeline-visual"
-              >
-                <article
-                  v-for="step in processSteps"
-                  :key="step.step"
-                  class="timeline-step"
-                >
-                  <span>{{ step.step }}</span>
-                  <strong>{{ step.title }}</strong>
-                  <p>{{ step.text }}</p>
-                </article>
-              </div>
-
-              <div
-                v-else-if="activeSlide.visual === 'stack'"
-                class="visual-card stack-visual"
-              >
-                <span v-for="item in stack" :key="item">{{ item }}</span>
-              </div>
-
-              <div
-                v-else-if="activeSlide.visual === 'roles'"
-                class="visual-card role-visual"
-              >
-                <article v-for="role in roles" :key="role.title" class="role-card">
-                  <span>{{ role.kicker }}</span>
-                  <strong>{{ role.title }}</strong>
-                  <p>{{ role.text }}</p>
-                </article>
-              </div>
-
-              <div
-                v-else-if="activeSlide.visual === 'closing'"
-                class="visual-card closing-visual"
-              >
-                <div class="closing-box">
-                  <span class="visual-pill">Naechster Schritt</span>
-                  <strong>Demo starten</strong>
-                  <p>Von der Praesentation direkt in die Anwendung wechseln.</p>
-                  <div class="slide-actions">
-                    <RouterLink class="ghost-button" to="/login">Zum Login</RouterLink>
-                    <RouterLink class="primary-button" :to="ctaTarget">
-                      {{ ctaLabel }}
-                    </RouterLink>
-                  </div>
-                </div>
-              </div>
-
-              <div v-else class="visual-card abstract-visual">
-                <div
-                  v-for="badge in activeSlide.badges || []"
-                  :key="badge"
-                  class="visual-badge"
-                >
-                  {{ badge }}
+                <div class="frame-stage">
+                  <iframe
+                    class="app-frame"
+                    :src="demoFrameUrl"
+                    title="Zeiterfassung Login Demo"
+                  ></iframe>
                 </div>
               </div>
             </div>
@@ -430,74 +357,9 @@ const slides = [
   },
 ];
 
-const roles = [
-  {
-    kicker: "Mitarbeitende",
-    title: "Zeiten erfassen und Antraege stellen",
-    text: "Persoenliche Arbeitszeiten, Urlaub und Uebersichten stehen im Mittelpunkt.",
-  },
-  {
-    kicker: "Admin",
-    title: "Freigeben, pflegen und auswerten",
-    text: "Verwaltung, Kontrolle und organisatorische Funktionen werden zentral gebuendelt.",
-  },
-];
-
-const processSteps = [
-  {
-    step: "01",
-    title: "Login",
-    text: "Nutzer melden sich an und gelangen direkt zum Dashboard.",
-  },
-  {
-    step: "02",
-    title: "Zeiten",
-    text: "Arbeitsbeginn, Pause und Arbeitsende werden digital erfasst.",
-  },
-  {
-    step: "03",
-    title: "Verwalten",
-    text: "Urlaub, Kalender und Dienstplaene werden gepflegt.",
-  },
-  {
-    step: "04",
-    title: "Auswerten",
-    text: "Berichte und Monatsdaten schaffen Transparenz.",
-  },
-];
-
-const stack = [
-  "Vue 3",
-  "Vite",
-  "Vue Router",
-  "Bootstrap 5",
-  "Node.js",
-  "Express",
-  "MongoDB",
-];
-
-const mockSidebar = ["Dashboard", "Kalender", "Urlaub", "Dienstplan", "Berichte"];
-
-const dashboardPanels = [
-  {
-    kicker: "Heute",
-    title: "Dienstplan aktiv",
-    text: "Schichten und Verfuegbarkeiten bleiben sichtbar.",
-  },
-  {
-    kicker: "Antraege",
-    title: "Freigaben offen",
-    text: "Urlaubsantraege koennen direkt geprueft werden.",
-  },
-  {
-    kicker: "Reporting",
-    title: "Monatsuebersicht",
-    text: "Zeiten und Berichte sind strukturiert verfuegbar.",
-  },
-];
-
 const activeSlide = computed(() => slides[currentSlide.value]);
 const currentSlideNumber = computed(() => currentSlide.value + 1);
+const demoFrameUrl = "http://localhost:5173/login";
 
 const goToSlide = (index) => {
   currentSlide.value = index;
@@ -832,6 +694,76 @@ const ctaLabel = computed(() =>
   padding: 1.25rem;
 }
 
+.dashboard-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.frame-head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: 1.1rem;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(18, 50, 103, 0.08);
+}
+
+.frame-dots {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.frame-dots span {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: #c8d3e4;
+}
+
+.frame-url {
+  min-width: 0;
+  flex: 1 1 auto;
+  padding: 0.7rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(237, 243, 251, 0.95);
+  color: #18335d;
+  font-size: 0.9rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.frame-stage {
+  overflow: hidden;
+  border-radius: 1.4rem;
+  border: 1px solid rgba(18, 50, 103, 0.08);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+
+.app-frame {
+  width: 100%;
+  height: 560px;
+  border: 0;
+  background: #ffffff;
+}
+
+.frame-foot strong {
+  display: block;
+  margin: 0;
+  font-size: 1.2rem;
+  color: #102544;
+}
+
+.frame-foot p {
+  margin: 0.35rem 0 0;
+  color: rgba(15, 34, 63, 0.72);
+  line-height: 1.55;
+}
+
 .abstract-visual {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1078,6 +1010,15 @@ const ctaLabel = computed(() =>
   .slide-dot {
     width: 2.55rem;
     height: 2.55rem;
+  }
+
+  .app-frame {
+    height: 420px;
+  }
+
+  .frame-head {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>
