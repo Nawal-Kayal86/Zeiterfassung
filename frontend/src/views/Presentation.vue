@@ -363,7 +363,7 @@ const slides = [
 
 const activeSlide = computed(() => slides[currentSlide.value]);
 const demoFrameUrl = "https://zeiterfassung-mh87.onrender.com/login";
-const liveImageUrl = "dist/assets/live.png";
+const liveImageUrl = "src/assets/live.png";
 
 const goToSlide = (index) => {
   currentSlide.value = index;
