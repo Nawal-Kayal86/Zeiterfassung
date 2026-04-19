@@ -2,19 +2,8 @@
   <div class="presentation-page">
     <main class="presentation-stage">
       <section class="slide-shell">
-        <button
-          class="nav-arrow left"
-          type="button"
-          aria-label="Vorherige Folie"
-          @click="prevSlide"
-        >
-          <i class="bi bi-arrow-left"></i>
-        </button>
-
         <div class="slide-surface" :class="activeSlide.theme">
           <div class="slide-overlay overlay-top">
-            <span class="slide-count">Folie {{ currentSlideNumber }} / {{ slides.length }}</span>
-
             <RouterLink class="primary-button overlay-cta" :to="ctaTarget">
               {{ ctaLabel }}
             </RouterLink>
@@ -30,9 +19,20 @@
             <div class="slide-copy">
               <p class="slide-kicker">{{ activeSlide.kicker }}</p>
               <h2>{{ activeSlide.title }}</h2>
+              <p v-if="activeSlide.subtitle" class="slide-subtitle">{{ activeSlide.subtitle }}</p>
               <p class="slide-text">{{ activeSlide.text }}</p>
 
-              <div v-if="activeSlide.stats?.length" class="stat-grid">
+              <div v-if="activeSlide.meta?.length" class="cover-meta">
+                <article v-for="entry in activeSlide.meta" :key="entry.name" class="cover-meta-card">
+                  <span>{{ entry.role }}</span>
+                  <strong>{{ entry.name }}</strong>
+                </article>
+              </div>
+
+              <div
+                v-if="activeSlide.stats?.length && activeSlide.visual !== 'cover'"
+                class="stat-grid"
+              >
                 <article v-for="stat in activeSlide.stats" :key="stat.label" class="stat-card">
                   <strong>{{ stat.value }}</strong>
                   <span>{{ stat.label }}</span>
@@ -57,7 +57,14 @@
             </div>
 
             <div class="slide-visual">
-              <div class="visual-card dashboard-visual">
+              <div v-if="activeSlide.visual === 'cover'" class="visual-card cover-visual">
+                <div class="cover-badge">MEVN Stack</div>
+                <div class="cover-architecture">
+                  <img class="cover-architecture-image" :src="liveImageUrl" alt="Systemarchitektur" />
+                </div>
+              </div>
+
+              <div v-else class="visual-card dashboard-visual">
                 <div class="frame-head">
                   <div class="frame-dots">
                     <span></span>
@@ -93,14 +100,6 @@
           </div>
         </div>
 
-        <button
-          class="nav-arrow right"
-          type="button"
-          aria-label="Naechste Folie"
-          @click="nextSlide"
-        >
-          <i class="bi bi-arrow-right"></i>
-        </button>
       </section>
     </main>
   </div>
@@ -114,15 +113,20 @@ const currentSlide = ref(0);
 const slides = [
   {
     shortTitle: "Start",
-    kicker: "Folie 01",
-    title: "Zeiterfassung als digitale Arbeitsplattform",
-    text: "Das Projekt verbindet Zeiterfassung, Planung, Urlaubsprozesse und Verwaltung in einer modernen Web-Anwendung.",
+    title: "Digitales Zeiterfassungssystem",
+    subtitle: "Konzeption, Entwicklung und Cloud-Deployment",
+    text: "eines webbasierten Zeiterfassungssystems im MEVN-Stack",
     theme: "theme-warm",
-    visual: "dashboard",
-    stats: [
-      { value: "14", label: "Folien in dieser Praesentation" },
-      { value: "2", label: "Rollen im System" },
-      { value: "1", label: "Plattform fuer zentrale Prozesse" },
+    visual: "cover",
+    meta: [
+      {
+        role: "Projektarbeit",
+        name: "Nawal Kayal\nAhmad Alalan",
+      },
+      {
+        role: "Betreuer",
+        name: "DI Mag. Dr. Martin Gruber\nDI Endre Beda",
+      },
     ],
   },
   {
@@ -358,8 +362,8 @@ const slides = [
 ];
 
 const activeSlide = computed(() => slides[currentSlide.value]);
-const currentSlideNumber = computed(() => currentSlide.value + 1);
-const demoFrameUrl = "http://localhost:5173/login";
+const demoFrameUrl = "https://zeiterfassung-mh87.onrender.com/login";
+const liveImageUrl = "dist/assets/live.png";
 
 const goToSlide = (index) => {
   currentSlide.value = index;
@@ -452,7 +456,6 @@ const ctaLabel = computed(() =>
 
 .primary-button,
 .ghost-button,
-.nav-arrow,
 .slide-dot {
   transition:
     transform 0.22s ease,
@@ -484,7 +487,6 @@ const ctaLabel = computed(() =>
 
 .primary-button:hover,
 .ghost-button:hover,
-.nav-arrow:hover,
 .slide-dot:hover {
   transform: translateY(-2px);
 }
@@ -495,40 +497,12 @@ const ctaLabel = computed(() =>
   min-height: 100vh;
 }
 
-.nav-arrow {
-  position: absolute;
-  top: 50%;
-  z-index: 4;
-  width: 64px;
-  height: 64px;
-  border: 0;
-  border-radius: 50%;
-  cursor: pointer;
-  color: #16315e;
-  font-size: 1.4rem;
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 18px 36px rgba(17, 44, 84, 0.12);
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-50%);
-}
-
-.nav-arrow.left {
-  left: 1.25rem;
-}
-
-.nav-arrow.right {
-  right: 1.25rem;
-}
-
 .slide-surface {
   position: relative;
   min-height: 100vh;
   overflow: hidden;
 }
 
-.slide-shell:hover .nav-arrow,
-.slide-shell:focus-within .nav-arrow,
 .slide-shell:hover .slide-overlay,
 .slide-shell:focus-within .slide-overlay {
   opacity: 1;
@@ -556,16 +530,6 @@ const ctaLabel = computed(() =>
 .overlay-bottom {
   bottom: 0;
   justify-content: center;
-}
-
-.slide-count {
-  padding: 0.7rem 1rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.84);
-  border: 1px solid rgba(17, 44, 84, 0.08);
-  color: #18335d;
-  font-weight: 700;
-  box-shadow: 0 14px 30px rgba(17, 44, 84, 0.08);
 }
 
 .overlay-cta {
@@ -611,6 +575,15 @@ const ctaLabel = computed(() =>
   max-width: 12ch;
 }
 
+.slide-subtitle {
+  max-width: 24ch;
+  margin: 1rem 0 0;
+  font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+  font-weight: 700;
+  line-height: 1.35;
+  color: #18335d;
+}
+
 .slide-text,
 .point-card p,
 .stat-card span,
@@ -627,6 +600,38 @@ const ctaLabel = computed(() =>
   gap: 1rem;
   flex-wrap: wrap;
   margin-top: 1.5rem;
+}
+
+.cover-meta {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.cover-meta-card {
+  max-width: 28rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1.2rem;
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(18, 50, 103, 0.08);
+  box-shadow: 0 18px 40px rgba(22, 44, 86, 0.06);
+}
+
+.cover-meta-card span {
+  display: inline-block;
+  margin-bottom: 0.35rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #49658f;
+}
+
+.cover-meta-card strong {
+  display: block;
+  font-size: 1.2rem;
+  white-space: pre-line;
+  color: #102544;
 }
 
 .stat-card,
@@ -698,6 +703,56 @@ const ctaLabel = computed(() =>
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.cover-visual {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.25rem;
+  min-height: 560px;
+  padding: 2rem;
+  background:
+    radial-gradient(circle at top right, rgba(49, 130, 255, 0.22), transparent 28%),
+    linear-gradient(160deg, rgba(16, 37, 68, 0.96), rgba(27, 70, 139, 0.92));
+  color: #f4f8ff;
+}
+
+.cover-badge {
+  align-self: flex-start;
+  padding: 0.7rem 1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cover-architecture {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 560px;
+  padding: 1rem;
+  border-radius: 1.8rem;
+  background:
+    radial-gradient(circle at 30% 70%, rgba(175, 219, 255, 0.36), transparent 28%),
+    radial-gradient(circle at 80% 20%, rgba(205, 232, 255, 0.34), transparent 26%),
+    linear-gradient(180deg, rgba(220, 235, 247, 0.58), rgba(102, 126, 134, 0.54));
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+}
+
+.cover-architecture-image {
+  display: block;
+  width: 100%;
+  max-width: 520px;
+  height: 520px;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 30px rgba(57, 101, 149, 0.2));
 }
 
 .frame-head {
@@ -996,10 +1051,6 @@ const ctaLabel = computed(() =>
 
   .slide-content {
     padding: 1.2rem 1.2rem 5rem;
-  }
-
-  .nav-arrow {
-    display: none;
   }
 
   .overlay-top {
