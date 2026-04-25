@@ -4,9 +4,6 @@
       <section class="slide-shell">
         <div class="slide-surface" :class="activeSlide.theme">
           <div class="slide-overlay overlay-top">
-            <RouterLink class="primary-button overlay-cta" :to="ctaTarget">
-              {{ ctaLabel }}
-            </RouterLink>
           </div>
 
           <div class="slide-chrome">
@@ -794,14 +791,14 @@ const ctaLabel = computed(() =>
 .frame-stage {
   overflow: hidden;
   border-radius: 1.4rem;
-  border: 1px solid rgba(18, 50, 103, 0.08);
+  border: 1px solid rgba(38, 241, 7, 0.08);
   background: rgba(255, 255, 255, 0.76);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
 }
 
 .app-frame {
   width: 100%;
-  height: 560px;
+  height: 620px;
   border: 0;
   background: #ffffff;
 }
