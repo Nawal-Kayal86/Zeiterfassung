@@ -45,8 +45,8 @@
                     </td>
                   </tr>
                   <tr>
-                    <td>Urlaubsanspruch</td>
-                    <td class="text-end fw-bold">{{ totalVacation }} Tage</td>
+                    <td>Urlaubsanspruch (automatisch berechnet)</td>
+                    <td class="text-end fw-bold">{{ formattedVacationAllowance }} Tage</td>
                   </tr>
                   <tr>
                     <td>Urlaub verbraucht Periode</td>
@@ -553,6 +553,10 @@ const remainingVacation = computed(
   () => totalVacation.value - usedVacation.value - plannedVacation.value,
 );
 
+const formattedVacationAllowance = computed(() =>
+  formatVacationDays(totalVacation.value),
+);
+
 const usedVacationProgress = computed(() => {
   if (!totalVacation.value) return 0;
   return (usedVacation.value / totalVacation.value) * 100;
@@ -692,13 +696,14 @@ const deleteRequest = async (id) => {
 const format = (value) => new Date(value).toLocaleDateString("de-DE");
 
 const exportPDF = async () => {
-  const element = document.getElementById("vacation-report");
-  if (!element) {
+  const sourceElement = document.getElementById("vacation-report");
+  if (!sourceElement) {
     toast.error("PDF-Vorlage nicht gefunden.");
     return;
   }
 
-  const previousStyle = element.getAttribute("style") || "";
+  const exportRoot = document.createElement("div");
+  const clonedElement = sourceElement.cloneNode(true);
   const options = {
     margin: 0,
     filename: `Urlaubskonto_${currentUser.name}_${selectedDate.value}.pdf`,
@@ -708,20 +713,31 @@ const exportPDF = async () => {
   };
 
   try {
-    element.setAttribute(
-      "style",
-      "opacity: 1; pointer-events: auto; position: fixed; top: 0; left: -10000px; z-index: 9999; width: 800px; padding: 40px; background: white; font-family: sans-serif; color: #1a1a1a;",
-    );
+    exportRoot.style.position = "fixed";
+    exportRoot.style.left = "-10000px";
+    exportRoot.style.top = "0";
+    exportRoot.style.width = "800px";
+    exportRoot.style.zIndex = "9999";
+    exportRoot.style.background = "#ffffff";
+    exportRoot.style.opacity = "1";
+    exportRoot.style.pointerEvents = "none";
+    clonedElement.style.opacity = "1";
+    clonedElement.style.pointerEvents = "auto";
+    clonedElement.style.position = "static";
+    clonedElement.style.width = "800px";
+    clonedElement.style.zIndex = "auto";
+    exportRoot.appendChild(clonedElement);
+    document.body.appendChild(exportRoot);
     await nextTick();
 
     toast.info("Generiere PDF... Bitte warten...");
-    await html2pdf().from(element).set(options).save();
+    await html2pdf().from(clonedElement).set(options).save();
     toast.success("PDF erfolgreich exportiert!");
   } catch (error) {
     console.error("PDF export failed", error);
     toast.error("PDF konnte nicht erzeugt werden.");
   } finally {
-    element.setAttribute("style", previousStyle);
+    exportRoot.remove();
   }
 };
 
@@ -733,6 +749,16 @@ const translateType = (type) =>
       : type === "overtime"
         ? "Zeitausgleich (1:1)"
         : "Andere";
+
+const formatVacationDays = (value) => {
+  if (!Number.isFinite(value)) {
+    return "0";
+  }
+
+  return Number.isInteger(value)
+    ? String(value)
+    : value.toFixed(2).replace(".", ",");
+};
 
 watch(currentYear, async () => {
   try {

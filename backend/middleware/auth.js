@@ -1,32 +1,52 @@
 import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+import { getBearerToken } from "../utils/request.js";
+import { sendError } from "../utils/http.js";
 
-/**
- * @module AuthMiddleware
- * @description Zentrale Middleware-Funktion zur Absicherung von API-Endpunkten.
- * Verifiziert das Vorhandensein und die Gültigkeit eines JWT (JSON Web Token) im Authorization-Header.
- *
- * @param {String|null} requiredRole - (Optional) Definiert die Mindestrolle (z.B. "admin"), die der User aufweisen muss.
- * @returns {Function} Express Middleware Funktion (req, res, next)
- */
 export function auth(requiredRole = null) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader)
-        return res.status(401).json({ error: "Kein Token vorhanden" });
-
-      const token = authHeader.split(" ")[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      if (requiredRole && decoded.role !== requiredRole) {
-        return res.status(403).json({ error: "Zugriff verweigert" });
+      if (!process.env.JWT_SECRET) {
+        console.error("JWT_SECRET ist nicht gesetzt");
+        return sendError(res, 500, "Server-Konfiguration unvollstaendig");
       }
 
-      req.user = decoded;
+      const token = getBearerToken(req.headers.authorization);
+      if (!token) {
+        return sendError(res, 401, "Kein Token vorhanden");
+      }
+
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+        algorithms: ["HS256"],
+        issuer: process.env.JWT_ISSUER || "zeiterfassung-api",
+        audience: process.env.JWT_AUDIENCE || "zeiterfassung-client",
+      });
+
+      const user = await User.findById(decoded.id)
+        .select("_id role is_active department")
+        .lean();
+
+      if (!user || user.is_active === false) {
+        return sendError(res, 401, "Benutzerkonto ist nicht mehr gueltig");
+      }
+
+      if (requiredRole && user.role !== requiredRole) {
+        return sendError(res, 403, "Zugriff verweigert");
+      }
+
+      req.user = {
+        id: String(user._id),
+        role: user.role,
+        department: user.department,
+      };
+
       next();
     } catch (err) {
-      console.error("Auth error:", err);
-      res.status(401).json({ error: "Ungültiges Token" });
+      if (err.name !== "TokenExpiredError" && err.name !== "JsonWebTokenError") {
+        console.error("Auth error:", err);
+      }
+
+      return sendError(res, 401, "Ungueltiges Token");
     }
   };
 }

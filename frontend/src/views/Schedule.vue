@@ -1,180 +1,208 @@
 <template>
-  <div class="container py-4">
-    <!-- Formular -->
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <h5 class="mb-3">
-          {{ editId ? "✏️ Schicht bearbeiten" : "➕ Neue Schicht" }}
-        </h5>
-
-        <form @submit.prevent="save">
-          <div class="row g-3">
-            <div class="col-md-3">
-              <label class="form-label">Mitarbeiter</label>
-              <input v-model="form.name" class="form-control" required />
-            </div>
-
-            <div class="col-md-3">
-              <label class="form-label">Abteilung</label>
-              <select v-model="form.department" class="form-select" required>
-                <option value="">–Abteilung wählen –</option>
-                <option>IT</option>
-                <option>Personal (HR)</option>
-                <option>Einkauf</option>
-                <option>Trainer</option>
-                <option>Öko Booster</option>
-              </select>
-            </div>
-
-            <div class="col-md-3">
-              <label class="form-label">Datum</label>
-              <input
-                type="date"
-                v-model="form.date"
-                class="form-control"
-                required
-              />
-            </div>
-
-            <div class="col-md-3">
-              <label class="form-label">Schicht</label>
-              <select v-model="form.shift" class="form-select" required>
-                <option value="">–Schicht wählen –</option>
-                <option>Frühschicht</option>
-                <option>Spätschicht</option>
-                <option>Nachtschicht</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="mt-3 d-flex gap-2">
-            <button class="btn btn-primary">💾 Speichern</button>
-            <button
-              v-if="editId"
-              type="button"
-              class="btn btn-secondary"
-              @click="reset"
-            >
-              Abbrechen
-            </button>
-          </div>
-        </form>
+  <div class="container-fluid py-4 px-md-5">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Dienstplan</h2>
+        <p class="text-muted mb-0">
+          Dein aktueller Wochenplan mit Sollarbeitszeiten.
+        </p>
       </div>
+
+      <RouterLink
+        v-if="isAdmin"
+        to="/work-schedule"
+        class="btn btn-primary"
+      >
+        <i class="bi bi-sliders me-2"></i> Sollarbeitszeiten verwalten
+      </RouterLink>
     </div>
 
-    <!-- Tabelle -->
-    <div class="card shadow-sm">
-      <div class="card-header fw-bold">📋 Übersicht</div>
-      <div class="table-responsive">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Mitarbeiter</th>
-              <th>Abteilung</th>
-              <th>Datum</th>
-              <th>Schicht</th>
-              <th class="text-end">Aktionen</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="schedules.length === 0">
-              <td colspan="5" class="text-center text-muted py-3">
-                Keine Einträge
-              </td>
-            </tr>
+    <div v-if="loading" class="alert alert-info">
+      Dienstplan wird geladen...
+    </div>
 
-            <tr v-for="s in schedules" :key="s._id">
-              <td>{{ s.name }}</td>
-              <td>{{ s.department }}</td>
-              <td>{{ formatDate(s.date) }}</td>
-              <td>
-                <span :class="badgeClass(s.shift)">
-                  {{ s.shift }}
-                </span>
-              </td>
-              <td class="text-end">
-                <button
-                  class="btn btn-sm btn-outline-primary me-2"
-                  @click="edit(s)"
-                >
-                  ✏️
-                </button>
-                <button
-                  class="btn btn-sm btn-outline-danger"
-                  @click="remove(s._id)"
-                >
-                  🗑
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <div v-else class="row g-4">
+      <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">Wochenuebersicht</h5>
+
+            <div class="summary-box">
+              <span class="summary-label">Wochenstunden</span>
+              <strong class="summary-value">{{ formattedWeeklyHours }}</strong>
+            </div>
+
+            <div class="summary-box">
+              <span class="summary-label">Aktive Arbeitstage</span>
+              <strong class="summary-value">{{ activeDayCount }}</strong>
+            </div>
+
+            <div class="alert alert-light border mt-4 mb-0">
+              <strong>Hinweis:</strong>
+              Dieser Plan wird fuer Urlaubsberechnung, Sollzeiten und Monatsauswertungen verwendet.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+          <div class="card-header bg-white border-0 py-3 px-4">
+            <h5 class="fw-bold mb-0">Wochentage</h5>
+          </div>
+
+          <div class="card-body p-4">
+            <div class="schedule-list">
+              <article
+                v-for="day in scheduleRows"
+                :key="day.key"
+                class="schedule-row"
+                :class="{ inactive: !day.active }"
+              >
+                <div>
+                  <strong class="d-block">{{ day.label }}</strong>
+                  <span class="small text-muted">
+                    {{ day.active ? "Arbeitstag" : "Frei" }}
+                  </span>
+                </div>
+
+                <div class="schedule-time">
+                  <template v-if="day.active">
+                    <span>{{ day.from }}</span>
+                    <i class="bi bi-arrow-right"></i>
+                    <span>{{ day.to }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="text-muted">Keine Arbeitszeit</span>
+                  </template>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
-import api from "@/api";
+import { computed, onMounted, ref } from "vue";
+import { RouterLink } from "vue-router";
+import api from "../api";
+import { useAuth } from "../composables/useAuth";
 
-const schedules = ref([]);
-const editId = ref(null);
+const auth = useAuth();
+const currentUser = auth.state.user;
 
-const form = ref({
-  name: "",
-  department: "",
-  date: "",
-  shift: "",
+const loading = ref(true);
+const scheduleData = ref({
+  weekly_hours: 40,
+  schedule: {
+    mon: { from: "08:00", to: "16:00", active: true },
+    tue: { from: "08:00", to: "16:00", active: true },
+    wed: { from: "08:00", to: "16:00", active: true },
+    thu: { from: "08:00", to: "16:00", active: true },
+    fri: { from: "08:00", to: "16:00", active: true },
+    sat: { from: "08:00", to: "16:00", active: false },
+    sun: { from: "08:00", to: "16:00", active: false },
+  },
 });
 
-async function load() {
-  const res = await api.get("/schedule");
-  schedules.value = res.data;
-}
+const isAdmin = computed(() => auth.isAdmin.value);
 
-async function save() {
-  if (editId.value) {
-    await api.put(`/schedule/${editId.value}`, form.value);
-  } else {
-    await api.post("/schedule", form.value);
+const dayLabels = {
+  mon: "Montag",
+  tue: "Dienstag",
+  wed: "Mittwoch",
+  thu: "Donnerstag",
+  fri: "Freitag",
+  sat: "Samstag",
+  sun: "Sonntag",
+};
+
+const scheduleRows = computed(() =>
+  Object.entries(dayLabels).map(([key, label]) => ({
+    key,
+    label,
+    ...scheduleData.value.schedule[key],
+  })),
+);
+
+const activeDayCount = computed(
+  () => scheduleRows.value.filter((day) => day.active).length,
+);
+
+const formattedWeeklyHours = computed(() => {
+  const hours = Number(scheduleData.value.weekly_hours || 0);
+  return `${hours.toFixed(hours % 1 === 0 ? 0 : 2)} Std.`;
+});
+
+onMounted(loadSchedule);
+
+async function loadSchedule() {
+  if (!currentUser?.id) {
+    loading.value = false;
+    return;
   }
-  reset();
-  load();
-}
 
-function edit(s) {
-  editId.value = s._id;
-  form.value = {
-    name: s.name,
-    department: s.department,
-    date: s.date.slice(0, 10),
-    shift: s.shift,
-  };
+  try {
+    const response = await api.get(`/schedule/${currentUser.id}`);
+    scheduleData.value = {
+      weekly_hours: response.data.weekly_hours || 40,
+      schedule: response.data.schedule || scheduleData.value.schedule,
+    };
+  } finally {
+    loading.value = false;
+  }
 }
-
-async function remove(id) {
-  if (!confirm("Eintrag löschen?")) return;
-  await api.delete(`/schedule/${id}`);
-  load();
-}
-
-function reset() {
-  editId.value = null;
-  form.value = { name: "", department: "", date: "", shift: "" };
-}
-
-function formatDate(d) {
-  return new Date(d).toLocaleDateString("de-DE");
-}
-
-function badgeClass(shift) {
-  return {
-    "badge bg-success": shift === "Frühschicht",
-    "badge bg-warning text-dark": shift === "Spätschicht",
-    "badge bg-dark": shift === "Nachtschicht",
-  };
-}
-
-onMounted(load);
 </script>
+
+<style scoped>
+.summary-box {
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 1rem;
+}
+
+.summary-label {
+  display: block;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+}
+
+.summary-value {
+  font-size: 1.4rem;
+  color: #0f172a;
+}
+
+.schedule-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.schedule-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.schedule-row.inactive {
+  background: #f8fafc;
+}
+
+.schedule-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-weight: 600;
+}
+</style>

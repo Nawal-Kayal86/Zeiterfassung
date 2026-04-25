@@ -1,197 +1,267 @@
 <template>
-  <div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="container-fluid py-4 px-md-5">
+    <div class="page-header">
       <div>
+        <h2 class="fw-bold mb-1">Berichte</h2>
         <p class="text-muted mb-0">
-          Übersicht über alle wichtigen Statistiken.
+          Zentrale Kennzahlen fuer Team, Zeiten und Abteilungen.
         </p>
       </div>
+
       <button
-        v-if="!loading && !error"
-        @click="exportCSV"
-        class="btn btn-outline-success"
+        v-if="canExport"
+        type="button"
+        class="btn btn-success"
+        @click="exportCsv"
       >
-        📥 als CSV exportieren
+        <i class="bi bi-download me-2"></i>CSV exportieren
       </button>
     </div>
 
-    <div v-if="loading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
+    <div v-if="loading" class="state-card text-center">
+      <div class="spinner-border text-primary mb-3" role="status">
         <span class="visually-hidden">Laden...</span>
       </div>
+      <p class="text-muted mb-0">Berichte werden geladen...</p>
     </div>
 
-    <div v-else-if="error" class="alert alert-danger">{{ error }}</div>
+    <div v-else-if="error" class="alert alert-danger border-0 shadow-sm">
+      <strong>Berichte konnten nicht geladen werden.</strong>
+      <div class="small mt-1">{{ error }}</div>
+    </div>
 
-    <div v-else class="row g-4">
-      <div class="col-md-4">
-        <div class="card shadow-sm text-center p-4">
-          <h5>👥 Anzahl Benutzer</h5>
-          <h2 class="text-primary">{{ stats.userCount ?? "-" }}</h2>
+    <template v-else>
+      <div class="row g-4">
+        <div class="col-md-4" v-for="card in summaryCards" :key="card.label">
+          <section class="metric-card shadow-sm">
+            <span class="metric-icon">
+              <i :class="card.icon"></i>
+            </span>
+            <div>
+              <p class="metric-label">{{ card.label }}</p>
+              <h3 class="metric-value mb-0">{{ card.value }}</h3>
+            </div>
+          </section>
         </div>
       </div>
 
-      <div class="col-md-4">
-        <div class="card shadow-sm text-center p-4">
-          <h5>⏱️ Gesamtstunden (alle)</h5>
-          <h2 class="text-success">{{ formatHours(stats.totalHours) }}</h2>
+      <section class="report-card shadow-sm mt-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+          <div>
+            <h5 class="fw-bold mb-1">Anwesenheit nach Abteilung</h5>
+            <p class="text-muted small mb-0">
+              Sortierbare Uebersicht ueber Mitarbeiterzahl und Stunden.
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div class="col-md-4">
-        <div class="card shadow-sm text-center p-4">
-          <h5>📅 Abteilungen</h5>
-          <h2 class="text-warning">{{ stats.departments ?? "-" }}</h2>
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th class="sortable" @click="sortTable('department')">
+                  Abteilung
+                  <span v-if="sortColumn === 'department'">{{ sortIndicator }}</span>
+                </th>
+                <th class="sortable text-end" @click="sortTable('count')">
+                  Mitarbeiter
+                  <span v-if="sortColumn === 'count'">{{ sortIndicator }}</span>
+                </th>
+                <th class="sortable text-end" @click="sortTable('hours')">
+                  Gesamtstunden
+                  <span v-if="sortColumn === 'hours'">{{ sortIndicator }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="entry in sortedDepartments" :key="entry.department">
+                <td>{{ entry.department }}</td>
+                <td class="text-end">{{ entry.count }}</td>
+                <td class="text-end fw-semibold">{{ formatHours(entry.hours) }}</td>
+              </tr>
+              <tr v-if="sortedDepartments.length === 0">
+                <td colspan="3" class="text-center text-muted py-4">
+                  Noch keine Berichtsdaten vorhanden.
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </div>
-    </div>
-
-    <div v-if="!loading && !error" class="card shadow-sm p-4 mt-5">
-      <h5 class="mb-3">🔍 Detaillierte Anwesenheit nach Abteilung</h5>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th
-              @click="sortTable('department')"
-              style="cursor: pointer"
-              class="user-select-none"
-            >
-              Abteilung
-              <span v-if="sortColumn === 'department'">{{
-                sortDirection === "asc" ? "⬆️" : "⬇️"
-              }}</span>
-            </th>
-            <th
-              @click="sortTable('count')"
-              style="cursor: pointer"
-              class="user-select-none"
-            >
-              Anzahl Mitarbeiter
-              <span v-if="sortColumn === 'count'">{{
-                sortDirection === "asc" ? "⬆️" : "⬇️"
-              }}</span>
-            </th>
-            <th
-              @click="sortTable('hours')"
-              style="cursor: pointer"
-              class="user-select-none"
-            >
-              Gesamtstunden
-              <span v-if="sortColumn === 'hours'">{{
-                sortDirection === "asc" ? "⬆️" : "⬇️"
-              }}</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="d in sortedDepartments" :key="d.department">
-            <td>{{ d.department }}</td>
-            <td>{{ d.count }}</td>
-            <td>{{ formatHours(d.hours) }}</td>
-          </tr>
-          <tr v-if="!stats.byDepartment || stats.byDepartment.length === 0">
-            <td colspan="3" class="text-center text-muted">
-              Keine Daten vorhanden
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      </section>
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import api from "../api";
 
 const stats = ref({
-  userCount: null,
-  totalHours: null,
-  departments: null,
+  userCount: 0,
+  totalHours: 0,
+  departments: 0,
   byDepartment: [],
 });
 const loading = ref(true);
-const error = ref(null);
-const sortColumn = ref("hours"); // Standard: Nach Stunden sortieren
-const sortDirection = ref("desc"); // Standard: Absteigend (Meiste zuerst)
+const error = ref("");
+const sortColumn = ref("hours");
+const sortDirection = ref("desc");
 
-// Formatierung für Stunden (z. B. 12,50 h)
-const formatHours = (val) => {
-  if (val === null || val === undefined) return "-";
-  return (
-    Number(val).toLocaleString("de-DE", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }) + " h"
-  );
-};
+const canExport = computed(() => !loading.value && !error.value && stats.value.byDepartment.length > 0);
 
-// Sortierte Liste berechnen
+const sortIndicator = computed(() => (sortDirection.value === "asc" ? "↑" : "↓"));
+
+const summaryCards = computed(() => [
+  {
+    label: "Benutzer",
+    value: stats.value.userCount ?? "-",
+    icon: "bi bi-people-fill",
+  },
+  {
+    label: "Gesamtstunden",
+    value: formatHours(stats.value.totalHours),
+    icon: "bi bi-clock-history",
+  },
+  {
+    label: "Abteilungen",
+    value: stats.value.departments ?? "-",
+    icon: "bi bi-building-fill",
+  },
+]);
+
 const sortedDepartments = computed(() => {
-  const list = stats.value.byDepartment || [];
-  return [...list].sort((a, b) => {
-    let valA = a[sortColumn.value];
-    let valB = b[sortColumn.value];
+  return [...(stats.value.byDepartment || [])].sort((left, right) => {
+    const leftValue = left[sortColumn.value];
+    const rightValue = right[sortColumn.value];
     const modifier = sortDirection.value === "asc" ? 1 : -1;
 
-    if (typeof valA === "string") return valA.localeCompare(valB) * modifier;
-    return (valA - valB) * modifier;
+    if (typeof leftValue === "string") {
+      return leftValue.localeCompare(rightValue) * modifier;
+    }
+
+    return (leftValue - rightValue) * modifier;
   });
 });
 
-const sortTable = (col) => {
-  if (sortColumn.value === col) {
-    sortDirection.value = sortDirection.value === "asc" ? "desc" : "asc";
-  } else {
-    sortColumn.value = col;
-    sortDirection.value = "desc"; // Bei Spaltenwechsel standardmäßig absteigend
-  }
-};
+onMounted(loadReports);
 
-// 📥 CSV Export Funktion
-const exportCSV = () => {
+async function loadReports() {
+  loading.value = true;
+  error.value = "";
+
+  try {
+    const response = await api.get("/reports");
+    stats.value = response.data;
+  } catch (err) {
+    error.value =
+      err.response?.status === 403
+        ? "Zugriff verweigert. Berichte sind nur fuer Administratoren verfuegbar."
+        : "Bitte pruefe deine Verbindung und versuche es erneut.";
+  } finally {
+    loading.value = false;
+  }
+}
+
+function sortTable(column) {
+  if (sortColumn.value === column) {
+    sortDirection.value = sortDirection.value === "asc" ? "desc" : "asc";
+    return;
+  }
+
+  sortColumn.value = column;
+  sortDirection.value = column === "department" ? "asc" : "desc";
+}
+
+function formatHours(value) {
+  if (value === null || value === undefined) {
+    return "-";
+  }
+
+  return `${Number(value).toLocaleString("de-DE", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} h`;
+}
+
+function exportCsv() {
   const headers = ["Abteilung", "Anzahl Mitarbeiter", "Gesamtstunden"];
-  const rows = stats.value.byDepartment.map((d) => [
-    d.department,
-    d.count,
-    Number(d.hours).toLocaleString("de-DE", {
+  const rows = stats.value.byDepartment.map((entry) => [
+    entry.department,
+    entry.count,
+    Number(entry.hours).toLocaleString("de-DE", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }),
   ]);
 
-  const csvContent = [headers.join(";"), ...rows.map((r) => r.join(";"))].join(
-    "\n",
-  );
-  const blob = new Blob(["\uFEFF" + csvContent], {
+  const csvContent = [headers.join(";"), ...rows.map((row) => row.join(";"))].join("\n");
+  const blob = new Blob([`\uFEFF${csvContent}`], {
     type: "text/csv;charset=utf-8;",
-  }); // \uFEFF für Excel-Kompatibilität
+  });
+
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = `Bericht_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `Berichte_${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
-};
-
-onMounted(async () => {
-  try {
-    const res = await api.get("/reports");
-    stats.value = res.data;
-  } catch (err) {
-    console.error("Fehler beim Laden der Berichte:", err.message);
-    error.value =
-      "Die Berichte konnten nicht geladen werden. Bitte prüfe deine Verbindung.";
-  } finally {
-    loading.value = false;
-  }
-});
+  URL.revokeObjectURL(link.href);
+}
 </script>
 
 <style scoped>
-.table {
-  font-size: 0.95rem;
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.card h2 {
-  font-weight: bold;
+.state-card,
+.report-card,
+.metric-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #fff;
+}
+
+.state-card,
+.report-card {
+  padding: 1.5rem;
+}
+
+.metric-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.4rem;
+}
+
+.metric-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.9rem;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 1.25rem;
+}
+
+.metric-label {
+  margin-bottom: 0.2rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.metric-value {
+  color: #0f172a;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
 }
 </style>

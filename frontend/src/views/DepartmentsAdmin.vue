@@ -1,50 +1,48 @@
 <template>
   <div class="container mt-5">
-    <!-- Neue Abteilung hinzufügen -->
     <div class="card p-3 mb-4">
       <div class="row g-3 align-items-end">
         <div class="col-md-6">
           <label class="form-label">Neue Abteilung:</label>
           <input
+            v-model="newDeptName"
             type="text"
             class="form-control"
-            v-model="newDeptName"
             placeholder="Name der Abteilung"
           />
         </div>
         <div class="col-md-2">
           <button class="btn btn-success w-100" @click="addDepartment">
-            Hinzufügen
+            Hinzufuegen
           </button>
         </div>
       </div>
 
-      <!-- 🔔 Meldung -->
       <div v-if="message.text" :class="['alert', message.type, 'mt-3']">
         {{ message.text }}
       </div>
     </div>
 
-    <!-- Tabelle -->
     <table class="table table-striped table-responsive">
       <thead>
         <tr>
-          <th>ID</th>
+          <th>Nr.</th>
           <th>Name</th>
           <th>Aktionen</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="dept in departments" :key="dept.id">
-          <td>{{ dept.id }}</td>
+        <tr v-for="(dept, index) in departments" :key="dept.id">
+          <td>{{ index + 1 }}</td>
           <td>
             <input
               v-if="editId === dept.id"
-              type="text"
               v-model="editName"
+              type="text"
               class="form-control"
+              :title="dept.id"
             />
-            <span v-else>{{ dept.name }}</span>
+            <span v-else :title="dept.id">{{ dept.name }}</span>
           </td>
           <td>
             <button
@@ -72,14 +70,13 @@
               class="btn btn-danger btn-sm"
               @click="openDeleteModal(dept)"
             >
-              Löschen
+              Loeschen
             </button>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- 🧨 Bootstrap Modal für Löschbestätigung -->
     <div
       class="modal fade"
       id="deleteModal"
@@ -91,19 +88,16 @@
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-header bg-danger text-white">
-            <h5 class="modal-title" id="deleteModalLabel">
-              Löschen bestätigen
-            </h5>
+            <h5 class="modal-title" id="deleteModalLabel">Loeschen bestaetigen</h5>
             <button
               type="button"
               class="btn-close"
               data-bs-dismiss="modal"
-              aria-label="Schließen"
+              aria-label="Schliessen"
             ></button>
           </div>
           <div class="modal-body">
-            Möchten Sie die Abteilung
-            <strong>{{ selectedDept?.name }}</strong> wirklich löschen?
+            Moechten Sie die Abteilung <strong>{{ selectedDept?.name }}</strong> wirklich loeschen?
           </div>
           <div class="modal-footer">
             <button
@@ -114,7 +108,7 @@
               Abbrechen
             </button>
             <button type="button" class="btn btn-danger" @click="confirmDelete">
-              Ja, löschen
+              Ja, loeschen
             </button>
           </div>
         </div>
@@ -125,7 +119,7 @@
 
 <script>
 import api from "../api";
-import * as bootstrap from "bootstrap"; // Wichtig für das Modal
+import * as bootstrap from "bootstrap";
 
 export default {
   data() {
@@ -137,7 +131,6 @@ export default {
       message: { text: "", type: "" },
       selectedDept: null,
       modalInstance: null,
-      token: localStorage.getItem("token") || "",
     };
   },
   mounted() {
@@ -150,10 +143,10 @@ export default {
     },
     async fetchDepartments() {
       try {
-        const res = await api.get("/departments");
-        this.departments = res.data;
-      } catch (err) {
-        console.error("Fehler beim Laden:", err);
+        const response = await api.get("/departments");
+        this.departments = response.data;
+      } catch (error) {
+        console.error("Fehler beim Laden:", error);
       }
     },
     async addDepartment() {
@@ -162,13 +155,12 @@ export default {
         return;
       }
       try {
-        const res = await api.post("/departments", { name: this.newDeptName });
-
-        this.departments.push(res.data.department);
+        const response = await api.post("/departments", { name: this.newDeptName });
+        this.departments.push(response.data.department);
         this.newDeptName = "";
         this.showMessage("Abteilung erfolgreich angelegt!", "alert-success");
-      } catch (err) {
-        if (err.response?.status === 409) {
+      } catch (error) {
+        if (error.response?.status === 409) {
           this.showMessage("Abteilung existiert bereits!", "alert-warning");
         } else {
           this.showMessage("Fehler beim Anlegen!", "alert-danger");
@@ -189,19 +181,15 @@ export default {
         return;
       }
       try {
-        const res = await api.put(`/departments/${id}`, {
-          name: this.editName,
-        });
-        const index = this.departments.findIndex((d) => d.id === id);
-        this.departments[index] = res.data;
+        const response = await api.put(`/departments/${id}`, { name: this.editName });
+        const index = this.departments.findIndex((department) => department.id === id);
+        this.departments[index] = response.data;
         this.cancelEdit();
         this.showMessage("Abteilung aktualisiert!", "alert-success");
-      } catch (err) {
+      } catch {
         this.showMessage("Fehler beim Bearbeiten!", "alert-danger");
       }
     },
-
-    // 🔥 Modal öffnen
     openDeleteModal(dept) {
       this.selectedDept = dept;
       if (!this.modalInstance) {
@@ -209,17 +197,15 @@ export default {
       }
       this.modalInstance.show();
     },
-
-    // ✅ Löschen bestätigen
     async confirmDelete() {
       try {
         await api.delete(`/departments/${this.selectedDept.id}`);
         this.departments = this.departments.filter(
-          (d) => d.id !== this.selectedDept.id,
+          (department) => department.id !== this.selectedDept.id,
         );
-        this.showMessage("Abteilung gelöscht!", "alert-secondary");
-      } catch (err) {
-        this.showMessage("Fehler beim Löschen!", "alert-danger");
+        this.showMessage("Abteilung geloescht!", "alert-secondary");
+      } catch {
+        this.showMessage("Fehler beim Loeschen!", "alert-danger");
       } finally {
         this.modalInstance.hide();
         this.selectedDept = null;

@@ -35,4 +35,8 @@ const LeaveRequestSchema = new mongoose.Schema({
   },
 });
 
+LeaveRequestSchema.index({ user_id: 1, status: 1, created_at: -1 });
+LeaveRequestSchema.index({ user_id: 1, from: 1, to: 1 });
+LeaveRequestSchema.index({ status: 1, from: 1, to: 1, user_id: 1 });
+
 export default mongoose.model("LeaveRequest", LeaveRequestSchema);

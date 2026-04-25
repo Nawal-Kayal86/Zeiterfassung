@@ -1,40 +1,66 @@
 <template>
-  <div class="container mt-4">
-    <!-- Ladeanzeige -->
-    <div v-if="loading" class="alert alert-info">Logs werden geladen...</div>
-    <div v-if="error" class="alert alert-danger">{{ error }}</div>
+  <div class="container-fluid py-4 px-md-5">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Terminal</h2>
+        <p class="text-muted mb-0">
+          Sicherheits-, Anmelde- und Validierungsprotokolle der Anwendung.
+        </p>
+      </div>
+      <span class="badge rounded-pill text-bg-light border px-3 py-2">
+        {{ logs.length }} Eintraege
+      </span>
+    </div>
 
-    <!-- Tabelle -->
-    <table v-if="logs.length > 0" class="table table-striped table-hover">
-      <thead>
-        <tr>
-          <th>Zeitstempel</th>
-          <th>Level</th>
-          <th>Nachricht</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="log in logs" :key="log.id">
-          <td>{{ formatDateTime(log.created_at) }}</td>
-          <td>
-            <span v-if="log.level === 'info'">✅ Info</span>
-            <span v-else-if="log.level === 'warn'">⚠️ Warnung</span>
-            <span v-else-if="log.level === 'error'">❌ Fehler</span>
-          </td>
-          <td>{{ log.message }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-if="loading" class="panel text-center">
+      <div class="spinner-border text-primary mb-3" role="status">
+        <span class="visually-hidden">Laden...</span>
+      </div>
+      <p class="text-muted mb-0">Protokolle werden geladen...</p>
+    </div>
 
-    <!-- Keine Daten -->
-    <div v-else-if="!loading" class="alert alert-warning">
-      Keine Logs gefunden.
+    <div v-else-if="error" class="alert alert-danger border-0 shadow-sm">
+      {{ error }}
+    </div>
+
+    <div v-else class="panel">
+      <div v-if="logs.length === 0" class="empty-state">
+        <i class="bi bi-journal-text empty-icon"></i>
+        <h5 class="fw-bold mb-2">Noch keine Protokolle vorhanden</h5>
+        <p class="text-muted mb-0">
+          Hier erscheinen unter anderem fehlgeschlagene Anmeldungen, Passwortaenderungen
+          und Validierungshinweise.
+        </p>
+      </div>
+
+      <div v-else class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Zeit</th>
+              <th>Level</th>
+              <th>Meldung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="log in logs" :key="log._id || log.id">
+              <td class="text-nowrap">{{ formatDateTime(log.created_at) }}</td>
+              <td>
+                <span class="badge" :class="badgeClass(log.level)">
+                  {{ levelLabel(log.level) }}
+                </span>
+              </td>
+              <td>{{ log.message }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import api from "../api";
 
 const logs = ref([]);
@@ -42,52 +68,82 @@ const loading = ref(true);
 const error = ref("");
 let intervalId = null;
 
-// Zeitstempel formatieren
-const formatDateTime = (dt) => {
-  if (!dt) return "-";
-  return new Date(dt).toLocaleString("de-DE");
-};
-
-// Logs laden
-const loadLogs = async () => {
-  try {
-    const res = await api.get("/logs");
-    // Neueste zuerst, aber mit created_at statt timestamp
-    logs.value = res.data.sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at),
-    );
-  } catch (err) {
-    error.value =
-      "Fehler beim Laden: " + (err.response?.data?.error || err.message);
-  } finally {
-    loading.value = false;
-  }
-};
-
 onMounted(() => {
   loadLogs();
-  intervalId = setInterval(loadLogs, 5000); // alle 5 Sek. aktualisieren
+  intervalId = window.setInterval(loadLogs, 5000);
 });
 
 onUnmounted(() => {
-  clearInterval(intervalId);
+  window.clearInterval(intervalId);
 });
+
+async function loadLogs() {
+  try {
+    const response = await api.get("/logs");
+    logs.value = [...response.data].sort(
+      (left, right) => new Date(right.created_at) - new Date(left.created_at),
+    );
+    error.value = "";
+  } catch (err) {
+    error.value = `Fehler beim Laden: ${err.response?.data?.error || err.message}`;
+  } finally {
+    loading.value = false;
+  }
+}
+
+function formatDateTime(value) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Date(value).toLocaleString("de-DE");
+}
+
+function normalizeLevel(level) {
+  return String(level || "").toUpperCase();
+}
+
+function levelLabel(level) {
+  const normalized = normalizeLevel(level);
+
+  if (normalized === "ERROR") return "Fehler";
+  if (normalized === "WARN" || normalized === "WARNING") return "Warnung";
+  if (normalized === "INFO") return "Info";
+  return normalized || "-";
+}
+
+function badgeClass(level) {
+  const normalized = normalizeLevel(level);
+
+  if (normalized === "ERROR") return "bg-danger";
+  if (normalized === "WARN" || normalized === "WARNING") return "bg-warning text-dark";
+  if (normalized === "INFO") return "bg-info text-dark";
+  return "bg-secondary";
+}
 </script>
 
 <style scoped>
-h2 {
-  font-weight: bold;
-  color: #0d6efd;
-}
-
-.table {
+.panel {
+  padding: 1.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
   background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
 }
 
-.badge {
-  font-size: 0.9rem;
-  padding: 6px 10px;
+.empty-state {
+  padding: 2rem 1rem;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 2rem;
+  color: #6366f1;
+}
+
+thead th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #64748b;
 }
 </style>

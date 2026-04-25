@@ -17,10 +17,15 @@ import Config from "./views/Config.vue";
 import WorkSchedule from "./views/WorkSchedule.vue";
 import LeaveRequest from "./views/LeaveRequest.vue";
 import LeaveApproval from "./views/LeaveApproval.vue";
+import { getStoredToken, getStoredUser, isStoredTokenExpired, useAuth } from "./composables/useAuth";
 
 const routes = [
   {
     path: "/",
+    redirect: "/login",
+  },
+  {
+    path: "/presentation",
     component: Presentation,
     meta: { title: "Projektpraesentation" },
   },
@@ -104,7 +109,12 @@ const routes = [
       {
         path: "reports",
         component: Reports,
-        meta: { title: "Berichte", icon: "bi-graph-up-arrow" },
+        meta: {
+          requiresAuth: true,
+          requiresAdmin: true,
+          title: "Berichte",
+          icon: "bi-graph-up-arrow",
+        },
       },
       {
         path: "departments",
@@ -146,31 +156,24 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  if (to.path === "/login" && localStorage.getItem("token")) {
+  const { logout } = useAuth();
+  const token = getStoredToken();
+  const user = getStoredUser();
+
+  if (to.path === "/login" && token && !isStoredTokenExpired(token)) {
     return next("/dashboard");
   }
 
   if (to.meta.requiresAuth) {
-    const token = localStorage.getItem("token");
-    const user = JSON.parse(localStorage.getItem("user") || "null");
-
     if (!token) return next("/login");
 
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      if (payload.exp && payload.exp < Date.now() / 1000) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        return next("/login");
-      }
-
-      if (to.meta.requiresAdmin && user?.role !== "admin") {
-        return next("/dashboard");
-      }
-    } catch (error) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+    if (isStoredTokenExpired(token)) {
+      logout();
       return next("/login");
+    }
+
+    if (to.meta.requiresAdmin && user?.role !== "admin") {
+      return next("/dashboard");
     }
   }
 

@@ -47,4 +47,9 @@ const WorkSessionSchema = new mongoose.Schema({
   bfRest: { type: String, default: null },
 });
 
+WorkSessionSchema.index({ user_id: 1, end_time: 1 });
+WorkSessionSchema.index({ user_id: 1, date_today: 1 });
+WorkSessionSchema.index({ user_id: 1, start_time: -1 });
+WorkSessionSchema.index({ end_time: 1, user_id: 1, start_time: 1 });
+
 export default mongoose.model("WorkSession", WorkSessionSchema);

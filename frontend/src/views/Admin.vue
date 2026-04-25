@@ -1,197 +1,177 @@
 <template>
   <div class="container py-5">
-    <!-- Zurück zum Dashboard -->
-    <router-link class="btn btn-outline-secondary mb-4" to="/"
-      >⬅️ Zurück zum Dashboard</router-link
-    >
-
-    <!-- Filter -->
-    <div class="mb-4">
-      <input
-        v-model="filter"
-        type="text"
-        class="form-control shadow-sm"
-        placeholder="🔎 Filtern nach Name oder Datum"
-      />
-    </div>
-
-    <!-- User-Tabelle -->
-    <div class="card shadow-sm mb-5">
-      <div class="card-header bg-dark text-white fw-bold">
-        Benutzerübersicht
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+      <div>
+        <h2 class="fw-bold mb-1">Admin Uebersicht</h2>
+        <p class="text-muted mb-0">
+          Benutzer filtern und Arbeitszeiten manuell nachtragen.
+        </p>
       </div>
-      <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>Name</th>
-              <th>Rolle</th>
-              <th>Erster Tag</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="u in filteredUsers" :key="u.id">
-              <td>{{ u.name }}</td>
-              <td>
-                <span
-                  class="badge"
-                  :class="u.role === 'admin' ? 'bg-danger' : 'bg-secondary'"
-                >
-                  {{ u.role === 'admin' ? 'Administrator' : 'Mitarbeiter' }}
-                </span>
-              </td>
-              <td>{{ formatDate(u.start_date) || "-" }}</td>
-              <td>
-                <span
-                  :class="['badge', u.is_active ? 'bg-success' : 'bg-danger']"
-                >
-                  {{ u.is_active ? "Aktiv" : "Inaktiv" }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="search-shell">
+        <i class="bi bi-search"></i>
+        <input
+          v-model="filterText"
+          type="text"
+          class="form-control border-0"
+          placeholder="Nach Name oder Datum filtern"
+        />
       </div>
     </div>
 
-    <!-- Neues Formular: Arbeitszeit manuell eintragen -->
-    <div class="card shadow-sm">
-      <div class="card-header bg-primary text-white fw-bold">
-        ⏱ Arbeitszeit manuell eintragen
+    <UserOverviewTable :users="filteredUsers" :loading="isLoadingUsers" @userUpdated="loadUsers" />
+
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <ManualSessionForm
+          v-model="manualSession"
+          title="Arbeitszeit manuell eintragen"
+          submit-label="Eintrag speichern"
+          :saving="isSavingManualSession"
+          @submit="saveManualTime"
+        />
       </div>
-      <div class="card-body">
-        <form @submit.prevent="saveManualTime">
-          <div class="row mb-3">
-            <div class="col-md-4">
-              <label for="date" class="form-label">📅 Datum</label>
-              <input
-                id="date"
-                v-model="date"
-                type="date"
-                class="form-control shadow-sm"
-                required
-              />
-            </div>
-            <div class="col-md-4">
-              <label for="start" class="form-label">🟢 Startzeit</label>
-              <input
-                id="start"
-                v-model="start"
-                type="time"
-                class="form-control shadow-sm"
-                required
-              />
-            </div>
-            <div class="col-md-4">
-              <label for="end" class="form-label">🔴 Endzeit</label>
-              <input
-                id="end"
-                v-model="end"
-                type="time"
-                class="form-control shadow-sm"
-                required
-              />
+
+      <div class="col-lg-7">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">Hinweise</h5>
+            <div class="hint-list">
+              <article class="hint-card">
+                <strong>Saubere Eingabe</strong>
+                <p class="mb-0">
+                  Verwende Datum, Start und Ende fuer vollstaendige Nachtraege.
+                </p>
+              </article>
+              <article class="hint-card">
+                <strong>Wiederverwendbare Logik</strong>
+                <p class="mb-0">
+                  Das Formular nutzt dieselbe Payload-Logik wie das Dashboard und bleibt dadurch konsistent.
+                </p>
+              </article>
+              <article class="hint-card">
+                <strong>Schneller filtern</strong>
+                <p class="mb-0">
+                  Die Benutzerliste reagiert sofort auf Namen oder formatierte Startdaten.
+                </p>
+              </article>
             </div>
           </div>
-          <button type="submit" class="btn btn-success px-4 shadow">
-            💾 Speichern
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { toast } from "vue3-toastify";
 import api from "../api";
-import router from "../router";
+import UserOverviewTable from "../components/admin/UserOverviewTable.vue";
+import ManualSessionForm from "../components/workSessions/ManualSessionForm.vue";
+import { useAuth } from "../composables/useAuth";
+import { formatDate } from "../utils/time";
+import {
+  buildManualSessionPayload,
+  createEmptyManualSession,
+} from "../utils/workSessionForm";
 
-export default {
-  data() {
-    return {
-      users: [],
-      filter: "",
-      // für das Formular
-      date: "",
-      start: "",
-      end: "",
-    };
-  },
-  async created() {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || user.role !== "admin") {
-      router.push("/");
-      return;
-    }
-    const res = await api.get("/users");
-    this.users = res.data;
-  },
-  computed: {
-    filteredUsers() {
-      const f = this.filter.toLowerCase();
-      return this.users.filter(
-        (u) =>
-          u.name.toLowerCase().includes(f) ||
-          (u.start_date && this.formatDate(u.start_date).includes(f)),
-      );
-    },
-  },
-  methods: {
-    formatDate(iso) {
-      if (!iso) return "-";
-      const d = new Date(iso);
-      return d.toLocaleDateString();
-    },
-    formatTime(iso) {
-      if (!iso) return "-";
-      const d = new Date(iso);
-      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    },
-    async saveManualTime() {
-      try {
-        let formattedDate = this.date;
-        if (this.date.includes(".")) {
-          const [day, month, year] = this.date.split(".");
-          formattedDate = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-        }
+const router = useRouter();
+const auth = useAuth();
 
-        const payload = {
-          date: formattedDate,
-          start: this.start,
-          end: this.end,
-        };
+const users = ref([]);
+const filterText = ref("");
+const manualSession = ref(createEmptyManualSession());
+const isLoadingUsers = ref(false);
+const isSavingManualSession = ref(false);
 
-        await api.post("/workSessions/manual-time", payload);
-        alert("Gespeichert! ✅");
+const filteredUsers = computed(() => {
+  const searchTerm = filterText.value.trim().toLowerCase();
 
-        // Felder zurücksetzen
-        this.date = "";
-        this.start = "";
-        this.end = "";
+  if (!searchTerm) {
+    return users.value;
+  }
 
-        // Liste aktualisieren
-        const res = await api.get("/users");
-        this.users = res.data;
-      } catch (err) {
-        console.error(err);
-        alert("Fehler beim Speichern! ❌");
-      }
-    },
-  },
-};
+  return users.value.filter((userEntry) => {
+    const matchesName = userEntry.name.toLowerCase().includes(searchTerm);
+    const matchesStartDate =
+      userEntry.start_date &&
+      formatDate(userEntry.start_date).toLowerCase().includes(searchTerm);
+
+    return matchesName || matchesStartDate;
+  });
+});
+
+onMounted(async () => {
+  if (!auth.isAdmin.value) {
+    router.push("/dashboard");
+    return;
+  }
+
+  await loadUsers();
+});
+
+async function loadUsers() {
+  isLoadingUsers.value = true;
+
+  try {
+    const response = await api.get("/users");
+    users.value = response.data;
+  } finally {
+    isLoadingUsers.value = false;
+  }
+}
+
+async function saveManualTime() {
+  isSavingManualSession.value = true;
+
+  try {
+    const payload = buildManualSessionPayload(manualSession.value);
+    await api.post("/workSessions/manual-time", payload);
+    toast.success("Arbeitszeit wurde gespeichert.");
+    manualSession.value = createEmptyManualSession();
+    await loadUsers();
+  } finally {
+    isSavingManualSession.value = false;
+  }
+}
 </script>
 
 <style scoped>
-h2 {
-  letter-spacing: 1px;
+.search-shell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(100%, 22rem);
+  padding: 0.4rem 0.85rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
 }
 
-.table-hover tbody tr:hover {
-  background-color: #f1f1f1;
+.search-shell i {
+  color: #64748b;
 }
 
-.card {
-  border-radius: 12px;
+.search-shell input:focus {
+  box-shadow: none;
+}
+
+.hint-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.hint-card {
+  padding: 1rem 1.1rem;
+  border-radius: 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.hint-card strong {
+  display: block;
+  margin-bottom: 0.35rem;
 }
 </style>

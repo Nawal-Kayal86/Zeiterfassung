@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: zeiterfassung
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && cd ../frontend && npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /readyz
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_ISSUER
+        value: zeiterfassung-api
+      - key: JWT_AUDIENCE
+        value: zeiterfassung-client
+      - key: JWT_EXPIRES_IN
+        value: 12h
+      - key: LOG_LEVEL
+        value: info
+      - key: SHUTDOWN_TIMEOUT_MS
+        value: 25000
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: SENTRY_ENVIRONMENT
+        value: production
+      - key: SENTRY_RELEASE
+        sync: false

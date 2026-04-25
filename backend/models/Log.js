@@ -8,4 +8,6 @@ const LogSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 
+LogSchema.index({ user_id: 1, violation_date: 1, created_at: -1 });
+
 export default mongoose.model("Log", LogSchema);

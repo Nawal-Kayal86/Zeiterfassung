@@ -126,6 +126,19 @@ function formatHoursToTime(decimal) {
   return `${sign}${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
+function parseDurationToHours(value) {
+  if (typeof value !== "string" || !value.includes(":")) {
+    return 0;
+  }
+
+  const [hours, minutes] = value.split(":").map(Number);
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) {
+    return 0;
+  }
+
+  return hours + minutes / 60;
+}
+
 export default {
   data() {
     const today = new Date();
@@ -186,7 +199,7 @@ export default {
         // Check Holiday
         const isHoliday = this.holidays.some((h) => h.date === key);
         // Check Ferien
-        const isFerien = this.ferien.some((f) => key >= f.from && key <= f.to);
+        const isFerien = this.ferien.some((f) => key >= f.start && key <= f.end);
 
         // Check Leave
         const isLeave = this.leaves.some((l) => {
@@ -264,7 +277,9 @@ export default {
           const eTime = item.end ? toViennaTime(item.end) : sTime;
           grouped[dateKey].intervals.push(`${sTime}-${eTime}`);
           // Add hours
-          grouped[dateKey].totalHours += calcHours(item.start, item.end);
+          const pauseHours = parseDurationToHours(item.pause || "0:00");
+          const netHours = Math.max(calcHours(item.start, item.end) - pauseHours, 0);
+          grouped[dateKey].totalHours += netHours;
         }
       });
 

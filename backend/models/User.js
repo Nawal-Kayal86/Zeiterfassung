@@ -13,7 +13,7 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
 
   // Hierarchische Rechteverwaltung (Role-Based Access Control)
-  role: { type: String, enum: ["user", "admin", "employee"], default: "user" },
+  role: { type: String, enum: ["user", "admin", "employee", "department_leader"], default: "user" },
 
   // Zuordnung zu einer Unternehmensabteilung (z.B. "Sales")
   department: { type: String, default: null },
@@ -53,5 +53,8 @@ const UserSchema = new mongoose.Schema({
   // Metadaten zur Datensatzerstellung
   created_at: { type: Date, default: Date.now },
 });
+
+UserSchema.index({ is_active: 1, start_date: 1 });
+UserSchema.index({ department: 1 });
 
 export default mongoose.model("User", UserSchema);

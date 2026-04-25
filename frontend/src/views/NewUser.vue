@@ -52,6 +52,8 @@
                 >
                   <option value="" disabled>Rolle wählen</option>
                   <option value="user">Mitarbeiter (User)</option>
+                  <option value="employee">Mitarbeiter (alt)</option>
+                  <option value="department_leader">Abteilungsleiter</option>
                   <option value="admin">Administrator</option>
                 </select>
               </div>
@@ -129,13 +131,13 @@
               <div class="col-md-12">
                 <label
                   class="form-label fw-semibold text-muted small text-uppercase"
-                  >Urlaubsanspruch (automatisch berechnet)</label
+                  >Urlaubsanspruch (Tage/Jahr)</label
                 >
                 <input
-                  :value="calculatedVacationDays"
-                  type="text"
+                  v-model.number="user.vacation_days_per_year"
+                  type="number"
                   class="form-control custom-input"
-                  readonly
+                  placeholder="z.B. 25"
                 />
               </div>
 

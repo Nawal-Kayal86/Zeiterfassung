@@ -3,131 +3,202 @@ import WorkSession from "../models/WorkSession.js";
 import Log from "../models/Log.js";
 import LeaveRequest from "../models/LeaveRequest.js";
 import { Holiday } from "../models/Holiday.js";
+import { calculateNetWorkMinutes } from "../utils/businessTime.js";
+
+const VALIDATION_MESSAGES = [
+  "Keine Buchung",
+  "Kernzeit verletzt (weniger als 5 Stunden)",
+  "Arbeitszeit > 10 Stunden (Vorgesetzter gemeldet)",
+];
+
+function toDateString(value) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function buildHolidayLookup(holidayDocs) {
+  const holidaysByYear = new Map();
+
+  for (const doc of holidayDocs) {
+    holidaysByYear.set(doc.year, {
+      holidays: new Set((doc.holidays || []).map((holiday) => holiday.date)),
+      ferien: doc.ferien || [],
+    });
+  }
+
+  return holidaysByYear;
+}
+
+function buildLeaveLookup(leaves) {
+  const leaveMap = new Map();
+
+  for (const leave of leaves) {
+    const key = String(leave.user_id);
+    if (!leaveMap.has(key)) {
+      leaveMap.set(key, []);
+    }
+
+    leaveMap.get(key).push({
+      from: new Date(leave.from),
+      to: new Date(leave.to),
+    });
+  }
+
+  return leaveMap;
+}
+
+function buildSessionLookup(sessions) {
+  const sessionMap = new Map();
+
+  for (const session of sessions) {
+    sessionMap.set(`${session.user_id}:${session.date_today}`, session);
+  }
+
+  return sessionMap;
+}
+
+function isCoveredByLeave(leaveEntries, currentDate) {
+  if (!leaveEntries?.length) return false;
+  return leaveEntries.some((leave) => leave.from <= currentDate && leave.to >= currentDate);
+}
 
 export async function checkDailyLogs() {
-  console.log("Starte tägliche Validierung...");
-  const users = await User.find({ is_active: true });
+  console.log("Starte taegliche Validierung...");
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Gestern als Referenz für "Fehlende Buchung" (heute ist noch offen)
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  for (const user of users) {
-    if (!user.start_date) continue;
+  const users = await User.find({
+    is_active: true,
+    start_date: { $ne: null },
+  })
+    .select("_id start_date")
+    .lean();
 
+  if (users.length === 0) {
+    return;
+  }
+
+  const minStartDate = new Date(
+    Math.min(...users.map((user) => new Date(user.start_date).setHours(0, 0, 0, 0))),
+  );
+  const years = Array.from(
+    new Set(
+      Array.from(
+        { length: yesterday.getFullYear() - minStartDate.getFullYear() + 1 },
+        (_, index) => minStartDate.getFullYear() + index,
+      ),
+    ),
+  );
+  const userIds = users.map((user) => user._id);
+  const minStartDateString = toDateString(minStartDate);
+  const yesterdayString = toDateString(yesterday);
+
+  const [holidayDocs, approvedLeaves, sessions] = await Promise.all([
+    Holiday.find({ year: { $in: years } }).lean(),
+    LeaveRequest.find({
+      status: "approved",
+      user_id: { $in: userIds },
+      from: { $lte: yesterday },
+      to: { $gte: minStartDate },
+    })
+      .select("user_id from to")
+      .lean(),
+    WorkSession.find({
+      user_id: { $in: userIds },
+      date_today: { $gte: minStartDateString, $lte: yesterdayString },
+    })
+      .select("user_id date_today start_time end_time pause")
+      .lean(),
+  ]);
+
+  const holidaysByYear = buildHolidayLookup(holidayDocs);
+  const leavesByUser = buildLeaveLookup(approvedLeaves);
+  const sessionsByUserAndDate = buildSessionLookup(sessions);
+  const desiredLogs = [];
+
+  for (const user of users) {
     const startDate = new Date(user.start_date);
     startDate.setHours(0, 0, 0, 0);
 
-    // Iteriere von Startdatum bis gestern
-    let current = new Date(startDate);
-    while (current <= yesterday) {
-      // Lokales Datum im Format YYYY-MM-DD erzeugen
-      const year = current.getFullYear();
-      const month = String(current.getMonth() + 1).padStart(2, "0");
-      const day = String(current.getDate()).padStart(2, "0");
-      const dateStr = `${year}-${month}-${day}`;
-
-      const dayOfWeek = current.getDay(); // 0 = So, 6 = Sa
-
-      // 1. Wochenende überspringen
+    for (let current = new Date(startDate); current <= yesterday; current.setDate(current.getDate() + 1)) {
+      const dayOfWeek = current.getDay();
       if (dayOfWeek === 0 || dayOfWeek === 6) {
-        current.setDate(current.getDate() + 1);
         continue;
       }
 
-      // 2. Feiertage/Ferien prüfen
-      const holidayData = await Holiday.findOne({
-        year: current.getFullYear(),
-      });
-      const isHoliday = holidayData?.holidays.some((h) => h.date === dateStr);
-      const isFerien = holidayData?.ferien.some(
-        (f) => dateStr >= f.start && dateStr <= f.end,
+      const dateStr = toDateString(current);
+      const holidayEntry = holidaysByYear.get(current.getFullYear());
+      const isHoliday = holidayEntry?.holidays.has(dateStr);
+      const isFerien = holidayEntry?.ferien.some(
+        (ferien) => dateStr >= ferien.start && dateStr <= ferien.end,
       );
 
       if (isHoliday || isFerien) {
-        current.setDate(current.getDate() + 1);
         continue;
       }
 
-      // 3. Urlaub/Krankheit prüfen
-      const leave = await LeaveRequest.findOne({
-        user_id: user._id,
-        status: "approved",
-        from: { $lte: current },
-        to: { $gte: current },
-      });
-
-      if (leave) {
-        current.setDate(current.getDate() + 1);
+      const leaveEntries = leavesByUser.get(String(user._id));
+      if (isCoveredByLeave(leaveEntries, current)) {
         continue;
       }
 
-      // 4. Arbeitssitzung prüfen
-      const session = await WorkSession.findOne({
-        user_id: user._id,
-        date_today: dateStr,
-      });
-
-      // Bereinige alte Logs für diesen Tag, bevor wir neu prüfen
-      await Log.deleteMany({ user_id: user._id, violation_date: dateStr });
-
+      const session = sessionsByUserAndDate.get(`${user._id}:${dateStr}`);
       if (!session) {
-        // KEINE BUCHUNG
-        await createLogIfNotExists(user._id, dateStr, "Keine Buchung", "ERROR");
-      } else {
-        // Kernzeit oder Max-Zeit prüfen
-        if (session.start_time && session.end_time) {
-          const hours =
-            (new Date(session.end_time) - new Date(session.start_time)) /
-            (1000 * 60 * 60);
-
-          // Pause abziehen
-          let pauseHours = 0;
-          if (session.pause && session.pause.includes(":")) {
-            const [h, m] = session.pause.split(":").map(Number);
-            pauseHours = h + m / 60;
-          }
-          const netHours = hours - pauseHours;
-
-          if (netHours < 5) {
-            await createLogIfNotExists(
-              user._id,
-              dateStr,
-              "Kernzeit verletzt (weniger als 5 Stunden)",
-              "WARN",
-            );
-          } else if (netHours > 10) {
-            await createLogIfNotExists(
-              user._id,
-              dateStr,
-              "Arbeitszeit > 10 Stunden (Vorgesetzter gemeldet)",
-              "WARN",
-            );
-          }
-        }
+        desiredLogs.push({
+          user_id: user._id,
+          violation_date: dateStr,
+          message: "Keine Buchung",
+          level: "ERROR",
+          created_at: new Date(),
+        });
+        continue;
       }
 
-      current.setDate(current.getDate() + 1);
+      if (!session.start_time || !session.end_time) {
+        continue;
+      }
+
+      const netHours = calculateNetWorkMinutes(
+        session.start_time,
+        session.end_time,
+        session.pause,
+      ) / 60;
+
+      if (netHours < 5) {
+        desiredLogs.push({
+          user_id: user._id,
+          violation_date: dateStr,
+          message: "Kernzeit verletzt (weniger als 5 Stunden)",
+          level: "WARN",
+          created_at: new Date(),
+        });
+      } else if (netHours > 10) {
+        desiredLogs.push({
+          user_id: user._id,
+          violation_date: dateStr,
+          message: "Arbeitszeit > 10 Stunden (Vorgesetzter gemeldet)",
+          level: "WARN",
+          created_at: new Date(),
+        });
+      }
     }
   }
-  console.log("Validierung abgeschlossen.");
-}
 
-async function createLogIfNotExists(userId, date, message, level) {
-  const exists = await Log.findOne({
-    user_id: userId,
-    violation_date: date,
-    message,
+  await Log.deleteMany({
+    user_id: { $in: userIds },
+    violation_date: { $gte: minStartDateString, $lte: yesterdayString },
+    message: { $in: VALIDATION_MESSAGES },
   });
-  if (!exists) {
-    await Log.create({
-      user_id: userId,
-      violation_date: date,
-      message,
-      level,
-      created_at: new Date(),
-    });
+
+  if (desiredLogs.length > 0) {
+    await Log.insertMany(desiredLogs, { ordered: false });
   }
+
+  console.log("Validierung abgeschlossen.");
 }
