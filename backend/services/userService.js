@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { ensureObjectId, normalizeTrimmedString } from "../utils/request.js";
 import { createHttpError } from "../utils/http.js";

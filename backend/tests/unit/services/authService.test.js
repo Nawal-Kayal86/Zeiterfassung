@@ -5,7 +5,7 @@ const signMock = jest.fn();
 const findOneMock = jest.fn();
 const findByIdMock = jest.fn();
 
-jest.unstable_mockModule("bcrypt", () => ({
+jest.unstable_mockModule("bcryptjs", () => ({
   default: {
     compare: compareMock,
   },

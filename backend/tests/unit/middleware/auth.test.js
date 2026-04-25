@@ -40,7 +40,7 @@ describe("auth middleware", () => {
     await auth()(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({ error: "Kein Token vorhanden" });
+    expect(res.json).toHaveBeenCalledWith({ error: "Kein Token vorhanden", status: 401 });
     expect(next).not.toHaveBeenCalled();
   });
 
@@ -55,7 +55,7 @@ describe("auth middleware", () => {
     await auth()(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({ error: "Ungueltiges Token" });
+    expect(res.json).toHaveBeenCalledWith({ error: "Ungueltiges Token", status: 401 });
   });
 
   it("setzt req.user und ruft next bei gueltigem Token", async () => {
@@ -104,7 +104,7 @@ describe("auth middleware", () => {
     await auth("admin")(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith({ error: "Zugriff verweigert" });
+    expect(res.json).toHaveBeenCalledWith({ error: "Zugriff verweigert", status: 403 });
     expect(next).not.toHaveBeenCalled();
   });
 
@@ -125,6 +125,6 @@ describe("auth middleware", () => {
     await auth()(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({ error: "Benutzerkonto ist nicht mehr gueltig" });
+    expect(res.json).toHaveBeenCalledWith({ error: "Benutzerkonto ist nicht mehr gueltig", status: 401 });
   });
 });
