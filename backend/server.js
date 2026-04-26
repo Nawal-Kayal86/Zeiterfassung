@@ -76,9 +76,26 @@ app.get("/api/debug-check", (req, res) => {
 // Login
 app.post("/api/login", async (req, res) => {
   try {
-    const { name, password } = req.body;
+    const { name, email, identifier, password } = req.body;
 
-    const user = await User.findOne({ name });
+    if (!password || password.length < 1) {
+      return res.status(400).json({ error: "Passwort ist erforderlich" });
+    }
+
+    const normalizedIdentifier = [identifier, email, name].find((value) => typeof value === "string");
+    if (!normalizedIdentifier) {
+      return res.status(400).json({ error: "Benutzername oder E-Mail ist erforderlich" });
+    }
+
+    const normalizedEmail = normalizedIdentifier.toLowerCase();
+
+    const user = await User.findOne({
+      $or: [
+        { name: normalizedIdentifier },
+        { email: normalizedEmail },
+      ],
+    });
+
     if (!user) return res.status(401).json({ error: "Login fehlgeschlagen" });
 
     if (user.is_active === false) {
@@ -86,12 +103,17 @@ app.post("/api/login", async (req, res) => {
     }
 
     const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) return res.status(401).json({ error: "Falsches Passwort" });
+    if (!valid) return res.status(401).json({ error: "Login fehlgeschlagen" });
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" },
+      {
+        expiresIn: process.env.JWT_EXPIRES_IN || "12h",
+        algorithm: "HS256",
+        issuer: process.env.JWT_ISSUER || "zeiterfassung-api",
+        audience: process.env.JWT_AUDIENCE || "zeiterfassung-client",
+      },
     );
 
     res.json({
@@ -99,6 +121,7 @@ app.post("/api/login", async (req, res) => {
       user: {
         id: user._id,
         name: user.name,
+        email: user.email || "",
         role: user.role,
         department: user.department || "",
         start_date: user.start_date || null,
