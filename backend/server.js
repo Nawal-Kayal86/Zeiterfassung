@@ -1,37 +1,178 @@
+import express from "express";
+import bodyParser from "body-parser";
+import cors from "cors";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { initDB } from "./db.js";
-import { createApp } from "./app.js";
-import { logger } from "./utils/logger.js";
-import { flushMonitoring, initMonitoring } from "./utils/monitoring.js";
+import { auth } from "./middleware/auth.js";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Routers
+import usersRouter from "./routes/users.js";
+import departmentsRouter from "./routes/departments.js";
+import workSessionsRouter from "./routes/workSessions.js";
+import calendarRoutes from "./routes/calendar.js";
+import scheduleRoutes from "./routes/schedules.js";
+import workflowRoutes from "./routes/workflows.js";
+import leaveRequestsRoutes from "./routes/leaveRequests.js";
+import logsRouter from "./routes/logs.js";
+
+// Models
+import User from "./models/User.js";
+import WorkSession from "./models/WorkSession.js";
+import Department from "./models/Department.js";
 
 dotenv.config();
-await initMonitoring();
 await initDB();
 
-const app = createApp();
-const PORT = process.env.PORT || 10000;
-const server = app.listen(PORT, "0.0.0.0", () => {
-  logger.info("Backend gestartet", {
-    port: PORT,
-    nodeVersion: process.version,
-    renderService: process.env.RENDER_SERVICE_NAME || null,
-  });
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+
+// ================= API ROUTES =================
+app.use("/api/users", usersRouter);
+app.use("/api/departments", departmentsRouter);
+app.use("/api/workSessions", workSessionsRouter);
+app.use("/api/calendar", calendarRoutes);
+app.use("/api/schedule", scheduleRoutes);
+app.use("/api/workflow", workflowRoutes);
+app.use("/api/leave-requests", leaveRequestsRoutes);
+app.use("/api/logs", logsRouter);
+
+import fs from "fs";
+
+// ================= DEBUG ROUTE =================
+app.get("/api/debug-check", (req, res) => {
+  const info = {
+    __dirname,
+    cwd: process.cwd(),
+    filesInCurrent: fs.readdirSync(__dirname),
+    filesInParent: [],
+    distFolderExists: false,
+    distContent: [],
+  };
+
+  try {
+    const parent = path.join(__dirname, "..");
+    info.filesInParent = fs.readdirSync(parent);
+
+    const distPath = path.join(__dirname, "../frontend/dist");
+    if (fs.existsSync(distPath)) {
+      info.distFolderExists = true;
+      info.distContent = fs.readdirSync(distPath);
+    }
+  } catch (e) {
+    info.error = e.message;
+  }
+
+  res.json(info);
 });
 
-for (const signal of ["SIGTERM", "SIGINT"]) {
-  process.on(signal, async () => {
-    logger.info("Shutdown-Signal empfangen", { signal });
+// ================= HEALTH CHECK =================
 
-    server.close(async () => {
-      await flushMonitoring();
-      logger.info("HTTP-Server sauber beendet");
-      process.exit(0);
+// Login
+app.post("/api/login", async (req, res) => {
+  try {
+    const { name, password } = req.body;
+
+    const user = await User.findOne({ name });
+    if (!user) return res.status(401).json({ error: "Login fehlgeschlagen" });
+
+    if (user.is_active === false) {
+      return res.status(403).json({ error: "Benutzerkonto ist inaktiv" });
+    }
+
+    const valid = await bcrypt.compare(password, user.password_hash);
+    if (!valid) return res.status(401).json({ error: "Falsches Passwort" });
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" },
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        role: user.role,
+        department: user.department || "",
+        start_date: user.start_date || null,
+        end_date: user.end_date || null,
+        is_active: user.is_active,
+        vacation_days_per_year: user.vacation_days_per_year || 25,
+      },
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Serverfehler" });
+  }
+});
 
-    setTimeout(async () => {
-      logger.warn("Shutdown-Timeout erreicht, Prozess wird beendet");
-      await flushMonitoring();
-      process.exit(1);
-    }, Number(process.env.SHUTDOWN_TIMEOUT_MS || 25000)).unref();
-  });
-}
+// Current user
+app.get("/api/me", auth(), async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password_hash");
+    if (!user) return res.status(404).json({ error: "Benutzer nicht gefunden" });
+    res.json({
+        user: {
+            id: user._id,
+            name: user.name,
+            role: user.role,
+            department: user.department,
+            start_date: user.start_date || null,
+            end_date: user.end_date || null,
+            vacation_days_per_year: user.vacation_days_per_year || 25,
+            is_active: user.is_active
+        }
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Serverfehler" });
+  }
+});
+
+// ================= ADMIN =================
+
+app.get("/api/admin/users", auth("admin"), async (req, res) => {
+  try {
+    const list = await User.aggregate([
+      {
+        $lookup: {
+          from: "worksessions",
+          localField: "_id",
+          foreignField: "user_id",
+          as: "sessions",
+        },
+      },
+      { $sort: { name: 1 } },
+    ]);
+    res.json(list);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Datenbankfehler" });
+  }
+});
+
+// Attendance
+app.get("/api/attendance", auth(), async (req, res) => {
+  try {
+    const query = req.user.role === "admin" ? {} : { user_id: req.user.id };
+    const sessions = await WorkSession.find(query)
+      .populate("user_id", "name role department")
+      .sort({ start_time: -1 });
+
+    res.json(sessions);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Fehler beim Laden der Anwesenheitsdaten" });
+  }
+});
+
+// ================= START SERVER =================
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Server läuft auf Port ${PORT}`);
+});
