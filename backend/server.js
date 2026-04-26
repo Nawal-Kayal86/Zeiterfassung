@@ -25,6 +25,7 @@ import WorkSession from "./models/WorkSession.js";
 import Department from "./models/Department.js";
 
 dotenv.config();
+
 await initDB();
 
 const app = express();
@@ -171,8 +172,81 @@ app.get("/api/attendance", auth(), async (req, res) => {
   }
 });
 
+// Reports
+app.get("/api/reports", auth("admin"), async (req, res) => {
+  try {
+    const userCount = await User.countDocuments();
+    const departmentsCount = await Department.countDocuments();
+
+    const usersPerDept = await User.aggregate([
+      { $group: { _id: "$department", count: { $sum: 1 } } },
+    ]);
+
+    const hoursPerDept = await WorkSession.aggregate([
+      { $match: { end_time: { $ne: null } } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      { $unwind: "$user" },
+      {
+        $group: {
+          _id: "$user.department",
+          totalMillis: { $sum: { $subtract: ["$end_time", "$start_time"] } },
+        },
+      },
+    ]);
+
+    const reportMap = {};
+    let totalHoursAll = 0;
+
+    usersPerDept.forEach((u) => {
+      const dept = u._id || "Ohne Abteilung";
+      reportMap[dept] = { department: dept, count: u.count, hours: 0 };
+    });
+
+    hoursPerDept.forEach((h) => {
+      const dept = h._id || "Ohne Abteilung";
+      const hours = h.totalMillis / (1000 * 60 * 60);
+
+      if (!reportMap[dept])
+        reportMap[dept] = { department: dept, count: 0, hours: 0 };
+      reportMap[dept].hours = hours;
+      totalHoursAll += hours;
+    });
+
+    res.json({
+      userCount,
+      departments: departmentsCount,
+      totalHours: totalHoursAll,
+      byDepartment: Object.values(reportMap),
+    });
+  } catch (err) {
+    console.error("Report Error:", err);
+    res.status(500).json({ error: "Fehler beim Erstellen des Berichts" });
+  }
+});
+
+// ================= FRONTEND =================
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Statische Dateien aus dem Frontend-Build-Ordner servieren
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+// Fallback für alle anderen Routen (SPA Support) -> index.html
+app.get("*", (req, res) => {
+  // Ignoriere API-Pfade, falls sie nicht gefunden wurden (404)
+  if (req.path.startsWith("/api")) {
+    return res.status(404).json({ error: "API-Endpunkt nicht gefunden" });
+  }
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+});
+
 // ================= START SERVER =================
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log(`Server läuft auf Port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Backend läuft auf Port ${PORT}`));
