@@ -37,11 +37,10 @@
                   Digitales Zeiterfassungssystem
                 </h1>
                 <p class="project-subtitle">
-                  Eine integrierte Webanwendung zur Verwaltung von Arbeitszeiten, Dienstplänen, Urlaubsanträgen und Berichten.
+                  Eine Webanwendung für Arbeitszeiten, Dienstpläne, Urlaubsanträge und Berichte.
                 </p>
-                <div class="project-authors">
-                  <span class="author-tag">Entwickelt von</span>
-                  <span class="author-tag">Nawal Kayal & Ahmad Alalan</span>
+                <div class="project-authors ">
+                  <span class="author-tag text-vuegreen">Entwickelt von : Nawal Kayal & Ahmad Alalan</span>
                 </div>
               </div>
               <div class="title-visual">
@@ -54,19 +53,18 @@
           <div v-else-if="currentSlide === 1" class="layout-content">
             <h2 class="slide-title">Problem und Ziel</h2>
             <p class="description">
-              <strong>Warum dieses Projekt?</strong><br />
-              Das System ersetzt verstreute Listen und manuelle Schritte durch eine zentrale, nachvollziehbare Plattform.
+              <strong>Das Projekt bringt Arbeitszeiten, Urlaube und Dienstpläne in einer zentralen Plattform zusammen statt in vielen einzelnen Listen.</strong>
             </p>
             <ul>
-              <li><strong>01 Zeit sparen</strong><br />Arbeitszeiten werden direkt digital erfasst und können sofort ausgewertet werden.</li>
-              <li><strong>02 Transparenz schaffen</strong><br />Mitarbeitende und Admins sehen Status, Anträge und Berichte an einem Ort.</li>
-              <li><strong>03 Prozesse ordnen</strong><br />Urlaub, Dienstplan, Kalender und Reports folgen klaren Workflows.</li>
+              <li><strong>01 Zeit sparen</strong><br />Arbeitszeiten werden digital erfasst und schnell ausgewertet.</li>
+              <li><strong>02 Übersicht schaffen</strong><br />Alle wichtigen Infos und Anträge sind an einem Ort sichtbar.</li>
+              <li><strong>03 Prozesse vereinfachen</strong><br />Urlaub, Dienstpläne und Berichte laufen klar und strukturiert ab.</li>
             </ul>
           </div>
 
-          <!-- FOLIE 3: Ausgangslage & Defizite -->
+          <!-- FOLIE 3: Was die Benutzer live sehen -->
           <div v-else-if="currentSlide === 2" class="layout-content">
-            <h2 class="slide-title">Ausgangslage &amp; Defizite</h2>
+            <h2 class="slide-title">Was die Benutzer live sehen</h2>
             <div class="two-column">
               <div class="iframe-box">
                 <div class="iframe-header">
@@ -77,22 +75,11 @@
               </div>
               <div>
                 <p class="description">
-                  Vor der Enterprise-Lösung gab es mehrere kritische Schwachstellen in der täglichen Arbeitszeiterfassung:
+                  Das Frontend ist eine Vue Single Page Application mit klarer Navigation und rollenabhängigen Ansichten.
                 </p>
                 <ul>
-                  <li>Zettelwirtschaft und fehleranfällige, analoge Excel-Listen</li>
-                  <li>Keine automatisierte Prüfung gesetzlicher Ruhe- &amp; Pausenzeiten</li>
-                  <li>Medienbrüche und Intransparenz bei Urlaubsanträgen</li>
-                  <li>Fehlender, revisionssicherer Audit-Trail für IT-Systemprüfungen</li>
-                </ul>
-                <p class="description">
-                  Unsere Enterprise-Lösung behebt diese Defizite mit einer modernen, vollständig integrierten Plattform:
-                </p>
-                <ul>
-                  <li>Zentrales Web-Portal mit Echtzeit-Stempelterminal</li>
-                  <li>Schnittstelle für physisches NFC-Hardwarestempeln</li>
-                  <li>Integrierte Urlaubs-, Dienst- &amp; Abwesenheitsverwaltung</li>
-                  <li>Lückenlose, manipulationsgeschützte MongoDB-Aktivitätsprotokolle</li>
+                  <li><strong>Vue 3 Komponenten</strong><br />Dashboard, Terminal, Kalender, Reports und Adminbereiche sind als getrennte Views aufgebaut.</li>
+                  <li><strong>Schnelle Bedienung</strong><br />Zeiten starten, Pausen verwalten, Urlaub beantragen und Berichte ansehen.</li>
                 </ul>
               </div>
             </div>
@@ -1144,7 +1131,9 @@ onUnmounted(() => {
   padding: 10px 24px;
   border-radius: 30px;
   font-weight: 500;
-  font-size: 16px;
+  font-size: 25px;
+  font-family: 'Poppins', sans-serif;
+  
 }
 
 /* Sektions-Folie */
