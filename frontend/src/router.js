@@ -1,6 +1,15 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Layout from "./components/Layout.vue";
+
 import Presentation from "./views/Presentation.vue";
+import Presentation01 from "./views/Presentation01.vue";
+import Presentation02 from "./views/Presentation02.vue";
+import Presentation03 from "./views/Presentation03.vue";
+import Presentation04 from "./views/Presentation04.vue";
+import Presentation05 from "./views/Presentation05.vue";
+import Presentation06 from "./views/Presentation06.vue";
+
+
 import Dashboard from "./views/Dashboard.vue";
 import Login from "./views/Login.vue";
 import Admin from "./views/Admin.vue";
@@ -27,6 +36,36 @@ const routes = [
   {
     path: "/presentation",
     component: Presentation,
+    meta: { title: "Projektpraesentation" },
+  },
+    {
+    path: "/presentation01",
+    component: Presentation01,
+    meta: { title: "Projektpraesentation" },
+  },
+    {
+    path: "/presentation02",
+    component: Presentation02,
+    meta: { title: "Projektpraesentation" },
+  },
+    {
+    path: "/presentation03",
+    component: Presentation03,
+    meta: { title: "Projektpraesentation" },
+  },
+    {
+    path: "/presentation04",
+    component: Presentation04,
+    meta: { title: "Projektpraesentation" },
+  },
+    {
+    path: "/presentation05",
+    component: Presentation05,
+    meta: { title: "Projektpraesentation" },
+  },
+    {
+    path: "/presentation06",
+    component: Presentation06,
     meta: { title: "Projektpraesentation" },
   },
   {

@@ -1,5 +1,4 @@
 ﻿<template>
-  
   <div class="presentation-wrapper">
     <!-- Fortschrittsbalken am oberen Bildschirmrand -->
     <div class="progress-bar-container">
@@ -8,98 +7,40 @@
         :style="{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }"
       ></div>
     </div>
-          <header class="deck-toolbar">
-            <div>
-              <span class="deck-label">Digitales Zeiterfassungssystem</span>
-            </div>
-            <div class="deck-actions">
-              <button type="button" class="icon-button" title="Vorherige Folie" @click="prevSlide" :disabled="currentSlide === 0">
-                &lt;
-              </button>
-              <span class="slide-counter">{{ currentSlide + 1 }} / {{ slides.length }}</span>
-              <button type="button" class="icon-button" title="Nächste Folie" @click="nextSlide" :disabled="currentSlide === slides.length - 1">
-                &gt;
-              </button>
-            </div>
-          </header>
+
     <!-- Haupt-Präsentationsbereich im standardisierten 16:9-Format -->
     <div class="slide-viewport">
       <transition name="slide" mode="out-in">
-        <div :key="currentSlide" class="slide-canvas" ref="slideCanvas">
-
+        <div :key="currentSlide" class="slide-canvas">
+          
+          <!-- Header -->
+          <div class="slide-header">
+            <span class="category-badge">
+              Kapitel {{ Math.ceil((currentSlide + 1) / 5) }} / Sektion {{ currentSlide + 1 }}
+            </span>
+            <div class="system-tag">
+              <i class="fa-solid fa-server"></i> Backend Architecture Spec
+            </div>
+          </div>
 
           <!-- FOLIE 1: Titelblatt -->
           <div v-if="currentSlide === 0" class="layout-title">
-            <span class="title-sub">MEVN Stack Projekt</span>
-            <div class="title-split">
-              <div class="title-copy">
-                <h1 class="main-heading">
-                  Digitales Zeiterfassungssystem
-                </h1>
-                <p class="project-subtitle">
-                  Eine integrierte Webanwendung zur Verwaltung von Arbeitszeiten, Dienstplänen, Urlaubsanträgen und Berichten.
-                </p>
-                <div class="project-authors">
-                  <span class="author-tag">Entwickelt von</span>
-                  <span class="author-tag">Nawal Kayal & Ahmad Alalan</span>
-                </div>
-              </div>
-              <div class="title-visual">
-                <img :src="liveImage" alt="Live Architekturmodell" class="title-image" />
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 2: Problem und Ziel -->
-          <div v-else-if="currentSlide === 1" class="layout-content">
-            <h2 class="slide-title">Problem und Ziel</h2>
-            <p class="description">
-              <strong>Warum dieses Projekt?</strong><br />
-              Das System ersetzt verstreute Listen und manuelle Schritte durch eine zentrale, nachvollziehbare Plattform.
+            <span class="title-sub">DIPLOMARBEIT &bull; DEEP DIVE</span>
+            <h1 class="main-heading">
+              Backend-Architektur &amp;<br />
+              <span class="text-gradient">Datenbankschemas</span>
+            </h1>
+            <p class="project-subtitle">
+              Analyse der RESTful API-Strukturen, Mongoose-ODM-Modelle, IT-Sicherheitsprotokolle und hierarchischen Freigabeprozesse.
             </p>
-            <ul>
-              <li><strong>01 Zeit sparen</strong><br />Arbeitszeiten werden direkt digital erfasst und können sofort ausgewertet werden.</li>
-              <li><strong>02 Transparenz schaffen</strong><br />Mitarbeitende und Admins sehen Status, Anträge und Berichte an einem Ort.</li>
-              <li><strong>03 Prozesse ordnen</strong><br />Urlaub, Dienstplan, Kalender und Reports folgen klaren Workflows.</li>
-            </ul>
-          </div>
-
-          <!-- FOLIE 3: Ausgangslage & Defizite -->
-          <div v-else-if="currentSlide === 2" class="layout-content">
-            <h2 class="slide-title">Ausgangslage &amp; Defizite</h2>
-            <div class="two-column">
-              <div class="iframe-box">
-                <div class="iframe-header">
-                  <span>Live Vorschau</span>
-                  <a :href="demoFrameUrl" target="_blank" rel="noreferrer">Öffnen</a>
-                </div>
-                <iframe class="slide-iframe" :src="demoFrameUrl" title="Zeiterfassung Live Demo"></iframe>
-              </div>
-              <div>
-                <p class="description">
-                  Vor der Enterprise-Lösung gab es mehrere kritische Schwachstellen in der täglichen Arbeitszeiterfassung:
-                </p>
-                <ul>
-                  <li>Zettelwirtschaft und fehleranfällige, analoge Excel-Listen</li>
-                  <li>Keine automatisierte Prüfung gesetzlicher Ruhe- &amp; Pausenzeiten</li>
-                  <li>Medienbrüche und Intransparenz bei Urlaubsanträgen</li>
-                  <li>Fehlender, revisionssicherer Audit-Trail für IT-Systemprüfungen</li>
-                </ul>
-                <p class="description">
-                  Unsere Enterprise-Lösung behebt diese Defizite mit einer modernen, vollständig integrierten Plattform:
-                </p>
-                <ul>
-                  <li>Zentrales Web-Portal mit Echtzeit-Stempelterminal</li>
-                  <li>Schnittstelle für physisches NFC-Hardwarestempeln</li>
-                  <li>Integrierte Urlaubs-, Dienst- &amp; Abwesenheitsverwaltung</li>
-                  <li>Lückenlose, manipulationsgeschützte MongoDB-Aktivitätsprotokolle</li>
-                </ul>
-              </div>
+            <div class="project-authors">
+              <span class="author-tag"><i class="fa-solid fa-code text-vuegreen"></i> Express.js App</span>
+              <span class="author-tag"><i class="fa-solid fa-database text-indigo"></i> MongoDB Atlas</span>
             </div>
           </div>
 
-          <!-- FOLIE 4: Übersicht der Datenfluss-Architektur -->
-          <div v-else-if="currentSlide === 3" class="layout-content">
+          <!-- FOLIE 2: Strukturübersicht -->
+          <div v-else-if="currentSlide === 1" class="layout-content">
             <h2 class="slide-title">Übersicht der Datenfluss-Architektur</h2>
             <div class="two-column">
               <div>
@@ -125,95 +66,8 @@
             </div>
           </div>
 
-          <!-- FOLIE 4: Frontend Überblick -->
-          <div v-else-if="currentSlide === 4" class="layout-content">
-            <h2 class="slide-title">Frontend: SPA & Benutzererlebnis</h2>
-            <div class="two-column">
-              <div>
-                <p class="description">
-                  Das Frontend wurde als responsive Vue 3 Single Page Application aufgebaut und verwendet Vite für schnelles Laden:
-                </p>
-                <ul>
-                  <li><strong>Vue 3:</strong> Komponentensystem, Composition API und reaktive Stores für saubere UI-Logik.</li>
-                  <li><strong>Vite:</strong> Blitzschneller Entwicklungsserver, HMR und modulare Bundling-Optimierung.</li>
-                  <li><strong>UX-Fokus:</strong> Dynamische Zeitstempelung, interaktive Berichte, Rollenbasierte Navigation und klare Statusanzeigen.</li>
-                </ul>
-              </div>
-              <div class="code-box">
-                <pre><code><span class="code-keyword">import</span> { createApp } <span class="code-keyword">from</span> <span class="code-string">'vue'</span>
-<span class="code-keyword">import</span> App <span class="code-keyword">from</span> <span class="code-string">'./App.vue'</span>
-<span class="code-keyword">import</span> router <span class="code-keyword">from</span> <span class="code-string">'./router.js'</span></code></pre>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 4: Projektstruktur (src/) -->
-          <div v-else-if="currentSlide === 5" class="layout-content">
-            <h2 class="slide-title">Projektstruktur (src/)</h2>
-            <p class="description">
-              Saubere Organisation des Quellcodes schafft Klarheit und erlaubt parallele Feature-Entwicklung.
-            </p>
-            <div class="two-column">
-              <div>
-                <h3>Ein Blick in das Quellcode-Verzeichnis:</h3>
-                <ul>
-                  <li><strong>components/:</strong> UI Widgets</li>
-                  <li><strong>views/:</strong> Ganze Seitenlayouts</li>
-                  <li><strong>composables/:</strong> Geteilte Logik (Hooks)</li>
-                  <li><strong>api/:</strong> Axios Instanz &amp; Aufrufe</li>
-                </ul>
-              </div>
-              <div class="code-box">
-                <pre><code>src/
-├─ components/
-├─ views/
-├─ composables/
-└─ api/
-</code></pre>
-              </div>
-            </div>
-            <p class="description">
-              Diese Trennung ermöglicht parallele Feature-Entwicklung ohne Merge-Konflikte.
-            </p>
-          </div>
-
-          <!-- FOLIE 5: Routing & Security -->
-          <div v-else-if="currentSlide === 6" class="layout-content">
-            <h2 class="slide-title">Routing &amp; Security</h2>
-            <p class="description">
-              Vue Router Guards schützen sensible Bereiche vor unbefugtem Zugriff direkt im Frontend.
-            </p>
-            <div class="table-view">
-              <div class="table-row table-header">
-                <span>Route</span>
-                <span>Komponente (.vue)</span>
-                <span>Berechtigung</span>
-              </div>
-              <div class="table-row">
-                <span>/login</span>
-                <span>LoginView.vue</span>
-                <span>Öffentlich</span>
-              </div>
-              <div class="table-row">
-                <span>/dashboard</span>
-                <span>DashboardView.vue</span>
-                <span>Mitarbeiter (User)</span>
-              </div>
-              <div class="table-row">
-                <span>/calendar</span>
-                <span>CalendarView.vue</span>
-                <span>Mitarbeiter (User)</span>
-              </div>
-              <div class="table-row">
-                <span>/admin</span>
-                <span>AdminOverview.vue</span>
-                <span>Administrator</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 4: User & WorkSchedule Modell -->
-          <div v-else-if="currentSlide === 7" class="layout-content">
+          <!-- FOLIE 3: User & WorkSchedule Modell -->
+          <div v-else-if="currentSlide === 2" class="layout-content">
             <h2 class="slide-title">Modellierung: User.js &amp; WorkSchedule.js</h2>
             <div class="two-column">
               <div>
@@ -243,7 +97,7 @@
           </div>
 
           <!-- FOLIE 4: WorkSession Modell -->
-          <div v-else-if="currentSlide === 8" class="layout-content">
+          <div v-else-if="currentSlide === 3" class="layout-content">
             <h2 class="slide-title">Modellierung: WorkSession.js</h2>
             <div class="two-column">
               <div class="code-box">
@@ -271,7 +125,7 @@
           </div>
 
           <!-- FOLIE 5: LeaveRequest Modell -->
-          <div v-else-if="currentSlide === 9" class="layout-content">
+          <div v-else-if="currentSlide === 4" class="layout-content">
             <h2 class="slide-title">Modellierung: LeaveRequest.js</h2>
             <div class="two-column">
               <div>
@@ -301,7 +155,7 @@
           </div>
 
           <!-- FOLIE 6: Department & Holiday Modelle -->
-          <div v-else-if="currentSlide === 10" class="layout-content">
+          <div v-else-if="currentSlide === 5" class="layout-content">
             <h2 class="slide-title">Modellierung: Department.js &amp; Holiday.js</h2>
             <div class="two-column">
               <div class="code-box">
@@ -330,7 +184,7 @@ HolidaySchema.index(
           </div>
 
           <!-- FOLIE 7: Schedule & Workflow Modelle -->
-          <div v-else-if="currentSlide === 11" class="layout-content">
+          <div v-else-if="currentSlide === 6" class="layout-content">
             <h2 class="slide-title">Modellierung: Schedule.js &amp; Workflow.js</h2>
             <div class="two-column">
               <div>
@@ -357,7 +211,7 @@ HolidaySchema.index(
           </div>
 
           <!-- FOLIE 8: Revisionssicheres Logging -->
-          <div v-else-if="currentSlide === 12" class="layout-content">
+          <div v-else-if="currentSlide === 7" class="layout-content">
             <h2 class="slide-title">Revisionssicheres Logging: Log.js</h2>
             <div class="two-column">
               <div class="code-box">
@@ -385,7 +239,7 @@ LogSchema.index({
           </div>
 
           <!-- FOLIE 9: Sektion 2 Trenner -->
-          <div v-else-if="currentSlide === 13" class="layout-section">
+          <div v-else-if="currentSlide === 8" class="layout-section">
             <span class="section-badge">SEKTION 02</span>
             <h1 class="section-title">
               Middleware &amp;<br />
@@ -397,7 +251,7 @@ LogSchema.index({
           </div>
 
           <!-- FOLIE 10: Authentifizierung (auth.js) -->
-          <div v-else-if="currentSlide === 14" class="layout-content">
+          <div v-else-if="currentSlide === 9" class="layout-content">
             <h2 class="slide-title">Authentifizierung &amp; RBAC (auth.js)</h2>
             <div class="two-column">
               <div>
@@ -425,7 +279,7 @@ LogSchema.index({
           </div>
 
           <!-- FOLIE 11: NoSQL Injection Schutz -->
-          <div v-else-if="currentSlide === 15" class="layout-content">
+          <div v-else-if="currentSlide === 10" class="layout-content">
             <h2 class="slide-title">Security: Payload Sanitization</h2>
             <div class="two-column">
               <div class="code-box">
@@ -453,7 +307,7 @@ LogSchema.index({
           </div>
 
           <!-- FOLIE 12: Rate Limiter (security.js) -->
-          <div v-else-if="currentSlide === 16" class="layout-content">
+          <div v-else-if="currentSlide === 11" class="layout-content">
             <h2 class="slide-title">Security: Brute-Force Rate Limiting</h2>
             <div class="two-column">
               <div>
@@ -478,7 +332,7 @@ LogSchema.index({
           </div>
 
           <!-- FOLIE 13: Sektion 3 Trenner -->
-          <div v-else-if="currentSlide === 17" class="layout-section">
+          <div v-else-if="currentSlide === 12" class="layout-section">
             <span class="section-badge">SEKTION 03</span>
             <h1 class="section-title">
               Controllers &amp;<br />
@@ -490,7 +344,7 @@ LogSchema.index({
           </div>
 
           <!-- FOLIE 14: leaveRequestController.js -->
-          <div v-else-if="currentSlide === 18" class="layout-content">
+          <div v-else-if="currentSlide === 13" class="layout-content">
             <h2 class="slide-title">Controller: leaveRequestController.js</h2>
             <div class="two-column">
               <div class="code-box">
@@ -516,7 +370,7 @@ LogSchema.index({
           </div>
 
           <!-- FOLIE 15: REST Konventionen -->
-          <div v-else-if="currentSlide === 19" class="layout-content">
+          <div v-else-if="currentSlide === 14" class="layout-content">
             <h2 class="slide-title">REST-Konventionen &amp; Services</h2>
             <div class="two-column">
               <div>
@@ -542,7 +396,7 @@ LogSchema.index({
           </div>
 
           <!-- FOLIE 16: Sektion 4 Trenner -->
-          <div v-else-if="currentSlide === 20" class="layout-section">
+          <div v-else-if="currentSlide === 15" class="layout-section">
             <span class="section-badge">SEKTION 04</span>
             <h1 class="section-title">
               DevOps &amp;<br />
@@ -554,7 +408,7 @@ LogSchema.index({
           </div>
 
           <!-- FOLIE 17: GitHub Git-Workflow -->
-          <div  v-else-if="currentSlide === 21" class="layout-content">
+          <div  v-else-if="currentSlide === 16" class="layout-content">
             <h2 class="slide-title">GitHub-Repository &amp; Git-Workflow</h2>
             <div class="two-column">
               <div>
@@ -582,7 +436,7 @@ LogSchema.index({
           </div>
 
           <!-- FOLIE 18: Render.com CD -->
-          <div v-else-if="currentSlide === 22" class="layout-content">
+          <div v-else-if="currentSlide === 17" class="layout-content">
             <h2 class="slide-title">CI/CD-Pipeline auf Render.com</h2>
             <div class="two-column">
               <div class="code-box">
@@ -609,7 +463,7 @@ LogSchema.index({
           </div>
 
           <!-- FOLIE 19: MongoDB Atlas Cloud-Infrastruktur -->
-          <div v-else-if="currentSlide === 23" class="layout-content">
+          <div v-else-if="currentSlide === 18" class="layout-content">
             <h2 class="slide-title">Cloud-Infrastruktur: MongoDB Atlas</h2>
             <div class="three-column">
               <div class="info-card border-success text-center">
@@ -631,7 +485,7 @@ LogSchema.index({
           </div>
 
           <!-- FOLIE 20: Outro & Fragen -->
-          <div v-else-if="currentSlide === 24" class="layout-outro">
+          <div v-else-if="currentSlide === 19" class="layout-outro">
             <h1 class="outro-heading">
               Vielen Dank für Ihre <span class="text-gradient">Aufmerksamkeit!</span>
             </h1>
@@ -645,44 +499,45 @@ LogSchema.index({
             </div>
           </div>
 
-
+          <!-- Foliennummerierung unten rechts -->
+          <div class="slide-counter">
+            {{ currentSlide + 1 }} / {{ totalSlides }}
+          </div>
         </div>
-        
       </transition>
     </div>
-              <!-- Foliennummerierung unten rechts -->
-          <nav class="slide-nav" aria-label="Folien">
-            <button
-              v-for="(slide, index) in slides"
-              :key="slide.id"
-              type="button"
-              :class="{ active: index === currentSlide }"
-              :title="slide.category"
-              @click="goToSlide(index)"
-            >
-              {{ String(index + 1).padStart(2, '0') }}
-            </button>
-          </nav>
+
+    <!-- Navigationssteuerungen unten -->
+    <div class="presentation-controls">
+      <button 
+        @click="prevSlide" 
+        :disabled="currentSlide === 0" 
+        class="ctrl-btn"
+        title="Zurück (Pfeiltaste Links)"
+      >
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <button 
+        @click="nextSlide" 
+        :disabled="currentSlide === totalSlides - 1" 
+        class="ctrl-btn"
+        title="Weiter (Pfeiltaste Rechts / Leertaste)"
+      >
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
-import liveImage from '../assets/image01.png';
+import { ref, onMounted, onUnmounted } from 'vue';
 
 // Index der aktuellen Folie (0-basiert)
 const currentSlide = ref(0);
-const totalSlides = 25;
-const slideCanvas = ref(null);
-const demoFrameUrl = `${window.location.origin}/login`;
+const totalSlides = 20;
 
 const slides = [
   { id: 'slide1', category: 'Diplomarbeit • HTL IT 2026', layout: 'title' },
-  { id: 'slide2-problem', category: 'Problem und Ziel', layout: 'problem' },
-  { id: 'slide2-defizite', category: 'Ausgangslage & Defizite', layout: 'defizite' },
-  { id: 'slide3-frontend', category: 'Frontend', layout: 'frontend' },
-  { id: 'slide3-structure', category: 'Projektstruktur', layout: 'structure' },
-  { id: 'slide3-routing', category: 'Routing & Security', layout: 'routing' },
   { id: 'slide2', category: '01 / Datenfluss-Architektur', layout: 'agenda' },
   { id: 'slide3', category: '01 / Datenbankschemas', layout: 'models-user' },
   { id: 'slide4', category: '01 / Datenbankschemas', layout: 'models-work' },
@@ -715,16 +570,6 @@ const prevSlide = () => {
     currentSlide.value--;
   }
 };
-
-const goToSlide = (index) => {
-  currentSlide.value = index;
-};
-
-watch(currentSlide, () => {
-  if (slideCanvas.value) {
-    slideCanvas.value.scrollTop = 0;
-  }
-});
 
 // Tastaturnavigation für den Vortrag
 const handleKeyDown = (e) => {
@@ -766,33 +611,18 @@ onUnmounted(() => {
   --color-warning: #f59e0b;
   --border-glow: rgba(99, 102, 241, 0.15);
 
-  background: radial-gradient(circle at top left, rgba(99, 102, 241, 0.16), transparent 26%),
-    radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.12), transparent 24%),
-    radial-gradient(circle at 40% 80%, rgba(16, 185, 129, 0.08), transparent 20%),
-    linear-gradient(135deg, #070b14 0%, #0c1222 52%, #090d16 100%);
-  height: 100vh;
-  width: 100vw;
+  background-color: var(--bg-primary);
+  min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
+  align-items: center;
+  justify-content: center;
   position: relative;
   font-family: 'Inter', sans-serif;
   color: var(--text-main);
-  padding: 0;
+  padding: 40px 0;
   box-sizing: border-box;
-  overflow: hidden;
-}
-
-.presentation-wrapper::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 20% 15%, rgba(99, 102, 241, 0.16), transparent 18%),
-    radial-gradient(circle at 80% 30%, rgba(16, 185, 129, 0.12), transparent 16%),
-    radial-gradient(circle at 50% 80%, rgba(59, 130, 246, 0.1), transparent 24%);
-  pointer-events: none;
-  opacity: 0.85;
 }
 
 /* Fortschrittsanzeige */
@@ -814,49 +644,33 @@ onUnmounted(() => {
 
 /* Viewport im klassischen 16:9-Format */
 .slide-viewport {
-  width: 100%;
-  height: 100%;
-  background: rgba(15, 23, 42, 0.92);
+  width: 1280px;
+  height: 720px;
+  background-color: var(--bg-secondary);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 28px;
+  border-radius: 20px;
   position: relative;
   overflow: hidden;
-  box-shadow:
-    0 40px 120px rgba(15, 23, 42, 0.45),
-    0 0 90px rgba(99, 102, 241, 0.18),
-    inset 0 0 1.5px rgba(255, 255, 255, 0.12);
-}
-
-.slide-viewport::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.16), transparent 25%),
-    radial-gradient(circle at 75% 25%, rgba(16, 185, 129, 0.12), transparent 18%);
-  pointer-events: none;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
 }
 
 .slide-canvas {
   width: 100%;
   height: 100%;
-  padding: 10px 30px;
+  padding: 50px 70px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: space-between;
   position: relative;
-  overflow-y: auto;
-  overflow-x: hidden;
 }
 
 /* Header */
-.slide-header,
-.deck-toolbar {
+.slide-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* margin-bottom: 25px; */
-  padding-top: 10px;
+  margin-bottom: 25px;
 }
 
 .category-badge {
@@ -874,121 +688,6 @@ onUnmounted(() => {
   font-size: 12px;
   font-family: 'JetBrains Mono', monospace;
   color: var(--text-muted);
-}
-
-.deck-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.icon-button {
-  width: 1.8rem;
-  height: 1.8rem;
-  border: none;
-  border-radius: 50%;
-  color: #0f172a;
-  background: #ffffff;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.icon-button:hover:not(:disabled) {
-  transform: scale(1.08);
-}
-
-.icon-button:disabled {
-  opacity: 0.25;
-  cursor: not-allowed;
-}
-
-.slide-counter {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #ffffff;
-  min-width: 3rem;
-  text-align: center;
-}
-
-/* --- Untere Navigation (Dots) --- */
-.slide-nav {
-  display: flex;
-  justify-content: center;
-  gap: 0.4rem;
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.slide-nav button {
-  width: 2.1rem;
-  height: 2.1rem;
-  border-radius: 50%;
-  border: none;
-}
-
-.iframe-box {
-  margin-top: 1.25rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-}
-
-.iframe-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-main);
-}
-
-.slide-iframe {
-  width: 100%;
-  height: 100%;
-  min-height: 420px;
-
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
-  background: #0b1220;
-
-  flex: 1;
-  
-}
-
-.slide-nav button {
-  width: 2.55rem;
-  height: 2.55rem;
-  border-radius: 50%;
-  color: rgba(255, 255, 255, 0.78);
-  background: rgba(255, 255, 255, 0.16);
-  transition: all 0.3s ease;
-}
-
-.slide-nav button:hover {
-  background: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
-}
-
-.slide-nav button.active {
-  background: #ffffff;
-  color: #0f172a;
-  transform: scale(1.05);
 }
 
 /* Folientitel */
@@ -1072,51 +771,6 @@ onUnmounted(() => {
   margin: 0 0 20px 0;
   letter-spacing: -1.5px;
   color: #fff;
-}
-
-.title-split {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 48px;
-  width: 100%;
-  max-width: 1080px;
-  margin-bottom: 24px;
-}
-
-.title-copy {
-  flex: 1 1 52%;
-  text-align: left;
-}
-
-.title-visual {
-  flex: 0 0 420px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-
-.title-visual::before {
-  content: '';
-  position: absolute;
-  inset: -12px;
-  border-radius: 32px;
-  background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.25), transparent 45%),
-    radial-gradient(circle at 70% 20%, rgba(16, 185, 129, 0.16), transparent 35%);
-  filter: blur(18px);
-  opacity: 0.9;
-  z-index: 0;
-}
-
-.title-image {
-  width: 100%;
-  max-width: 420px;
-  border-radius: 24px;
-  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  position: relative;
-  z-index: 1;
 }
 
 .text-gradient {
@@ -1348,6 +1002,53 @@ onUnmounted(() => {
 .outro-meta {
   font-size: 14px;
   color: var(--text-muted);
+}
+
+/* Folienzähler */
+.slide-counter {
+  position: absolute;
+  bottom: 35px;
+  right: 50px;
+  font-size: 14px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  background-color: rgba(255, 255, 255, 0.03);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* Navigationssteuerungen (Buttons) */
+.presentation-controls {
+  margin-top: 25px;
+  display: flex;
+  gap: 15px;
+}
+
+.ctrl-btn {
+  background-color: var(--bg-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ctrl-btn:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.ctrl-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 /* Vue Transitions */

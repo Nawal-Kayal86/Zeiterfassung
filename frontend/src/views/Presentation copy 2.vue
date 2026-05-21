@@ -26,7 +26,11 @@
     <div class="slide-viewport">
       <transition name="slide" mode="out-in">
         <div :key="currentSlide" class="slide-canvas" ref="slideCanvas">
+          
 
+          <div class="system-tag">
+            <i class="fa-solid fa-server"></i> SPA (Vue 3) & REST API (Node/Express)
+          </div>
 
           <!-- FOLIE 1: Titelblatt -->
           <div v-if="currentSlide === 0" class="layout-title">
@@ -68,13 +72,6 @@
           <div v-else-if="currentSlide === 2" class="layout-content">
             <h2 class="slide-title">Ausgangslage &amp; Defizite</h2>
             <div class="two-column">
-              <div class="iframe-box">
-                <div class="iframe-header">
-                  <span>Live Vorschau</span>
-                  <a :href="demoFrameUrl" target="_blank" rel="noreferrer">Öffnen</a>
-                </div>
-                <iframe class="slide-iframe" :src="demoFrameUrl" title="Zeiterfassung Live Demo"></iframe>
-              </div>
               <div>
                 <p class="description">
                   Vor der Enterprise-Lösung gab es mehrere kritische Schwachstellen in der täglichen Arbeitszeiterfassung:
@@ -85,6 +82,8 @@
                   <li>Medienbrüche und Intransparenz bei Urlaubsanträgen</li>
                   <li>Fehlender, revisionssicherer Audit-Trail für IT-Systemprüfungen</li>
                 </ul>
+              </div>
+              <div>
                 <p class="description">
                   Unsere Enterprise-Lösung behebt diese Defizite mit einer modernen, vollständig integrierten Plattform:
                 </p>
@@ -674,7 +673,6 @@ import liveImage from '../assets/image01.png';
 const currentSlide = ref(0);
 const totalSlides = 25;
 const slideCanvas = ref(null);
-const demoFrameUrl = `${window.location.origin}/login`;
 
 const slides = [
   { id: 'slide1', category: 'Diplomarbeit • HTL IT 2026', layout: 'title' },
@@ -934,50 +932,12 @@ onUnmounted(() => {
   height: 2.1rem;
   border-radius: 50%;
   border: none;
-}
-
-.iframe-box {
-  margin-top: 1.25rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-}
-
-.iframe-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
   font-weight: 700;
-  color: var(--text-main);
-}
-
-.slide-iframe {
-  width: 100%;
-  height: 100%;
-  min-height: 420px;
-
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
-  background: #0b1220;
-
-  flex: 1;
-  
-}
-
-.slide-nav button {
-  width: 2.55rem;
-  height: 2.55rem;
-  border-radius: 50%;
-  color: rgba(255, 255, 255, 0.78);
-  background: rgba(255, 255, 255, 0.16);
-  transition: all 0.3s ease;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .slide-nav button:hover {
