@@ -26,8 +26,6 @@
     <div class="slide-viewport">
       <transition name="slide" mode="out-in">
         <div :key="currentSlide" class="slide-canvas" ref="slideCanvas">
-
-
           <!-- FOLIE 1: Titelblatt -->
           <div v-if="currentSlide === 0" class="layout-title">
             <span class="title-sub">MEVN Stack Projekt</span>
@@ -50,22 +48,14 @@
           </div>
 
           <!-- FOLIE 2: Problem und Ziel -->
-          <div v-else-if="currentSlide === 1" class="layout-content">
-            <h2 class="slide-title">Problem und Ziel</h2>
-            <p class="description">
-              <strong>Das Projekt bringt Arbeitszeiten, Urlaube und Dienstpläne in einer zentralen Plattform zusammen statt in vielen einzelnen Listen.</strong>
-            </p>
-            <ul>
-              <li><strong>01 Zeit sparen</strong><br />Arbeitszeiten werden digital erfasst und schnell ausgewertet.</li>
-              <li><strong>02 Übersicht schaffen</strong><br />Alle wichtigen Infos und Anträge sind an einem Ort sichtbar.</li>
-              <li><strong>03 Prozesse vereinfachen</strong><br />Urlaub, Dienstpläne und Berichte laufen klar und strukturiert ab.</li>
-            </ul>
+          <div v-else-if="currentSlide === 1" class="layout-fullscreen-image">
+            <img src="../assets/Ziel.png" alt="" class="fullscreen-img">
           </div>
 
           <!-- FOLIE 3: Was die Benutzer live sehen -->
           <div v-else-if="currentSlide === 2" class="layout-content">
             <h2 class="slide-title">Was die Benutzer live sehen</h2>
-            <div class="two-column">
+            <div class="two-column-compact">
               <div class="iframe-box">
                 <div class="iframe-header">
                   <span>Live Vorschau</span>
@@ -85,35 +75,114 @@
             </div>
           </div>
 
-          <!-- FOLIE 4: Übersicht der Datenfluss-Architektur -->
+          <!-- FOLIE 4: REST-API & Kommunikation -->
           <div v-else-if="currentSlide === 3" class="layout-content">
-            <h2 class="slide-title">Übersicht der Datenfluss-Architektur</h2>
-            <div class="two-column">
+            <h2 class="slide-title">REST-API &amp; Kommunikation</h2>
+            <div class="two-column-image-large">
               <div>
                 <p class="description">
-                  Unser Backend trennt die Verantwortungsbereiche strikt nach dem <strong>MVC- / Layered-Architekturmuster</strong>:
+                  <i class="fa-solid fa-check text-vuegreen"></i> <strong>REST-API Verbindung zwischen Frontend und Backend</strong>
+                </p>
+                <p class="description">
+                  Kommunikation erfolgt über HTTP-Methoden:
                 </p>
                 <ul>
-                  <li><i class="fa-solid fa-check text-vuegreen"></i> <strong>Schnittstelle (Routes):</strong> Definition der HTTP-Endpunkte &amp; Middleware-Verteilung</li>
-                  <li><i class="fa-solid fa-check text-vuegreen"></i> <strong>Controller:</strong> Extraktion von HTTP-Parametern &amp; Status-Mapping</li>
-                  <li><i class="fa-solid fa-check text-vuegreen"></i> <strong>Service-Schicht:</strong> Reine, vom Web-Framework entkoppelte Business-Logik</li>
-                  <li><i class="fa-solid fa-check text-vuegreen"></i> <strong>Datenbank (ODM Models):</strong> Mongoose-Schemadefinitionen mit Validierung</li>
+                  <li><strong>GET</strong> → Daten abrufen</li>
+                  <li><strong>POST</strong> → Neue Daten erstellen</li>
+                  <li><strong>PUT</strong> → Daten aktualisieren</li>
+                  <li><strong>DELETE</strong> → Daten löschen</li>
+                </ul>
+                <p class="description">
+                  Frontend nutzt Axios für API-Aufrufe
+                </p>
+                <p class="description">
+                  <i class="fa-solid fa-check text-vuegreen"></i> <strong>Vorteile:</strong>
+                </p>
+                <ul>
+                  <li>Klare Trennung von UI und Logik</li>
+                  <li>Einfache Erweiterbarkeit</li>
+                  <li>Strukturierte Datenverarbeitung im Backend</li>
                 </ul>
               </div>
-              <div class="code-box">
-                <div class="flow-preview">
-                  <div class="text-vuegreen">[Client Request]</div>
-                  <div class="flow-arrow">&rarr; Express Router (Middlewares)</div>
-                  <div class="flow-arrow">&rarr; Controller (Params / Body)</div>
-                  <div class="flow-arrow">&rarr; Business Service (DB Queries)</div>
-                  <div class="flow-arrow">&rarr; MongoDB Document Mutation</div>
-                </div>
+              <div class="image-box">
+                <img src="../assets/backFront.png" alt="REST-API Architecture" class="api-image">
               </div>
             </div>
           </div>
 
-          <!-- FOLIE 4: Frontend Überblick -->
+          <!-- FOLIE 5: Authentifizierung & Zugriffskontrolle -->
           <div v-else-if="currentSlide === 4" class="layout-content">
+            <h2 class="slide-title">Authentifizierung &amp; Zugriffskontrolle (JWT)</h2>
+            <div class="two-column-image-large">
+              <div>
+                <p class="description">
+                  <i class="fa-solid fa-check text-vuegreen"></i> <strong>Sicherheit mit JSON Web Token (JWT)</strong>
+                </p>
+                <ul>
+                  <li>Login-Daten werden an das Backend gesendet</li>
+                  <li>Backend erstellt einen signierten Token (JWT)</li>
+                  <li>Token wird bei jeder Anfrage mitgeschickt</li>
+                  <li>Middleware prüft die Gültigkeit des Tokens</li>
+                </ul>
+                <p class="description">
+                  <i class="fa-solid fa-check text-vuegreen"></i> <strong>Rollenbasierte Zugriffskontrolle</strong>
+                </p>
+                <ul>
+                  <li>Admin → Zugriff auf alle Daten</li>
+                  <li>User → Zugriff nur auf eigene Daten</li>
+                </ul>
+                <p class="description">
+                  <i class="fa-solid fa-check text-vuegreen"></i> <strong>Weitere Sicherheitsmaßnahmen:</strong>
+                </p>
+                <ul>
+                  <li>Private Routes schützen sensible Bereiche</li>
+                  <li>Gehashte Passwörter statt Klartext</li>
+                  <li>.env-Dateien für sichere Konfiguration</li>
+                </ul>
+              </div>
+              <div class="image-box">
+                <img src="../assets/sicherhiet.png" alt="Security Architecture" class="api-image">
+              </div>
+            </div>
+          </div>
+
+          <!-- FOLIE 6: Backend-Architektur und Datenfluss -->
+          <div v-else-if="currentSlide === 5" class="layout-content">
+            <h2 class="slide-title">Backend-Architektur und Datenfluss</h2>
+            <div class="three-column">
+              <div class="image-box">
+                <img src="../assets/API.png" alt="REST-API Architecture" class="api-image">
+              </div>
+              <div>
+                <p class="description">
+                  Das Backend basiert auf <strong>Node.js und Express</strong> und folgt einer klar strukturierten Architektur.
+                </p>
+                <p class="description">
+                  <strong>Die Hauptbestandteile sind:</strong>
+                </p>
+                <ul>
+                  <li><strong>REST-API (Routes):</strong> Definition der Endpunkte und Verarbeitung von JSON-Anfragen</li>
+                  <li><strong>Controller & Service-Schicht:</strong> Verarbeitung der Geschäftslogik und Trennung der Verantwortlichkeiten</li>
+                  <li><strong>Datenbankverbindung (Mongoose):</strong> Zugriff auf die MongoDB-Datenbank</li>
+                </ul>
+                <p class="description">
+                  Die Daten werden in einer <strong>MongoDB Atlas Cloud-Datenbank</strong> gespeichert.
+                </p>
+                <p class="description">
+                  Sensible Konfigurationsdaten (z. B. Zugangsdaten, Tokens) werden in einer <strong>.env-Datei</strong> verwaltet, um Sicherheit und Wartbarkeit zu gewährleisten.
+                </p>
+                <p class="description">
+                  Der Datenfluss erfolgt zentral über das Backend, welches alle Anfragen verarbeitet und die Daten konsistent in der Datenbank speichert.
+                </p>
+              </div>
+              <div class="image-box">
+                <img src="../assets/Mongo.png" alt="MongoDB Architecture" class="api-image">
+              </div>
+            </div>
+          </div>
+
+          <!-- FOLIE 7: Frontend Überblick -->
+          <div v-else-if="currentSlide === 6" class="layout-content">
             <h2 class="slide-title">Frontend: SPA & Benutzererlebnis</h2>
             <div class="two-column">
               <div>
@@ -134,8 +203,8 @@
             </div>
           </div>
 
-          <!-- FOLIE 4: Projektstruktur (src/) -->
-          <div v-else-if="currentSlide === 5" class="layout-content">
+          <!-- FOLIE 8: Projektstruktur (src/) -->
+          <div v-else-if="currentSlide === 7" class="layout-content">
             <h2 class="slide-title">Projektstruktur (src/)</h2>
             <p class="description">
               Saubere Organisation des Quellcodes schafft Klarheit und erlaubt parallele Feature-Entwicklung.
@@ -164,8 +233,8 @@
             </p>
           </div>
 
-          <!-- FOLIE 5: Routing & Security -->
-          <div v-else-if="currentSlide === 6" class="layout-content">
+          <!-- FOLIE 9: Routing & Security -->
+          <div v-else-if="currentSlide === 8" class="layout-content">
             <h2 class="slide-title">Routing &amp; Security</h2>
             <p class="description">
               Vue Router Guards schützen sensible Bereiche vor unbefugtem Zugriff direkt im Frontend.
@@ -199,152 +268,8 @@
             </div>
           </div>
 
-          <!-- FOLIE 4: User & WorkSchedule Modell -->
-          <div v-else-if="currentSlide === 7" class="layout-content">
-            <h2 class="slide-title">Modellierung: User.js &amp; WorkSchedule.js</h2>
-            <div class="two-column">
-              <div>
-                <h3>Entkopplung für optimale Performance</h3>
-                <p class="description">
-                  Benutzerstammdaten und detaillierte Tages-Sollzeitraster werden in getrennten Collections verwaltet, um Datenredundanzen zu vermeiden:
-                </p>
-                <ul>
-                  <li><strong>User.js:</strong> Speichert primäre Zugangsdaten, Bcrypt-Passworthash, Rolle, NFC-Tag ID und Eintritts-/Austrittsdaten.</li>
-                  <li><strong>WorkSchedule.js:</strong> Erzwingt eine performante 1:1-Relation via <code>unique: true</code> auf <code>user_id</code>. Definiert Soll-Uhrzeiten im Standard-Stringformat.</li>
-                </ul>
-              </div>
-              <div class="code-box">
-                <pre><code><span class="code-keyword">const</span> WorkScheduleSchema = <span class="code-keyword">new</span> Schema({
-  user_id: { 
-    type: Schema.Types.ObjectId, 
-    ref: <span class="code-string">"User"</span>, 
-    unique: <span class="code-keyword">true</span> 
-  },
-  weekly_hours: { type: Number, default: <span class="code-number">40</span> },
-  schedule: {
-    mon: { from: String, to: String, active: Boolean }
-  }
-});</code></pre>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 4: WorkSession Modell -->
-          <div v-else-if="currentSlide === 8" class="layout-content">
-            <h2 class="slide-title">Modellierung: WorkSession.js</h2>
-            <div class="two-column">
-              <div class="code-box">
-                <pre><code><span class="code-keyword">const</span> WorkSessionSchema = <span class="code-keyword">new</span> Schema({
-  user_id: { type: Schema.Types.ObjectId, ref: <span class="code-string">"User"</span> },
-  date_today: { type: String, required: <span class="code-keyword">true</span> },
-  start_time: { type: Date, default: <span class="code-keyword">null</span> },
-  end_time: { type: Date, default: <span class="code-keyword">null</span> },
-  pause: { type: String, default: <span class="code-string">"0:00"</span> },
-  ist: { type: String, default: <span class="code-keyword">null</span> },
-  salGes: { type: String, default: <span class="code-keyword">null</span> }
-});</code></pre>
-              </div>
-              <div>
-                <h3>Abrechnungs- &amp; Stempelungsdaten</h3>
-                <p class="description">
-                  Dieses transaktionale Hauptschema speichert sämtliche operativen Stempelvorgänge eines Mitarbeiters für das Lohnabrechnungssystem:
-                </p>
-                <ul>
-                  <li><strong>Präzise ISO-Zeitstempel:</strong> <code>start_time</code> ("Kommen") und <code>end_time</code> ("Gehen") zur sekundengenauen Nettozeitberechnung.</li>
-                  <li><strong>Saldo-Datenbankfelder:</strong> Speichert Ist-Stunden, Sollvorgaben, Pausen sowie Gleitzeitkonten-Überträge (<code>salGes</code>).</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 5: LeaveRequest Modell -->
+          <!-- FOLIE 10: Revisionssicheres Logging -->
           <div v-else-if="currentSlide === 9" class="layout-content">
-            <h2 class="slide-title">Modellierung: LeaveRequest.js</h2>
-            <div class="two-column">
-              <div>
-                <h3>Zustandsautomaten für Anträge</h3>
-                <p class="description">
-                  Das Urlaubskonto sowie Krankenstand- und Zeitausgleichsanträge werden über das <code>LeaveRequest</code>-Modell abgewickelt:
-                </p>
-                <ul>
-                  <li><strong>Abwesenheits-Typen:</strong> Typisiert über ein strenges Enum (<code>vacation</code>, <code>sick</code>, <code>other</code>, <code>overtime</code>).</li>
-                  <li><strong>Zustands-Verfolgung:</strong> Antragsstatus wechseln kontrolliert von <code>pending</code> auf <code>approved</code> oder <code>rejected</code>.</li>
-                  <li><strong>Audit-Verlinkung:</strong> Speichert das freigebende Vorgesetzten-Dokument im Feld <code>decided_by</code>.</li>
-                </ul>
-              </div>
-              <div class="code-box">
-                <pre><code><span class="code-keyword">const</span> LeaveRequestSchema = <span class="code-keyword">new</span> Schema({
-  user_id: { type: Schema.Types.ObjectId, ref: <span class="code-string">"User"</span> },
-  from: { type: Date, required: <span class="code-keyword">true</span> },
-  to: { type: Date, required: <span class="code-keyword">true</span> },
-  type: { 
-    type: String, 
-    enum: [<span class="code-string">"vacation"</span>, <span class="code-string">"sick"</span>, <span class="code-string">"overtime"</span>] 
-  },
-  status: { type: String, default: <span class="code-string">"pending"</span> }
-});</code></pre>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 6: Department & Holiday Modelle -->
-          <div v-else-if="currentSlide === 10" class="layout-content">
-            <h2 class="slide-title">Modellierung: Department.js &amp; Holiday.js</h2>
-            <div class="two-column">
-              <div class="code-box">
-                <pre><code><span class="code-keyword">const</span> HolidaySchema = <span class="code-keyword">new</span> Schema({
-  year: { type: Number, required: <span class="code-keyword">true</span> },
-  state: { type: String, default: <span class="code-string">"W"</span> },
-  holidays: [{ date: String, name: String }],
-  ferien: [{ name: String, start: String, end: String }]
-});
-HolidaySchema.index(
-  { year: <span class="code-number">1</span>, state: <span class="code-number">1</span> }, 
-  { unique: <span class="code-keyword">true</span> }
-);</code></pre>
-              </div>
-              <div>
-                <h3>Stammdaten &amp; Kalender-Schnittstellen</h3>
-                <p class="description">
-                  Gewährleisten saubere relationale Integrität und korrekte, regionale Feiertagsgutschriften:
-                </p>
-                <ul>
-                  <li><strong>Abteilungen:</strong> Das <code>DepartmentSchema</code> sorgt mit unique indizierten Namen für eine redundanzfreie Abteilungsstruktur.</li>
-                  <li><strong>Feiertags-Kalender:</strong> Sub-Dokumente kapseln Feiertage und Schulferien pro Jahr und Bundesland (z.B. "W" für Wien). Ein Verbundindex erzwingt Eindeutigkeit.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 7: Schedule & Workflow Modelle -->
-          <div v-else-if="currentSlide === 11" class="layout-content">
-            <h2 class="slide-title">Modellierung: Schedule.js &amp; Workflow.js</h2>
-            <div class="two-column">
-              <div>
-                <h3>Schichten &amp; Task-Management</h3>
-                <p class="description">
-                  Zwei Hilfs-Schemata unterstützen die Personalplanung sowie administrative System-Workflows:
-                </p>
-                <ul>
-                  <li><strong>Schichten (Schedule):</strong> Verwaltet Früh-, Spät- und Nachtschichten mitsamt Uhrzeitvorgaben für die Teams.</li>
-                  <li><strong>Systemaufgaben (Workflow):</strong> Einfaches State-Tracking (<code>open</code>/<code>done</code>) zur teamübergreifenden Aufgabenerledigung (z.B. Korrekturen von Fehlbuchungen).</li>
-                </ul>
-              </div>
-              <div class="code-box">
-                <pre><code><span class="code-keyword">const</span> scheduleSchema = <span class="code-keyword">new</span> Schema({
-  name: { type: String, required: <span class="code-keyword">true</span> },
-  department: { type: String, required: <span class="code-keyword">true</span> },
-  shift: {
-    type: String,
-    enum: [<span class="code-string">"Frühschicht"</span>, <span class="code-string">"Spätschicht"</span>, <span class="code-string">"Nachtschicht"</span>]
-  }
-});</code></pre>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 8: Revisionssicheres Logging -->
-          <div v-else-if="currentSlide === 12" class="layout-content">
             <h2 class="slide-title">Revisionssicheres Logging: Log.js</h2>
             <div class="two-column">
               <div class="code-box">
@@ -371,8 +296,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 9: Sektion 2 Trenner -->
-          <div v-else-if="currentSlide === 13" class="layout-section">
+          <!-- FOLIE 11: Sektion 2 Trenner -->
+          <div v-else-if="currentSlide === 10" class="layout-section">
             <span class="section-badge">SEKTION 02</span>
             <h1 class="section-title">
               Middleware &amp;<br />
@@ -383,8 +308,8 @@ LogSchema.index({
             </p>
           </div>
 
-          <!-- FOLIE 10: Authentifizierung (auth.js) -->
-          <div v-else-if="currentSlide === 14" class="layout-content">
+          <!-- FOLIE 12: Authentifizierung (auth.js) -->
+          <div v-else-if="currentSlide === 11" class="layout-content">
             <h2 class="slide-title">Authentifizierung &amp; RBAC (auth.js)</h2>
             <div class="two-column">
               <div>
@@ -411,8 +336,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 11: NoSQL Injection Schutz -->
-          <div v-else-if="currentSlide === 15" class="layout-content">
+          <!-- FOLIE 13: NoSQL Injection Schutz -->
+          <div v-else-if="currentSlide === 12" class="layout-content">
             <h2 class="slide-title">Security: Payload Sanitization</h2>
             <div class="two-column">
               <div class="code-box">
@@ -439,8 +364,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 12: Rate Limiter (security.js) -->
-          <div v-else-if="currentSlide === 16" class="layout-content">
+          <!-- FOLIE 14: Rate Limiter (security.js) -->
+          <div v-else-if="currentSlide === 13" class="layout-content">
             <h2 class="slide-title">Security: Brute-Force Rate Limiting</h2>
             <div class="two-column">
               <div>
@@ -464,8 +389,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 13: Sektion 3 Trenner -->
-          <div v-else-if="currentSlide === 17" class="layout-section">
+          <!-- FOLIE 15: Sektion 3 Trenner -->
+          <div v-else-if="currentSlide === 14" class="layout-section">
             <span class="section-badge">SEKTION 03</span>
             <h1 class="section-title">
               Controllers &amp;<br />
@@ -476,8 +401,8 @@ LogSchema.index({
             </p>
           </div>
 
-          <!-- FOLIE 14: leaveRequestController.js -->
-          <div v-else-if="currentSlide === 18" class="layout-content">
+          <!-- FOLIE 16: leaveRequestController.js -->
+          <div v-else-if="currentSlide === 15" class="layout-content">
             <h2 class="slide-title">Controller: leaveRequestController.js</h2>
             <div class="two-column">
               <div class="code-box">
@@ -502,8 +427,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 15: REST Konventionen -->
-          <div v-else-if="currentSlide === 19" class="layout-content">
+          <!-- FOLIE 17: REST Konventionen -->
+          <div v-else-if="currentSlide === 16" class="layout-content">
             <h2 class="slide-title">REST-Konventionen &amp; Services</h2>
             <div class="two-column">
               <div>
@@ -528,8 +453,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 16: Sektion 4 Trenner -->
-          <div v-else-if="currentSlide === 20" class="layout-section">
+          <!-- FOLIE 18: Sektion 4 Trenner -->
+          <div v-else-if="currentSlide === 17" class="layout-section">
             <span class="section-badge">SEKTION 04</span>
             <h1 class="section-title">
               DevOps &amp;<br />
@@ -540,8 +465,8 @@ LogSchema.index({
             </p>
           </div>
 
-          <!-- FOLIE 17: GitHub Git-Workflow -->
-          <div  v-else-if="currentSlide === 21" class="layout-content">
+          <!-- FOLIE 19: GitHub Git-Workflow -->
+          <div  v-else-if="currentSlide === 18" class="layout-content">
             <h2 class="slide-title">GitHub-Repository &amp; Git-Workflow</h2>
             <div class="two-column">
               <div>
@@ -568,8 +493,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 18: Render.com CD -->
-          <div v-else-if="currentSlide === 22" class="layout-content">
+          <!-- FOLIE 20: Render.com CD -->
+          <div v-else-if="currentSlide === 19" class="layout-content">
             <h2 class="slide-title">CI/CD-Pipeline auf Render.com</h2>
             <div class="two-column">
               <div class="code-box">
@@ -595,8 +520,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 19: MongoDB Atlas Cloud-Infrastruktur -->
-          <div v-else-if="currentSlide === 23" class="layout-content">
+          <!-- FOLIE 21: MongoDB Atlas Cloud-Infrastruktur -->
+          <div v-else-if="currentSlide === 20" class="layout-content">
             <h2 class="slide-title">Cloud-Infrastruktur: MongoDB Atlas</h2>
             <div class="three-column">
               <div class="info-card border-success text-center">
@@ -617,8 +542,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 20: Outro & Fragen -->
-          <div v-else-if="currentSlide === 24" class="layout-outro">
+          <!-- FOLIE 22: Outro & Fragen -->
+          <div v-else-if="currentSlide === 21" class="layout-outro">
             <h1 class="outro-heading">
               Vielen Dank für Ihre <span class="text-gradient">Aufmerksamkeit!</span>
             </h1>
@@ -659,7 +584,7 @@ import liveImage from '../assets/image01.png';
 
 // Index der aktuellen Folie (0-basiert)
 const currentSlide = ref(0);
-const totalSlides = 25;
+const totalSlides = 23;
 const slideCanvas = ref(null);
 const demoFrameUrl = `${window.location.origin}/login`;
 
@@ -668,14 +593,12 @@ const slides = [
   { id: 'slide2-problem', category: 'Problem und Ziel', layout: 'problem' },
   { id: 'slide2-defizite', category: 'Ausgangslage & Defizite', layout: 'defizite' },
   { id: 'slide3-frontend', category: 'Frontend', layout: 'frontend' },
+  { id: 'slide-auth', category: 'REST-API & Kommunikation', layout: 'api' },
+  { id: 'slide-backend', category: 'Backend-Architektur', layout: 'backend' },
   { id: 'slide3-structure', category: 'Projektstruktur', layout: 'structure' },
   { id: 'slide3-routing', category: 'Routing & Security', layout: 'routing' },
   { id: 'slide2', category: '01 / Datenfluss-Architektur', layout: 'agenda' },
   { id: 'slide3', category: '01 / Datenbankschemas', layout: 'models-user' },
-  { id: 'slide4', category: '01 / Datenbankschemas', layout: 'models-work' },
-  { id: 'slide5', category: '01 / Datenbankschemas', layout: 'models-leave' },
-  { id: 'slide6', category: '01 / Datenbankschemas', layout: 'models-dept' },
-  { id: 'slide7', category: '01 / Datenbankschemas', layout: 'models-schedule' },
   { id: 'slide8', category: '01 / Datenbankschemas', layout: 'models-log' },
   { id: 'slide9', category: '02 / IT-Security & Middleware', layout: 'section' },
   { id: 'slide10', category: '02 / IT-Security & Middleware', layout: 'security-token' },
@@ -924,14 +847,15 @@ onUnmounted(() => {
 }
 
 .iframe-box {
-  margin-top: 1.25rem;
+  margin-top: 0.5rem;
   padding: 1rem;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .iframe-header {
@@ -947,15 +871,10 @@ onUnmounted(() => {
 
 .slide-iframe {
   width: 100%;
-  height: 100%;
-  min-height: 420px;
-
+  height: calc(100vh - 250px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   background: #0b1220;
-
-  flex: 1;
-  
 }
 
 .slide-nav button {
@@ -983,11 +902,12 @@ onUnmounted(() => {
   font-family: 'Poppins', sans-serif;
   font-size: 38px;
   font-weight: 700;
-  margin: 0 0 35px 0;
+  margin: 0 0 20px 0;
   letter-spacing: -0.5px;
   border-left: 5px solid var(--color-vuegreen);
   padding-left: 18px;
   color: #fff;
+  flex-shrink: 0;
 }
 
 /* Layouts */
@@ -995,6 +915,22 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 40px;
+  align-items: stretch;
+}
+
+.two-column-compact {
+  display: grid;
+  grid-template-columns: 2.5fr 1fr;
+  gap: 20px;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+}
+
+.two-column-image-large {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: 20px;
   align-items: stretch;
 }
 
@@ -1099,9 +1035,7 @@ onUnmounted(() => {
 .title-image {
   width: 100%;
   max-width: 420px;
-  border-radius: 24px;
-  box-shadow: 0 28px 60px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
   position: relative;
   z-index: 1;
 }
@@ -1174,8 +1108,25 @@ onUnmounted(() => {
 .layout-content {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
   height: 100%;
+  overflow: hidden;
+}
+
+/* Fullscreen Image Layout */
+.layout-fullscreen-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+}
+
+.fullscreen-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
 }
 
 .description {
@@ -1212,6 +1163,26 @@ onUnmounted(() => {
   font-size: 13px;
   line-height: 1.45;
   color: #e2e8f0;
+}
+
+/* Image Box Styles */
+.image-box {
+  background-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 250px);
+}
+
+.api-image {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 .code-keyword { color: #f472b6; }
