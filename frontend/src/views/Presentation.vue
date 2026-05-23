@@ -38,8 +38,16 @@
                   Eine Webanwendung für Arbeitszeiten, Dienstpläne, Urlaubsanträge und Berichte.
                 </p>
                 <div class="project-authors ">
-                  <span class="author-tag text-vuegreen">Entwickelt von : Nawal Kayal & Ahmad Alalan</span>
+                  <span class="author-tag text-vuegreen">Entwickelt von</span>
                 </div>
+
+                <h3 class=" section-title">
+                  <span class=" text-gradient">Nawal Kayal</span>
+                </h3>
+                <h3 class=" section-title">
+                  <span class=" text-gradient">Ahmad Alalan</span>
+                </h3>
+
               </div>
               <div class="title-visual">
                 <img :src="liveImage" alt="Live Architekturmodell" class="title-image" />
@@ -52,8 +60,66 @@
             <img src="../assets/Ziel.png" alt="" class="fullscreen-img">
           </div>
 
-          <!-- FOLIE 3: Was die Benutzer live sehen -->
+          <!-- FOLIE 3: Frontend Technologien -->
           <div v-else-if="currentSlide === 2" class="layout-content">
+            <h2 class="slide-title">Frontend Technologien</h2>
+            <p class="description">
+              <i class="fa-solid fa-bolt text-vuegreen"></i> <strong>Verwendete Technologien</strong>
+            </p>
+            <div class="two-column">
+              <div class="image-box">
+                <img src="../assets/vue.png" alt="Vue.js" class="api-image">
+              </div>
+              <div>
+                <h3>Vue 3</h3>
+                <ul>
+                  <li>Modernes JavaScript Framework</li>
+                  <li>Komponentenbasierte Entwicklung</li>
+                  <li>Reaktive Datenbindung</li>
+                </ul>
+                <h3>Bootstrap 5</h3>
+                <ul>
+                  <li>Responsives Design (Mobile-First)</li>
+                  <li>Vorgefertigte UI-Komponenten</li>
+                  <li>Einheitliches Layout</li>
+                </ul>
+                <h3>Vue Router</h3>
+                <ul>
+                  <li>Navigation zwischen Seiten (Single Page Application)</li>
+                  <li>Dynamisches Routing</li>
+                  <li>Übersichtliche Struktur der Anwendung</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- FOLIE 4: Rollen & Berechtigungen -->
+          <div v-else-if="currentSlide === 3" class="layout-content">
+            <h2 class="slide-title">Rollen &amp; Berechtigungen</h2>
+            <p class="description">
+              <i class="bi-people text-vuegreen"></i> <strong>Welche Rollen sehen die Mitarbeiter?</strong>
+            </p>
+            <div class="three-column">
+              <div class="info-card border-success text-center">
+                <div class="card-icon text-vuegreen"><i class="bi-person"></i></div>
+                <h3>User</h3>
+                <img src="../assets/03.png" alt="User Role" class="role-image">
+              </div>
+              <div class="info-card border-indigo text-center">
+                <div class="card-icon text-indigo"><i class="bi-box-arrow-in-right"></i></div>
+                <h3>Login</h3>
+                <img src="../assets/01.png" alt="Login" class="role-image">
+              </div>
+              <div class="info-card border-emerald text-center">
+                <div class="card-icon text-emerald"><i class="bi-shield-lock"></i></div>
+                <h3>Admin</h3>
+                <img src="../assets/02.png" alt="Admin Role" class="role-image">
+              </div>
+            </div>
+          </div>
+
+          <!-- FOLIE 5: Was die Benutzer live sehen -->
+          <div v-else-if="currentSlide === 4" class="layout-content">
             <h2 class="slide-title">Was die Benutzer live sehen</h2>
             <div class="two-column-compact">
               <div class="iframe-box">
@@ -75,8 +141,8 @@
             </div>
           </div>
 
-          <!-- FOLIE 4: REST-API & Kommunikation -->
-          <div v-else-if="currentSlide === 3" class="layout-content">
+          <!-- FOLIE 6: REST-API & Kommunikation -->
+          <div v-else-if="currentSlide === 5" class="layout-content">
             <h2 class="slide-title">REST-API &amp; Kommunikation</h2>
             <div class="two-column-image-large">
               <div>
@@ -110,8 +176,8 @@
             </div>
           </div>
 
-          <!-- FOLIE 5: Authentifizierung & Zugriffskontrolle -->
-          <div v-else-if="currentSlide === 4" class="layout-content">
+          <!-- FOLIE 7: Authentifizierung & Zugriffskontrolle -->
+          <div v-else-if="currentSlide === 6" class="layout-content">
             <h2 class="slide-title">Authentifizierung &amp; Zugriffskontrolle (JWT)</h2>
             <div class="two-column-image-large">
               <div>
@@ -146,8 +212,8 @@
             </div>
           </div>
 
-          <!-- FOLIE 6: Backend-Architektur und Datenfluss -->
-          <div v-else-if="currentSlide === 5" class="layout-content">
+          <!-- FOLIE 8: Backend-Architektur und Datenfluss -->
+          <div v-else-if="currentSlide === 7" class="layout-content">
             <h2 class="slide-title">Backend-Architektur und Datenfluss</h2>
             <div class="three-column">
               <div class="image-box">
@@ -181,30 +247,8 @@
             </div>
           </div>
 
-          <!-- FOLIE 7: Frontend Überblick -->
-          <div v-else-if="currentSlide === 6" class="layout-content">
-            <h2 class="slide-title">Frontend: SPA & Benutzererlebnis</h2>
-            <div class="two-column">
-              <div>
-                <p class="description">
-                  Das Frontend wurde als responsive Vue 3 Single Page Application aufgebaut und verwendet Vite für schnelles Laden:
-                </p>
-                <ul>
-                  <li><strong>Vue 3:</strong> Komponentensystem, Composition API und reaktive Stores für saubere UI-Logik.</li>
-                  <li><strong>Vite:</strong> Blitzschneller Entwicklungsserver, HMR und modulare Bundling-Optimierung.</li>
-                  <li><strong>UX-Fokus:</strong> Dynamische Zeitstempelung, interaktive Berichte, Rollenbasierte Navigation und klare Statusanzeigen.</li>
-                </ul>
-              </div>
-              <div class="code-box">
-                <pre><code><span class="code-keyword">import</span> { createApp } <span class="code-keyword">from</span> <span class="code-string">'vue'</span>
-<span class="code-keyword">import</span> App <span class="code-keyword">from</span> <span class="code-string">'./App.vue'</span>
-<span class="code-keyword">import</span> router <span class="code-keyword">from</span> <span class="code-string">'./router.js'</span></code></pre>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 8: Projektstruktur (src/) -->
-          <div v-else-if="currentSlide === 7" class="layout-content">
+          <!-- FOLIE 9: Projektstruktur (src/) -->
+          <div v-else-if="currentSlide === 8" class="layout-content">
             <h2 class="slide-title">Projektstruktur (src/)</h2>
             <p class="description">
               Saubere Organisation des Quellcodes schafft Klarheit und erlaubt parallele Feature-Entwicklung.
@@ -233,8 +277,8 @@
             </p>
           </div>
 
-          <!-- FOLIE 9: Routing & Security -->
-          <div v-else-if="currentSlide === 8" class="layout-content">
+          <!-- FOLIE 10: Routing & Security -->
+          <div v-else-if="currentSlide === 9" class="layout-content">
             <h2 class="slide-title">Routing &amp; Security</h2>
             <p class="description">
               Vue Router Guards schützen sensible Bereiche vor unbefugtem Zugriff direkt im Frontend.
@@ -268,104 +312,8 @@
             </div>
           </div>
 
-          <!-- FOLIE 10: Revisionssicheres Logging -->
-          <div v-else-if="currentSlide === 9" class="layout-content">
-            <h2 class="slide-title">Revisionssicheres Logging: Log.js</h2>
-            <div class="two-column">
-              <div class="code-box">
-                <pre><code><span class="code-keyword">const</span> LogSchema = <span class="code-keyword">new</span> Schema({
-  message: { type: String, required: <span class="code-keyword">true</span> },
-  level: { type: String, enum: [<span class="code-string">"INFO"</span>, <span class="code-string">"WARN"</span>, <span class="code-string">"ERROR"</span>] },
-  user_id: { type: Schema.Types.ObjectId, ref: <span class="code-string">"User"</span> },
-  violation_date: { type: String, default: <span class="code-keyword">null</span> }
-});
-LogSchema.index({ 
-  user_id: <span class="code-number">1</span>, violation_date: <span class="code-number">1</span>, created_at: -<span class="code-number">1</span> 
-});</code></pre>
-              </div>
-              <div>
-                <h3>Protokollierung von Anomalien</h3>
-                <p class="description">
-                  Unser Log-Modell erfasst revisionssicher alle systemkritischen Vorkommnisse und Compliance-Verstöße:
-                </p>
-                <ul>
-                  <li><strong>Gefahrenstufen:</strong> Kategorisierung von Events über <code>INFO</code>, <code>WARN</code> und <code>ERROR</code>.</li>
-                  <li><strong>Verbundindex (Compound Index):</strong> Verknüpft Benutzer, Datum und Zeitstempel für lückenlose, extrem performante Systemprüfungen (Audits).</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 11: Sektion 2 Trenner -->
-          <div v-else-if="currentSlide === 10" class="layout-section">
-            <span class="section-badge">SEKTION 02</span>
-            <h1 class="section-title">
-              Middleware &amp;<br />
-              <span class="text-gradient">IT-Sicherheit</span>
-            </h1>
-            <p class="section-desc">
-              Kryptografischer API-Schutz, Rollenberechtigungen und Abwehrmechanismen gegen Denial-of-Service &amp; Payload-Manipulationen.
-            </p>
-          </div>
-
-          <!-- FOLIE 12: Authentifizierung (auth.js) -->
-          <div v-else-if="currentSlide === 11" class="layout-content">
-            <h2 class="slide-title">Authentifizierung &amp; RBAC (auth.js)</h2>
-            <div class="two-column">
-              <div>
-                <h3>Strikte Token-Verifikation</h3>
-                <p class="description">
-                  Unsere <code>auth.js</code>-Middleware sichert Endpunkte ab, indem sie eingehende Bearer-Tokens dechiffriert:
-                </p>
-                <ul>
-                  <li><strong>Signaturprüfung:</strong> Verhindert Manipulationen durch strikte Einschränkung auf den sicheren <code>HS256</code>-Algorithmus.</li>
-                  <li><strong>Audience &amp; Issuer Validierung:</strong> Verifiziert die kryptografische Authentizität der System-Quellen.</li>
-                  <li><strong>Inaktivitätsprüfung:</strong> Blockiert gesperrte Benutzerkonten (<code>is_active === false</code>) sofort an der API-Grenze.</li>
-                </ul>
-              </div>
-              <div class="code-box">
-                <pre><code><span class="code-keyword">const</span> decoded = jwt.verify(token, process.env.JWT_SECRET, {
-  algorithms: [<span class="code-string">"HS256"</span>],
-  issuer: <span class="code-string">"zeiterfassung-api"</span>,
-  audience: <span class="code-string">"zeiterfassung-client"</span>
-});
-
-<span class="code-keyword">const</span> user = <span class="code-keyword">await</span> User.findById(decoded.id)
-  .select(<span class="code-string">"_id role is_active department"</span>).lean();</code></pre>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 13: NoSQL Injection Schutz -->
-          <div v-else-if="currentSlide === 12" class="layout-content">
-            <h2 class="slide-title">Security: Payload Sanitization</h2>
-            <div class="two-column">
-              <div class="code-box">
-                <pre><code><span class="code-keyword">function</span> <span class="code-func">containsProhibitedKeys</span>(value) {
-  <span class="code-keyword">if</span> (!value || <span class="code-keyword">typeof</span> value !== <span class="code-string">"object"</span>) 
-    <span class="code-keyword">return</span> <span class="code-keyword">false</span>;
-  <span class="code-keyword">return</span> Object.entries(value).some(([key, val]) => {
-    <span class="code-keyword">if</span> (key.startsWith(<span class="code-string">"$"</span>) || key.includes(<span class="code-string">"."</span>)) 
-      <span class="code-keyword">return</span> <span class="code-keyword">true</span>;
-    <span class="code-keyword">return</span> <span class="code-func">containsProhibitedKeys</span>(val);
-  });
-}</code></pre>
-              </div>
-              <div>
-                <h3>Abwehr von Payload-Injections</h3>
-                <p class="description">
-                  Unsere in <code>security.js</code> implementierte Middleware schützt vor schädlichen Manipulationsversuchen (z.B. Authentication Bypass via JSON-Injektionen):
-                </p>
-                <ul>
-                  <li><strong>Rekursive Filterung:</strong> Überprüft alle eingehenden payloads (Body, Query, Params) bis in die tiefsten Schachtelungsebenen.</li>
-                  <li><strong>Zeichenprüfung:</strong> Fängt MongoDB-Operatoren (wie <code>$gt</code>, <code>$ne</code>) sowie Punkt-Notationen ab und lehnt Anfragen mit HTTP 400 ab.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 14: Rate Limiter (security.js) -->
-          <div v-else-if="currentSlide === 13" class="layout-content">
+          <!-- FOLIE 11: Rate Limiter (security.js) -->
+          <div v-else-if="currentSlide === 10" class="layout-content">
             <h2 class="slide-title">Security: Brute-Force Rate Limiting</h2>
             <div class="two-column">
               <div>
@@ -389,8 +337,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 15: Sektion 3 Trenner -->
-          <div v-else-if="currentSlide === 14" class="layout-section">
+          <!-- FOLIE 12: Sektion 3 Trenner -->
+          <div v-else-if="currentSlide === 11" class="layout-section">
             <span class="section-badge">SEKTION 03</span>
             <h1 class="section-title">
               Controllers &amp;<br />
@@ -401,8 +349,8 @@ LogSchema.index({
             </p>
           </div>
 
-          <!-- FOLIE 16: leaveRequestController.js -->
-          <div v-else-if="currentSlide === 15" class="layout-content">
+          <!-- FOLIE 13: leaveRequestController.js -->
+          <div v-else-if="currentSlide === 12" class="layout-content">
             <h2 class="slide-title">Controller: leaveRequestController.js</h2>
             <div class="two-column">
               <div class="code-box">
@@ -427,8 +375,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 17: REST Konventionen -->
-          <div v-else-if="currentSlide === 16" class="layout-content">
+          <!-- FOLIE 14: REST Konventionen -->
+          <div v-else-if="currentSlide === 13" class="layout-content">
             <h2 class="slide-title">REST-Konventionen &amp; Services</h2>
             <div class="two-column">
               <div>
@@ -453,8 +401,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 18: Sektion 4 Trenner -->
-          <div v-else-if="currentSlide === 17" class="layout-section">
+          <!-- FOLIE 15: Sektion 4 Trenner -->
+          <div v-else-if="currentSlide === 14" class="layout-section">
             <span class="section-badge">SEKTION 04</span>
             <h1 class="section-title">
               DevOps &amp;<br />
@@ -465,8 +413,8 @@ LogSchema.index({
             </p>
           </div>
 
-          <!-- FOLIE 19: GitHub Git-Workflow -->
-          <div  v-else-if="currentSlide === 18" class="layout-content">
+          <!-- FOLIE 16: GitHub Git-Workflow -->
+          <div  v-else-if="currentSlide === 15" class="layout-content">
             <h2 class="slide-title">GitHub-Repository &amp; Git-Workflow</h2>
             <div class="two-column">
               <div>
@@ -493,8 +441,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 20: Render.com CD -->
-          <div v-else-if="currentSlide === 19" class="layout-content">
+          <!-- FOLIE 17: Render.com CD -->
+          <div v-else-if="currentSlide === 16" class="layout-content">
             <h2 class="slide-title">CI/CD-Pipeline auf Render.com</h2>
             <div class="two-column">
               <div class="code-box">
@@ -520,8 +468,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 21: MongoDB Atlas Cloud-Infrastruktur -->
-          <div v-else-if="currentSlide === 20" class="layout-content">
+          <!-- FOLIE 18: MongoDB Atlas Cloud-Infrastruktur -->
+          <div v-else-if="currentSlide === 17" class="layout-content">
             <h2 class="slide-title">Cloud-Infrastruktur: MongoDB Atlas</h2>
             <div class="three-column">
               <div class="info-card border-success text-center">
@@ -542,8 +490,8 @@ LogSchema.index({
             </div>
           </div>
 
-          <!-- FOLIE 22: Outro & Fragen -->
-          <div v-else-if="currentSlide === 21" class="layout-outro">
+          <!-- FOLIE 19: Outro & Fragen -->
+          <div v-else-if="currentSlide === 18" class="layout-outro">
             <h1 class="outro-heading">
               Vielen Dank für Ihre <span class="text-gradient">Aufmerksamkeit!</span>
             </h1>
@@ -552,7 +500,7 @@ LogSchema.index({
               <div class="outro-badge"><i class="fa-brands fa-github"></i> github.com/htl-it/zeiterfassung</div>
               <div class="outro-badge"><i class="fa-solid fa-server text-vuegreen"></i> zeiterfassung.onrender.com</div>
             </div>
-            <div class="outro-meta">
+            <div class="text-gradient">
               Ahmad Alalan &amp; Nawal Kayal &bull; HTL IT Diplomarbeit 2026
             </div>
           </div>
@@ -584,7 +532,7 @@ import liveImage from '../assets/image01.png';
 
 // Index der aktuellen Folie (0-basiert)
 const currentSlide = ref(0);
-const totalSlides = 23;
+const totalSlides = 20;
 const slideCanvas = ref(null);
 const demoFrameUrl = `${window.location.origin}/login`;
 
@@ -593,17 +541,14 @@ const slides = [
   { id: 'slide2-problem', category: 'Problem und Ziel', layout: 'problem' },
   { id: 'slide2-defizite', category: 'Ausgangslage & Defizite', layout: 'defizite' },
   { id: 'slide3-frontend', category: 'Frontend', layout: 'frontend' },
+  { id: 'slide3-structure', category: 'Frontend Überblick', layout: 'frontend-overview' },
+  { id: 'slide-roles', category: 'Rollen & Berechtigungen', layout: 'roles' },
   { id: 'slide-auth', category: 'REST-API & Kommunikation', layout: 'api' },
+  { id: 'slide-auth', category: 'Authentifizierung & Zugriffskontrolle', layout: 'security' },
   { id: 'slide-backend', category: 'Backend-Architektur', layout: 'backend' },
   { id: 'slide3-structure', category: 'Projektstruktur', layout: 'structure' },
   { id: 'slide3-routing', category: 'Routing & Security', layout: 'routing' },
-  { id: 'slide2', category: '01 / Datenfluss-Architektur', layout: 'agenda' },
-  { id: 'slide3', category: '01 / Datenbankschemas', layout: 'models-user' },
-  { id: 'slide8', category: '01 / Datenbankschemas', layout: 'models-log' },
-  { id: 'slide9', category: '02 / IT-Security & Middleware', layout: 'section' },
-  { id: 'slide10', category: '02 / IT-Security & Middleware', layout: 'security-token' },
-  { id: 'slide11', category: '02 / IT-Security & Middleware', layout: 'security-payload' },
-  { id: 'slide12', category: '02 / IT-Security & Middleware', layout: 'security-limit' },
+  { id: 'slide15', category: '02 / IT-Security & Middleware', layout: 'security-limit' },
   { id: 'slide13', category: '03 / Controllers & Business-Logik', layout: 'section' },
   { id: 'slide14', category: '03 / Controllers & Business-Logik', layout: 'controller-leave' },
   { id: 'slide15', category: '03 / Controllers & Business-Logik', layout: 'controller-rest' },
@@ -848,7 +793,7 @@ onUnmounted(() => {
 
 .iframe-box {
   margin-top: 0.5rem;
-  padding: 1rem;
+  padding: 0.5rem;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
@@ -938,6 +883,7 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 25px;
+  height: auto;
 }
 
 /* Karten & Boxen */
@@ -945,10 +891,12 @@ onUnmounted(() => {
   background-color: var(--bg-card);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
-  padding: 30px;
+  padding: 10px;
   transition: transform 0.2s ease, border-color 0.2s ease;
   display: flex;
   flex-direction: column;
+  /* max-height: 100vh; */
+  height: calc(100vh - 260px);
 }
 
 .info-card:hover {
@@ -1183,6 +1131,16 @@ onUnmounted(() => {
   height: 100%;
   object-fit: contain;
   border-radius: 8px;
+}
+
+.role-image {
+  width: 100%;
+  max-width: 100%;
+  height: 88%;
+  /* max-height: 600px; */
+  object-fit: contain;
+  border-radius: 8px;
+  /* margin-bottom: 15px; */
 }
 
 .code-keyword { color: #f472b6; }
