@@ -141,37 +141,37 @@
             </div>
           </div>
 
-          <!-- FOLIE 6: REST-API & Kommunikation -->
+          <!-- FOLIE 6: Backend-Architektur und Datenfluss -->
           <div v-else-if="currentSlide === 5" class="layout-content">
-            <h2 class="slide-title">REST-API &amp; Kommunikation</h2>
-            <div class="two-column-image-large">
+            <h2 class="slide-title">Backend-Architektur und Datenfluss</h2>
+            <div class="three-column">
+              <div class="image-box">
+                <img src="../assets/API.png" alt="REST-API Architecture" class="api-image">
+              </div>
               <div>
                 <p class="description">
-                  <i class="fa-solid fa-check text-vuegreen"></i> <strong>REST-API Verbindung zwischen Frontend und Backend</strong>
+                  Das Backend basiert auf <strong>Node.js und Express</strong> und folgt einer klar strukturierten Architektur.
                 </p>
                 <p class="description">
-                  Kommunikation erfolgt über HTTP-Methoden:
+                  <strong>Die Hauptbestandteile sind:</strong>
                 </p>
                 <ul>
-                  <li><strong>GET</strong> → Daten abrufen</li>
-                  <li><strong>POST</strong> → Neue Daten erstellen</li>
-                  <li><strong>PUT</strong> → Daten aktualisieren</li>
-                  <li><strong>DELETE</strong> → Daten löschen</li>
+                  <li><strong>REST-API (Routes):</strong> Definition der Endpunkte und Verarbeitung von JSON-Anfragen</li>
+                  <li><strong>Controller & Service-Schicht:</strong> Verarbeitung der Geschäftslogik und Trennung der Verantwortlichkeiten</li>
+                  <li><strong>Datenbankverbindung (Mongoose):</strong> Zugriff auf die MongoDB-Datenbank</li>
                 </ul>
                 <p class="description">
-                  Frontend nutzt Axios für API-Aufrufe
+                  Die Daten werden in einer <strong>MongoDB Atlas Cloud-Datenbank</strong> gespeichert.
                 </p>
                 <p class="description">
-                  <i class="fa-solid fa-check text-vuegreen"></i> <strong>Vorteile:</strong>
+                  Sensible Konfigurationsdaten (z. B. Zugangsdaten, Tokens) werden in einer <strong>.env-Datei</strong> verwaltet, um Sicherheit und Wartbarkeit zu gewährleisten.
                 </p>
-                <ul>
-                  <li>Klare Trennung von UI und Logik</li>
-                  <li>Einfache Erweiterbarkeit</li>
-                  <li>Strukturierte Datenverarbeitung im Backend</li>
-                </ul>
+                <p class="description">
+                  Der Datenfluss erfolgt zentral über das Backend, welches alle Anfragen verarbeitet und die Daten konsistent in der Datenbank speichert.
+                </p>
               </div>
               <div class="image-box">
-                <img src="../assets/backFront.png" alt="REST-API Architecture" class="api-image">
+                <img src="../assets/Mongo.png" alt="MongoDB Architecture" class="api-image">
               </div>
             </div>
           </div>
@@ -212,37 +212,37 @@
             </div>
           </div>
 
-          <!-- FOLIE 8: Backend-Architektur und Datenfluss -->
+          <!-- FOLIE 8: REST-API & Kommunikation -->
           <div v-else-if="currentSlide === 7" class="layout-content">
-            <h2 class="slide-title">Backend-Architektur und Datenfluss</h2>
-            <div class="three-column">
-              <div class="image-box">
-                <img src="../assets/API.png" alt="REST-API Architecture" class="api-image">
-              </div>
+            <h2 class="slide-title">REST-API &amp; Kommunikation</h2>
+            <div class="two-column-image-large">
               <div>
                 <p class="description">
-                  Das Backend basiert auf <strong>Node.js und Express</strong> und folgt einer klar strukturierten Architektur.
+                  <i class="fa-solid fa-check text-vuegreen"></i> <strong>REST-API Verbindung zwischen Frontend und Backend</strong>
                 </p>
                 <p class="description">
-                  <strong>Die Hauptbestandteile sind:</strong>
+                  Kommunikation erfolgt über HTTP-Methoden:
                 </p>
                 <ul>
-                  <li><strong>REST-API (Routes):</strong> Definition der Endpunkte und Verarbeitung von JSON-Anfragen</li>
-                  <li><strong>Controller & Service-Schicht:</strong> Verarbeitung der Geschäftslogik und Trennung der Verantwortlichkeiten</li>
-                  <li><strong>Datenbankverbindung (Mongoose):</strong> Zugriff auf die MongoDB-Datenbank</li>
+                  <li><strong>GET</strong> → Daten abrufen</li>
+                  <li><strong>POST</strong> → Neue Daten erstellen</li>
+                  <li><strong>PUT</strong> → Daten aktualisieren</li>
+                  <li><strong>DELETE</strong> → Daten löschen</li>
                 </ul>
                 <p class="description">
-                  Die Daten werden in einer <strong>MongoDB Atlas Cloud-Datenbank</strong> gespeichert.
+                  Frontend nutzt Axios für API-Aufrufe
                 </p>
                 <p class="description">
-                  Sensible Konfigurationsdaten (z. B. Zugangsdaten, Tokens) werden in einer <strong>.env-Datei</strong> verwaltet, um Sicherheit und Wartbarkeit zu gewährleisten.
+                  <i class="fa-solid fa-check text-vuegreen"></i> <strong>Vorteile:</strong>
                 </p>
-                <p class="description">
-                  Der Datenfluss erfolgt zentral über das Backend, welches alle Anfragen verarbeitet und die Daten konsistent in der Datenbank speichert.
-                </p>
+                <ul>
+                  <li>Klare Trennung von UI und Logik</li>
+                  <li>Einfache Erweiterbarkeit</li>
+                  <li>Strukturierte Datenverarbeitung im Backend</li>
+                </ul>
               </div>
               <div class="image-box">
-                <img src="../assets/Mongo.png" alt="MongoDB Architecture" class="api-image">
+                <img src="../assets/backFront.png" alt="REST-API Architecture" class="api-image">
               </div>
             </div>
           </div>
@@ -532,31 +532,30 @@ import liveImage from '../assets/image01.png';
 
 // Index der aktuellen Folie (0-basiert)
 const currentSlide = ref(0);
-const totalSlides = 20;
+const totalSlides = 19;
 const slideCanvas = ref(null);
 const demoFrameUrl = `${window.location.origin}/login`;
 
 const slides = [
   { id: 'slide1', category: 'Diplomarbeit • HTL IT 2026', layout: 'title' },
   { id: 'slide2-problem', category: 'Problem und Ziel', layout: 'problem' },
-  { id: 'slide2-defizite', category: 'Ausgangslage & Defizite', layout: 'defizite' },
-  { id: 'slide3-frontend', category: 'Frontend', layout: 'frontend' },
-  { id: 'slide3-structure', category: 'Frontend Überblick', layout: 'frontend-overview' },
-  { id: 'slide-roles', category: 'Rollen & Berechtigungen', layout: 'roles' },
-  { id: 'slide-auth', category: 'REST-API & Kommunikation', layout: 'api' },
-  { id: 'slide-auth', category: 'Authentifizierung & Zugriffskontrolle', layout: 'security' },
-  { id: 'slide-backend', category: 'Backend-Architektur', layout: 'backend' },
-  { id: 'slide3-structure', category: 'Projektstruktur', layout: 'structure' },
-  { id: 'slide3-routing', category: 'Routing & Security', layout: 'routing' },
-  { id: 'slide15', category: '02 / IT-Security & Middleware', layout: 'security-limit' },
-  { id: 'slide13', category: '03 / Controllers & Business-Logik', layout: 'section' },
-  { id: 'slide14', category: '03 / Controllers & Business-Logik', layout: 'controller-leave' },
-  { id: 'slide15', category: '03 / Controllers & Business-Logik', layout: 'controller-rest' },
-  { id: 'slide16', category: '04 / DevOps & Deployment', layout: 'section' },
-  { id: 'slide17', category: '04 / DevOps & Deployment', layout: 'git' },
-  { id: 'slide18', category: '04 / DevOps & Deployment', layout: 'deployment-render' },
-  { id: 'slide19', category: '04 / DevOps & Deployment', layout: 'deployment-atlas' },
-  { id: 'slide20', category: 'Abschluss', layout: 'outro' }
+  { id: 'slide3-frontend', category: 'Frontend Technologien', layout: 'frontend' },
+  { id: 'slide4-roles', category: 'Rollen & Berechtigungen', layout: 'roles' },
+  { id: 'slide5-live', category: 'Live Vorschau', layout: 'live-view' },
+  { id: 'slide6-backend', category: 'Backend-Architektur', layout: 'backend' },
+  { id: 'slide7-auth', category: 'Authentifizierung & Zugriffskontrolle', layout: 'security' },
+  { id: 'slide8-api', category: 'REST-API & Kommunikation', layout: 'api' },
+  { id: 'slide9-structure', category: 'Projektstruktur', layout: 'structure' },
+  { id: 'slide10-routing', category: 'Routing & Security', layout: 'routing' },
+  { id: 'slide11-rate-limit', category: 'Security: Rate Limiting', layout: 'security-limit' },
+  { id: 'slide12-section', category: 'Sektion 03', layout: 'section' },
+  { id: 'slide13-controller-leave', category: 'leaveRequestController.js', layout: 'controller-leave' },
+  { id: 'slide14-controller-rest', category: 'REST-Konventionen', layout: 'controller-rest' },
+  { id: 'slide15-section', category: 'Sektion 04', layout: 'section' },
+  { id: 'slide16-git', category: 'GitHub Workflow', layout: 'git' },
+  { id: 'slide17-deployment-render', category: 'Render.com CD', layout: 'deployment-render' },
+  { id: 'slide18-deployment-atlas', category: 'MongoDB Atlas', layout: 'deployment-atlas' },
+  { id: 'slide19-outro', category: 'Abschluss', layout: 'outro' }
 ];
 
 const nextSlide = () => {
