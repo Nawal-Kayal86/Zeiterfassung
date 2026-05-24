@@ -141,8 +141,8 @@
             </div>
           </div>
 
-          <!-- FOLIE 6: Backend-Architektur und Datenfluss -->
-          <div v-else-if="currentSlide === 5" class="layout-content">
+          <!-- FOLIE 7: Backend-Architektur und Datenfluss -->
+          <div v-else-if="currentSlide === 6" class="layout-content">
             <h2 class="slide-title">Backend-Architektur und Datenfluss</h2>
             <div class="three-column">
               <div class="image-box">
@@ -176,8 +176,8 @@
             </div>
           </div>
 
-          <!-- FOLIE 7: Authentifizierung & Zugriffskontrolle -->
-          <div v-else-if="currentSlide === 6" class="layout-content">
+          <!-- FOLIE 8: Authentifizierung & Zugriffskontrolle -->
+          <div v-else-if="currentSlide === 7" class="layout-content">
             <h2 class="slide-title">Authentifizierung &amp; Zugriffskontrolle (JWT)</h2>
             <div class="two-column-image-large">
               <div>
@@ -212,8 +212,8 @@
             </div>
           </div>
 
-          <!-- FOLIE 8: REST-API & Kommunikation -->
-          <div v-else-if="currentSlide === 7" class="layout-content">
+          <!-- FOLIE 9: REST-API & Kommunikation -->
+          <div v-else-if="currentSlide === 8" class="layout-content">
             <h2 class="slide-title">REST-API &amp; Kommunikation</h2>
             <div class="two-column-image-large">
               <div>
@@ -247,229 +247,26 @@
             </div>
           </div>
 
-          <!-- FOLIE 9: Projektstruktur (src/) -->
-          <div v-else-if="currentSlide === 8" class="layout-content">
-            <h2 class="slide-title">Projektstruktur (src/)</h2>
-            <p class="description">
-              Saubere Organisation des Quellcodes schafft Klarheit und erlaubt parallele Feature-Entwicklung.
-            </p>
-            <div class="two-column">
-              <div>
-                <h3>Ein Blick in das Quellcode-Verzeichnis:</h3>
-                <ul>
-                  <li><strong>components/:</strong> UI Widgets</li>
-                  <li><strong>views/:</strong> Ganze Seitenlayouts</li>
-                  <li><strong>composables/:</strong> Geteilte Logik (Hooks)</li>
-                  <li><strong>api/:</strong> Axios Instanz &amp; Aufrufe</li>
-                </ul>
-              </div>
-              <div class="code-box">
-                <pre><code>src/
-├─ components/
-├─ views/
-├─ composables/
-└─ api/
-</code></pre>
-              </div>
-            </div>
-            <p class="description">
-              Diese Trennung ermöglicht parallele Feature-Entwicklung ohne Merge-Konflikte.
-            </p>
-          </div>
 
-          <!-- FOLIE 10: Routing & Security -->
-          <div v-else-if="currentSlide === 9" class="layout-content">
-            <h2 class="slide-title">Routing &amp; Security</h2>
-            <p class="description">
-              Vue Router Guards schützen sensible Bereiche vor unbefugtem Zugriff direkt im Frontend.
-            </p>
-            <div class="table-view">
-              <div class="table-row table-header">
-                <span>Route</span>
-                <span>Komponente (.vue)</span>
-                <span>Berechtigung</span>
-              </div>
-              <div class="table-row">
-                <span>/login</span>
-                <span>LoginView.vue</span>
-                <span>Öffentlich</span>
-              </div>
-              <div class="table-row">
-                <span>/dashboard</span>
-                <span>DashboardView.vue</span>
-                <span>Mitarbeiter (User)</span>
-              </div>
-              <div class="table-row">
-                <span>/calendar</span>
-                <span>CalendarView.vue</span>
-                <span>Mitarbeiter (User)</span>
-              </div>
-              <div class="table-row">
-                <span>/admin</span>
-                <span>AdminOverview.vue</span>
-                <span>Administrator</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 11: Rate Limiter (security.js) -->
-          <div v-else-if="currentSlide === 10" class="layout-content">
-            <h2 class="slide-title">Security: Brute-Force Rate Limiting</h2>
-            <div class="two-column">
-              <div>
-                <h3>In-Memory Begrenzung</h3>
-                <p class="description">
-                  Zum Schutz vor unbefugten, automatisierten Loginversuchen per Wörterbuchangriff steuert eine schlanke Rate-Limiting-Logik den Zugang:
-                </p>
-                <ul>
-                  <li><strong>IP-Auflösung:</strong> Berücksichtigt Proxys durch das Auslesen des <code>x-forwarded-for</code> Headers.</li>
-                  <li><strong>Retry-After Feedback:</strong> Teilt betroffenen Clients bei Überschreitung (mehr als 5 Fehlversuche) die exakte verbleibende Wartezeit via HTTP-Header und Status 429 mit.</li>
-                </ul>
-              </div>
-              <div class="code-box">
-                <pre><code><span class="code-keyword">if</span> (currentEntry &amp;&amp; currentEntry.count &gt;= MAX_ATTEMPTS) {
-  res.setHeader(<span class="code-string">"Retry-After"</span>, retryAfterSeconds);
-  <span class="code-keyword">return</span> res.status(<span class="code-number">429</span>).json({
-    error: <span class="code-string">"Zu viele Login-Versuche. Bitte spaeter."</span>
-  });
-}</code></pre>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 12: Sektion 3 Trenner -->
-          <div v-else-if="currentSlide === 11" class="layout-section">
-            <span class="section-badge">SEKTION 03</span>
-            <h1 class="section-title">
-              Controllers &amp;<br />
-              <span class="text-gradient">Business-Logik</span>
-            </h1>
-            <p class="section-desc">
-              Präsentation des Controller-Service-Patterns, rollenbasierter API-Validierungen und REST-Konventionen.
-            </p>
-          </div>
-
-          <!-- FOLIE 13: leaveRequestController.js -->
-          <div v-else-if="currentSlide === 12" class="layout-content">
-            <h2 class="slide-title">Controller: leaveRequestController.js</h2>
-            <div class="two-column">
-              <div class="code-box">
-                <pre><code><span class="code-keyword">if</span> (currentUser.role === <span class="code-string">'department_leader'</span>) {
-  <span class="code-keyword">const</span> reqst = <span class="code-keyword">await</span> LeaveRequest.findById(requestId)
-    .populate(<span class="code-string">'user'</span>).lean();
-  <span class="code-keyword">if</span> (!reqst || reqst.user.department !== currentUser.department) {
-    <span class="code-keyword">return</span> res.status(<span class="code-number">403</span>).json({ error: <span class="code-string">'Zugriff verweigert'</span> });
-  }
-}</code></pre>
-              </div>
-              <div>
-                <h3>Hierarchische Urlaubsfreigaben</h3>
-                <p class="description">
-                  Der Abwesenheits-Controller setzt die Berechtigungsstruktur des Unternehmens serverseitig durch:
-                </p>
-                <ul>
-                  <li><strong>Globale Admins:</strong> Besitzen uneingeschränkte Rechte und können alle Anträge im System verwalten.</li>
-                  <li><strong>Abteilungsleiter:</strong> Dürfen Anträge ausschließlich bearbeiten und einsehen, wenn der betroffene Mitarbeiter derselben Abteilung (<code>department</code>) zugeordnet ist.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 14: REST Konventionen -->
-          <div v-else-if="currentSlide === 13" class="layout-content">
-            <h2 class="slide-title">REST-Konventionen &amp; Services</h2>
-            <div class="two-column">
-              <div>
-                <h3>Saubere API-Spezifikation</h3>
-                <p class="description">
-                  Unsere Controller delegieren die Anfragen an spezialisierte Services und liefern standardisierte API-Antworten zurück:
-                </p>
-                <ul>
-                  <li><strong>Entkopplung:</strong> Controller enthalten keine Datenbankabfragen, sondern mappen Transport- auf Business-Objekte.</li>
-                  <li><strong>HTTP 201 Created:</strong> Liefert nach der Erstellung den Ressourcenpfad über den standardisierten Location-Header zurück.</li>
-                </ul>
-              </div>
-              <div class="code-box">
-                <pre><code><span class="code-keyword">export async function</span> <span class="code-func">createDepartmentController</span>(req, res) {
-  <span class="code-keyword">const</span> createdDepartment = <span class="code-keyword">await</span> <span class="code-func">createDepartment</span>(req.body);
-  <span class="code-func">sendCreated</span>(
-    req, res, createdDepartment,
-    <span class="code-string">`\${req.baseUrl}/\${createdDepartment.department.id}`</span>
-  );
-}</code></pre>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 15: Sektion 4 Trenner -->
-          <div v-else-if="currentSlide === 14" class="layout-section">
+          <!-- FOLIE 6: Sektion 4 Trenner -->
+          <div v-else-if="currentSlide === 5" class="layout-section">
+            <img src="../assets/github.png" alt="GitHub Logo" class="section-image" />
             <span class="section-badge">SEKTION 04</span>
             <h1 class="section-title">
               DevOps &amp;<br />
               <span class="text-gradient">Deployment</span>
             </h1>
+            <div class="section-subtitles">
+              <span>GitHub-Repository &amp; Git-Workflow</span>
+              <span>CI/CD-Pipeline auf Render.com</span>
+            </div>
             <p class="section-desc">
               Die Git-Zusammenarbeitsregeln, Continuous Deployment-Pipelines und Cloud-Infrastrukturen in der Übersicht.
             </p>
           </div>
 
-          <!-- FOLIE 16: GitHub Git-Workflow -->
-          <div  v-else-if="currentSlide === 15" class="layout-content">
-            <h2 class="slide-title">GitHub-Repository &amp; Git-Workflow</h2>
-            <div class="two-column">
-              <div>
-                <p class="description">
-                  Die Zusammenarbeit im Entwicklungsteam stützt sich auf etablierte Qualitätsrichtlinien (GitHub Flow):
-                </p>
-                <ul>
-                  <li><i class="fa-solid fa-code-branch text-vuegreen"></i> <strong>Feature Branches:</strong> Jede Funktion wird getrennt und isoliert entwickelt (z.B. <code>feature/security-hardening</code>).</li>
-                  <li><i class="fa-solid fa-lock text-vuegreen"></i> <strong>Protected Main:</strong> Direkte Commits auf den Produktionszweig sind systemweit gesperrt.</li>
-                  <li><i class="fa-solid fa-code-compare text-vuegreen"></i> <strong>Pull Requests:</strong> Merges erfordern Code-Reviews und die Validierung lokaler Tests.</li>
-                </ul>
-              </div>
-              <div class="git-diagram">
-                <div class="git-branch main-branch">
-                  <span class="branch-dot"></span>
-                  <span class="branch-name">main (Production)</span>
-                </div>
-                <div class="git-arrow-down"></div>
-                <div class="git-branch feature-branch">
-                  <span class="branch-dot feature-dot"></span>
-                  <span class="branch-name">feature/security-hardening</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 17: Render.com CD -->
-          <div v-else-if="currentSlide === 16" class="layout-content">
-            <h2 class="slide-title">CI/CD-Pipeline auf Render.com</h2>
-            <div class="two-column">
-              <div class="code-box">
-                <div class="command-block">
-                  <span class="comment"># Build Command</span><br>
-                  <span class="command">npm install &amp;&amp; npm run build</span>
-                </div>
-                <div class="command-block mt-4">
-                  <span class="comment"># Start Command</span><br>
-                  <span class="command">node backend/server.js</span>
-                </div>
-              </div>
-              <div>
-                <h3>Automatisierte Cloud-Auslieferung</h3>
-                <p class="description">
-                  Unsere Live-Instanz ist direkt an das GitHub-Repository angebunden und liefert Änderungen vollautomatisch aus:
-                </p>
-                <ul>
-                  <li><strong>Web-Trigger:</strong> Jeder erfolgreiche PR-Merge auf den <code>main</code>-Zweig startet die Cloud-Build-Pipeline.</li>
-                  <li><strong>Zero-Downtime Deployment:</strong> Die alte Serverinstanz bleibt solange aktiv, bis der neue Build den automatischen System-Healthcheck besteht.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- FOLIE 18: MongoDB Atlas Cloud-Infrastruktur -->
-          <div v-else-if="currentSlide === 17" class="layout-content">
+          <!-- FOLIE 10: MongoDB Atlas Cloud-Infrastruktur -->
+          <div v-else-if="currentSlide === 9" class="layout-content">
             <h2 class="slide-title">Cloud-Infrastruktur: MongoDB Atlas</h2>
             <div class="three-column">
               <div class="info-card border-success text-center">
@@ -490,8 +287,8 @@
             </div>
           </div>
 
-          <!-- FOLIE 19: Outro & Fragen -->
-          <div v-else-if="currentSlide === 18" class="layout-outro">
+          <!-- FOLIE 11: Outro & Fragen -->
+          <div v-else-if="currentSlide === 10" class="layout-outro">
             <h1 class="outro-heading">
               Vielen Dank für Ihre <span class="text-gradient">Aufmerksamkeit!</span>
             </h1>
@@ -532,7 +329,7 @@ import liveImage from '../assets/image01.png';
 
 // Index der aktuellen Folie (0-basiert)
 const currentSlide = ref(0);
-const totalSlides = 19;
+const totalSlides = 11;
 const slideCanvas = ref(null);
 const demoFrameUrl = `${window.location.origin}/login`;
 
@@ -542,20 +339,12 @@ const slides = [
   { id: 'slide3-frontend', category: 'Frontend Technologien', layout: 'frontend' },
   { id: 'slide4-roles', category: 'Rollen & Berechtigungen', layout: 'roles' },
   { id: 'slide5-live', category: 'Live Vorschau', layout: 'live-view' },
-  { id: 'slide6-backend', category: 'Backend-Architektur', layout: 'backend' },
-  { id: 'slide7-auth', category: 'Authentifizierung & Zugriffskontrolle', layout: 'security' },
-  { id: 'slide8-api', category: 'REST-API & Kommunikation', layout: 'api' },
-  { id: 'slide9-structure', category: 'Projektstruktur', layout: 'structure' },
-  { id: 'slide10-routing', category: 'Routing & Security', layout: 'routing' },
-  { id: 'slide11-rate-limit', category: 'Security: Rate Limiting', layout: 'security-limit' },
-  { id: 'slide12-section', category: 'Sektion 03', layout: 'section' },
-  { id: 'slide13-controller-leave', category: 'leaveRequestController.js', layout: 'controller-leave' },
-  { id: 'slide14-controller-rest', category: 'REST-Konventionen', layout: 'controller-rest' },
-  { id: 'slide15-section', category: 'Sektion 04', layout: 'section' },
-  { id: 'slide16-git', category: 'GitHub Workflow', layout: 'git' },
-  { id: 'slide17-deployment-render', category: 'Render.com CD', layout: 'deployment-render' },
-  { id: 'slide18-deployment-atlas', category: 'MongoDB Atlas', layout: 'deployment-atlas' },
-  { id: 'slide19-outro', category: 'Abschluss', layout: 'outro' }
+  { id: 'slide6-section', category: 'Sektion 04', layout: 'section' },
+  { id: 'slide7-backend', category: 'Backend-Architektur', layout: 'backend' },
+  { id: 'slide8-auth', category: 'Authentifizierung & Zugriffskontrolle', layout: 'security' },
+  { id: 'slide9-api', category: 'REST-API & Kommunikation', layout: 'api' },
+  { id: 'slide10-deployment-atlas', category: 'MongoDB Atlas', layout: 'deployment-atlas' },
+  { id: 'slide11-outro', category: 'Abschluss', layout: 'outro' }
 ];
 
 const nextSlide = () => {
@@ -1180,6 +969,27 @@ onUnmounted(() => {
   padding: 12px 25px;
   border-radius: 8px;
   width: 220px;
+}
+
+.section-image {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  margin-bottom: 24px;
+}
+
+.section-subtitles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0 0;
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.section-subtitles span {
+  display: block;
 }
 
 .branch-dot {
