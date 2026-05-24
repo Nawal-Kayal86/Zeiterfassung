@@ -249,41 +249,53 @@
 
 
           <!-- FOLIE 6: Sektion 4 Trenner -->
-          <div v-else-if="currentSlide === 5" class="layout-section">
-            <img src="../assets/github.png" alt="GitHub Logo" class="section-image" />
-            <span class="section-badge">SEKTION 04</span>
-            <h1 class="section-title">
-              DevOps &amp;<br />
-              <span class="text-gradient">Deployment</span>
-            </h1>
-            <div class="section-subtitles">
-              <span>GitHub-Repository &amp; Git-Workflow</span>
-              <span>CI/CD-Pipeline auf Render.com</span>
+          <div v-else-if="currentSlide === 5" class="layout-content">
+            <h2 class="slide-title">DevOps &amp; Deployment</h2>
+            <div class="two-column-image-large">
+              <div>
+                <p class="description">
+                  <strong>GitHub-Repository &amp; Git-Workflow</strong>
+                </p>
+                <p class="description">
+                  <strong>CI/CD-Pipeline auf Render.com</strong>
+                </p>
+                <ul>
+                  <li><strong>Automatisches Deployment</strong> bei jedem Merge in den Main-Branch</li>
+                  <li><strong>Branch-Workflow</strong> für saubere Versionskontrolle und Teamarbeit</li>
+                  <li><strong>Environment Variables</strong> schützen sensible Daten im Deployment</li>
+                </ul>
+                <p class="description">
+                  Die Git-Zusammenarbeitsregeln, Continuous Deployment-Pipelines und Cloud-Infrastrukturen in der Übersicht.
+                </p>
+              </div>
+              <div class="image-box">
+                <img src="../assets/github.png" alt="GitHub Logo" class="api-image" />
+              </div>
             </div>
-            <p class="section-desc">
-              Die Git-Zusammenarbeitsregeln, Continuous Deployment-Pipelines und Cloud-Infrastrukturen in der Übersicht.
-            </p>
           </div>
 
           <!-- FOLIE 10: MongoDB Atlas Cloud-Infrastruktur -->
-          <div v-else-if="currentSlide === 9" class="layout-content">
-            <h2 class="slide-title">Cloud-Infrastruktur: MongoDB Atlas</h2>
-            <div class="three-column">
-              <div class="info-card border-success text-center">
-                <div class="card-icon text-vuegreen"><i class="fa-solid fa-cloud"></i></div>
-                <h3>Verteilter Cluster</h3>
-                <p>Gehostet im managed Cloud-Netzwerk mit automatischen Backups &amp; Sharding-Optionen.</p>
+          <div v-else-if="currentSlide === 9" class="layout-outro">
+            <h1 class="outro-heading">Cloud-Infrastruktur: MongoDB Atlas</h1>
+            <p class="outro-sub">
+              Verwaltet, sicher und skalierbar mit automatischem Backup, IP-Whitelist und verschlüsselter Verbindung.
+            </p>
+            <div class="outro-badges">
+              <div class="outro-badge">
+                <i class="fa-solid fa-cloud"></i>
+                Verteilter Cluster
               </div>
-              <div class="info-card border-indigo text-center">
-                <div class="card-icon text-indigo"><i class="fa-solid fa-network-wired"></i></div>
-                <h3>IP-Sperre</h3>
-                <p>Der Datenbankzugriff ist streng limitiert und erlaubt nur Whitelist-Anfragen von Render.com.</p>
+              <div class="outro-badge">
+                <i class="fa-solid fa-network-wired"></i>
+                IP-Whitelist
               </div>
-              <div class="info-card border-emerald text-center">
-                <div class="card-icon text-emerald"><i class="fa-solid fa-key"></i></div>
-                <h3>Secure URI</h3>
-                <p>Der Verbindungsaufbau erfolgt verschlüsselt über in der Cloud hinterlegte Environment Variables (<code>MONGODB_URI</code>).</p>
+              <div class="outro-badge">
+                <i class="fa-solid fa-key text-emerald"></i>
+                Secure URI
               </div>
+            </div>
+            <div class="image-box" style="max-width: 520px; width: 100%;">
+              <img src="../assets/Mongo2.png" alt="MongoDB Atlas" class="api-image">
             </div>
           </div>
 
