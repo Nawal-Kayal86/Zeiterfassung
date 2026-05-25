@@ -294,7 +294,7 @@
                 Secure URI
               </div>
             </div>
-            <div class="image-box" style="max-width: 520px; width: 100%;">
+            <div class="image-box" style="width: 100%;">
               <img src="../assets/Mongo2.png" alt="MongoDB Atlas" class="final-slide-image">
             </div>
           </div>
