@@ -275,28 +275,10 @@
           </div>
 
           <!-- FOLIE 10: MongoDB Atlas Cloud-Infrastruktur -->
-          <div v-else-if="currentSlide === 9" class="layout-outro">
-            <h1 class="outro-heading">Cloud-Infrastruktur: MongoDB Atlas</h1>
-            <p class="outro-sub">
-              Verwaltet, sicher und skalierbar mit automatischem Backup, IP-Whitelist und verschlüsselter Verbindung.
-            </p>
-            <div class="outro-badges">
-              <div class="outro-badge">
-                <i class="fa-solid fa-cloud"></i>
-                Herausforderungen
-              </div>
-              <div class="outro-badge">
-                <i class="fa-solid fa-network-wired"></i>
-                Lösungen
-              </div>
-              <div class="outro-badge">
-                <i class="fa-solid fa-key text-emerald"></i>
-                Fazit&Architektur
-              </div>
-            </div>
-            <div class="image-box mongo-full">
-              <img src="../assets/Mongo2.png" alt="MongoDB Atlas" class="final-slide-image">
-            </div>
+
+
+          <div v-else-if="currentSlide === 9" class="layout-fullscreen-image">
+            <img src="../assets/Mongo2.png" alt="" class="fullscreen-img">
           </div>
 
           <!-- FOLIE 11: Outro & Fragen -->
@@ -306,10 +288,32 @@
             </h1>
             <p class="outro-sub">Wir freuen uns auf Ihre Fragen und die gemeinsame Diskussion.</p>
             <div class="outro-badges">
-              <div class="outro-badge"><i class="fa-brands fa-github"></i> github.com/htl-it/zeiterfassung</div>
-              <div class="outro-badge"><i class="fa-solid fa-server text-vuegreen"></i> zeiterfassung.onrender.com</div>
+              <a
+                class="outro-badge"
+                href="https://github.com/Nawal-Kayal86/Zeiterfassung"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <i class="fa-brands fa-github"></i>
+                GitHub Repository
+              </a>
+              <div class="outro-badge qr-badge">
+                <img src="../assets/qrcode_github.com.png" alt="GitHub QR Code" class="qrcode">
+              </div>
+              <a
+                class="outro-badge"
+                href="https://zeiterfassung-mh87.onrender.com/login"
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <i class="fa-solid fa-server text-vuegreen"></i>
+                Live Demo
+              </a>
+              <div class="outro-badge qr-badge">
+                <img src="../assets/qrcode_zeiterfassung-mh87.onrender.com.png" alt="Render QR Code" class="qrcode">
+              </div>
             </div>
-            <div class="text-gradient">
+            <div class="text-gradient outro-footer">
               Ahmad Alalan &amp; Nawal Kayal &bull; HTL IT Diplomarbeit 2026
             </div>
           </div>
@@ -922,26 +926,15 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-
-  width: 100%;
-  max-width: 1400px;
-
-  height: auto;
+  height: calc(100vh - 250px);
 }
 
-.final-slide-image {
-  width: 100%;
-  height: 72vh;
-  object-fit: contain;
-}
-
-.mongo-full {
+.api-image {
   width: 100%;
   max-width: 100%;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 .role-image {
