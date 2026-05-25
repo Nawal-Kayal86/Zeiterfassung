@@ -922,15 +922,11 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(100vh - 250px);
-}
 
-.api-image {
   width: 100%;
-  max-width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: 8px;
+  max-width: 1400px;
+
+  height: auto;
 }
 
 .final-slide-image {
