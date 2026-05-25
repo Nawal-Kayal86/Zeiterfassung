@@ -75,7 +75,7 @@
                 <ul>
                   <li>Modernes JavaScript Framework</li>
                   <li>Komponentenbasierte Entwicklung</li>
-                  <li>Reaktive Datenbindung</li>
+                  <li>Src - Komponenten - Layout - Router</li>
                 </ul>
                 <h3>Bootstrap 5</h3>
                 <ul>
@@ -97,7 +97,7 @@
           <div v-else-if="currentSlide === 3" class="layout-content">
             <h2 class="slide-title">Rollen &amp; Berechtigungen</h2>
             <p class="description">
-              <i class="bi-people text-vuegreen"></i> <strong>Welche Rollen sehen die Mitarbeiter?</strong>
+              <i class="bi-people text-vuegreen"></i> <strong>Welche Rollen sehen die Mitarbeiter? </strong> <strong>Die Navigation ist rollenbasiert.</strong> 
             </p>
             <div class="three-column">
               <div class="info-card border-success text-center">
@@ -417,7 +417,7 @@ onUnmounted(() => {
   --bg-secondary: #0f172a;
   --bg-card: rgba(30, 41, 59, 0.4);
   --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  --text-muted: #ffffff;
   --color-primary: #6366f1; /* Indigo Accent */
   --color-vuegreen: #42b883; /* Vue Green */
   --color-danger: #ef4444;
