@@ -283,18 +283,18 @@
             <div class="outro-badges">
               <div class="outro-badge">
                 <i class="fa-solid fa-cloud"></i>
-                Verteilter Cluster
+                Herausforderungen
               </div>
               <div class="outro-badge">
                 <i class="fa-solid fa-network-wired"></i>
-                IP-Whitelist
+                Lösungen
               </div>
               <div class="outro-badge">
                 <i class="fa-solid fa-key text-emerald"></i>
-                Secure URI
+                Fazit&Architektur
               </div>
             </div>
-            <div class="image-box" style="width: 100%;">
+            <div class="image-box mongo-full">
               <img src="../assets/Mongo2.png" alt="MongoDB Atlas" class="final-slide-image">
             </div>
           </div>
@@ -931,9 +931,17 @@ onUnmounted(() => {
 
 .final-slide-image {
   width: 100%;
-  max-width: 1200px;
-  height: auto;
+  height: 72vh;
   object-fit: contain;
+}
+
+.mongo-full {
+  width: 100%;
+  max-width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .role-image {
