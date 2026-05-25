@@ -295,7 +295,7 @@
               </div>
             </div>
             <div class="image-box" style="max-width: 520px; width: 100%;">
-              <img src="../assets/Mongo2.png" alt="MongoDB Atlas" class="api-image">
+              <img src="../assets/Mongo2.png" alt="MongoDB Atlas" class="final-slide-image">
             </div>
           </div>
 
@@ -931,6 +931,13 @@ onUnmounted(() => {
   height: 100%;
   object-fit: contain;
   border-radius: 8px;
+}
+
+.final-slide-image {
+  width: 100%;
+  max-width: 1200px;
+  height: auto;
+  object-fit: contain;
 }
 
 .role-image {
