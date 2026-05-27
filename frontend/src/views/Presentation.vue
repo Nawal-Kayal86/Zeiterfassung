@@ -61,36 +61,10 @@
           </div>
 
           <!-- FOLIE 3: Frontend Technologien -->
-          <div v-else-if="currentSlide === 2" class="layout-content">
-            <h2 class="slide-title">Frontend Technologien</h2>
-            <p class="description">
-              <i class="fa-solid fa-bolt text-vuegreen"></i> <strong>Verwendete Technologien</strong>
-            </p>
-            <div class="two-column">
-              <div class="image-box">
-                <img src="../assets/vue.png" alt="Vue.js" class="api-image">
-              </div>
+          <div v-else-if="currentSlide === 2" class="layout-fullscreen-image">
               <div>
-                <h3>Vue 3</h3>
-                <ul>
-                  <li>Modernes JavaScript Framework</li>
-                  <li>Komponentenbasierte Entwicklung</li>
-                  <li>Src - Komponenten - Layout - Router</li>
-                </ul>
-                <h3>Bootstrap 5</h3>
-                <ul>
-                  <li>Responsives Design (Mobile-First)</li>
-                  <li>Vorgefertigte UI-Komponenten</li>
-                  <li>Einheitliches Layout</li>
-                </ul>
-                <h3>Vue Router</h3>
-                <ul>
-                  <li>Navigation zwischen Seiten (Single Page Application)</li>
-                  <li>Dynamisches Routing</li>
-                  <li>Übersichtliche Struktur der Anwendung</li>
-                </ul>
+                <img src="../assets/vue.png" alt="Vue.js" class="fullscreen-img">
               </div>
-            </div>
           </div>
 
           <!-- FOLIE 4: Rollen & Berechtigungen -->
