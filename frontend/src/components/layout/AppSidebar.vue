@@ -58,7 +58,7 @@ const navigationItems = [
   { to: "/billing", label: "Abrechnung", icon: "bi bi-receipt-cutoff" },
   { to: "/leave-request", label: "Urlaubskonto", icon: "bi bi-sun-fill" },
   { to: "/errors", label: "Fehlerprotokoll", icon: "bi bi-exclamation-triangle-fill" },
-  { to: "/terminal", label: "Terminal", icon: "bi bi-pc-display-horizontal" },
+  // { to: "/terminal", label: "Terminal", icon: "bi bi-pc-display-horizontal" },
   { to: "/workflow", label: "Arzttermine", icon: "bi bi-hospital" },
   { to: "/schedule", label: "Dienstplan", icon: "bi bi-calendar-date-fill" },
   { to: "/reports", label: "Berichte", icon: "bi bi-graph-up-arrow", adminOnly: true },
