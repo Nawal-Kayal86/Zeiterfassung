@@ -45,4 +45,3 @@ npm run dev
 - NFC ist als Platzhalter implementiert. Für Web-NFC auf Android kannst du später die Web NFC API einbauen.
 - Diese Vorlage ist minimal und für Entwicklung / Demo gedacht. Bitte ergänze Authentifizierung (JWT/Password hashing), Validierung, Fehlerbehandlung und Produktionseinstellungen, bevor du es produktiv nutzt.
 
-mysql -u sql7803601 -p -h sql7.freesqldatabase.com sql7803601
